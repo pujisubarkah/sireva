@@ -1,4 +1,4 @@
-interface UserStatusBadgeProps {
+interface StatusBadgeProps {
   status: string;
 }
 
@@ -10,7 +10,7 @@ const statusMap: Record<string, { bg: string; text: string }> = {
   "PERLU ATENSI": { bg: "bg-pink-100", text: "text-pink-700" },
 };
 
-export default function UserStatusBadge({ status }: UserStatusBadgeProps) {
+export default function StatusBadge({ status }: StatusBadgeProps) {
   const key = status.trim().toUpperCase();
   const style = statusMap[key] || { bg: "bg-gray-100", text: "text-gray-500" };
   return (

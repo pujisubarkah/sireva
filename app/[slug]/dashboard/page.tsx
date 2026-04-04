@@ -1,21 +1,20 @@
 
-import UserLayout from "../components/UserLayout";
-import ExecutiveInfoCards from "../../../src/components/ExecutiveInfoCards";
-import SummaryCardsRow from "../../../src/components/SummaryCardsRow";
-import UnitProgressTable from "../../../src/components/UnitProgressTable";
-import PerformanceTrendCard from "../../../src/components/PerformanceTrendCard";
-import RecentActivityCard from "../../../src/components/RecentActivityCard";
+import LayoutShell from "@/components/LayoutShell";
+import PageHeader from "@/components/PageHeader";
+import ExecutiveInfoCards from "@/components/ExecutiveInfoCards";
+import SummaryCardsRow from "@/components/SummaryCardsRow";
+import UnitProgressTable from "@/components/UnitProgressTable";
+import PerformanceTrendCard from "@/components/PerformanceTrendCard";
+import RecentActivityCard from "@/components/RecentActivityCard";
 
-export default function UserDashboardPage() {
+export default function DashboardPage() {
   return (
-    <UserLayout>
-      <div className="min-h-screen bg-[#f6f8fa] px-8 py-10">
-        {/* Header */}
-        <div className="max-w-screen-xl mx-auto mb-10">
-          <h1 className="text-3xl font-extrabold text-blue-900 tracking-tight">Dashboard Unit Kerja</h1>
-          <p className="text-gray-500 text-base mt-2">Ringkasan integrasi perencanaan dan capaian kinerja LAN RI Tahun 2026.</p>
-        </div>
-        <div className="max-w-screen-xl mx-auto">
+    <LayoutShell>
+      <PageHeader 
+        title="Dashboard Unit Kerja" 
+        description="Ringkasan integrasi perencanaan dan capaian kinerja LAN RI Tahun 2026." 
+      />
+      <div>
           {/* Info Cards Row */}
           <ExecutiveInfoCards role="user" />
           {/* Summary Cards Row */}
@@ -29,10 +28,8 @@ export default function UserDashboardPage() {
               <RecentActivityCard role="user" />
             </div>
           </div>
-          {/* Table Section */}
           <UnitProgressTable role="user" />
-        </div>
       </div>
-    </UserLayout>
+    </LayoutShell>
   );
 }

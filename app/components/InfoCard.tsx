@@ -1,6 +1,6 @@
 import React from "react";
 
-interface UserInfoCardProps {
+interface InfoCardProps {
 	title: string;
 	children: React.ReactNode;
 	accent?: "blue" | "green" | "orange";
@@ -13,7 +13,7 @@ const accentStyles = {
 	orange: "text-orange-700 border-orange-100",
 };
 
-export default function UserInfoCard({ title, children, accent = "blue", actionLabel }: UserInfoCardProps) {
+export default function InfoCard({ title, children, accent = "blue", actionLabel }: InfoCardProps) {
 	const accentClass = accentStyles[accent] || accentStyles.blue;
 	return (
 		<div className={`bg-white rounded-2xl border border-gray-200 p-6 shadow-sm mb-4`}>

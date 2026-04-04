@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
-import UserLayoutShell from "@/components/user/UserLayoutShell";
-import UserPageHeader from "@/components/user/UserPageHeader";
-import UserTableCard from "@/components/user/UserTableCard";
-import UserStatusBadge from "@/components/user/UserStatusBadge";
+import LayoutShell from "@/components/LayoutShell";
+import PageHeader from "@/components/PageHeader";
+import TableCard from "@/components/TableCard";
+import StatusBadge from "@/components/StatusBadge";
 import { IconEye, IconPencil } from "@tabler/icons-react";
 
 const data = [
@@ -41,14 +41,14 @@ const data = [
   },
 ];
 
-export default function UserSasaranStrategisPage() {
+export default function SasaranStrategisPage() {
   return (
-    <UserLayoutShell>
-      <UserPageHeader
+    <LayoutShell>
+      <PageHeader
         title="Sasaran Strategis (SS)"
         description="Peta jalan strategis dan indikator kinerja makro (Level JPT Utama)."
       />
-      <UserTableCard
+      <TableCard
         title="Daftar Sasaran Strategis"
         toolbar={
           <div className="flex gap-2">
@@ -92,7 +92,7 @@ export default function UserSasaranStrategisPage() {
             ))}
           </tbody>
         </table>
-      </UserTableCard>
-    </UserLayoutShell>
+      </TableCard>
+    </LayoutShell>
   );
 }

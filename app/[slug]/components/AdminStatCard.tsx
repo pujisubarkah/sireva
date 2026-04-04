@@ -1,4 +1,4 @@
-interface AdminStatCardProps {
+interface StatCardProps {
   title: string;
   value: string;
   subtitle?: string;
@@ -13,7 +13,7 @@ const variantStyles = {
   orange: "border-orange-500",
 };
 
-export default function AdminStatCard({ title, value, subtitle, badgeText, variant = "default" }: AdminStatCardProps) {
+export default function StatCard({ title, value, subtitle, badgeText, variant = "default" }: StatCardProps) {
   return (
     <div className={`relative bg-white rounded-2xl border border-gray-200 p-6 min-w-[180px] ${variantStyles[variant]}`.trim()}>
       {/* Badge kanan atas */}

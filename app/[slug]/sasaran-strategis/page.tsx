@@ -1,79 +1,96 @@
 "use client";
-import UserLayout from "../components/UserLayout";
-import UserPageHeader from "../../components/user/UserPageHeader";
-import UserTableCard from "../../components/user/UserTableCard";
-import UserStatusBadge from "../../components/user/UserStatusBadge";
+import LayoutShell from "@/components/LayoutShell";
+import PageHeader from "@/components/PageHeader";
+import TableCard from "@/components/TableCard";
+import { IconEdit, IconEye } from "@tabler/icons-react";
 
 const data = [
   {
-    kode: "SS-01",
-    sasaran: "Meningkatkan Kualitas Tata Kelola Lembaga",
-    iku: "NILAI SAKIP LAN",
-    target: "A",
+    id: 1,
+    sasaran_strategis: "Meningkatkan Kualitas Tata Kelola Lembaga",
+    indikator_kinerja: "Nilai SAKIP LAN",
+    target_renstra: "A",
+    target_perjanjian: "A",
     capaian: "A",
-    status: "TERCAPAI",
+    persentase: "100%",
   },
   {
-    kode: "SS-02",
-    sasaran: "Terwujudnya ASN Profesional dan Kompeten",
-    iku: "INDEKS KOMPETENSI ASN",
-    target: "85.0",
+    id: 2,
+    sasaran_strategis: "Terwujudnya ASN Profesional dan Kompeten",
+    indikator_kinerja: "Indeks Kompetensi ASN",
+    target_renstra: "85.0",
+    target_perjanjian: "85.0",
     capaian: "82.0",
-    status: "BERJALAN",
+    persentase: "96.47%",
   },
   {
-    kode: "SS-03",
-    sasaran: "Meningkatkan Inovasi Kelembagaan",
-    iku: "JUMLAH INOVASI",
-    target: "5",
+    id: 3,
+    sasaran_strategis: "Meningkatkan Inovasi Kelembagaan",
+    indikator_kinerja: "Jumlah Inovasi yang Diakui",
+    target_renstra: "5",
+    target_perjanjian: "5",
     capaian: "3",
-    status: "BERJALAN",
-  },
-  {
-    kode: "SS-04",
-    sasaran: "Meningkatkan Akuntabilitas Kinerja",
-    iku: "NILAI LAKIP",
-    target: "A",
-    capaian: "B",
-    status: "PERLU ATENSI",
+    persentase: "60%",
   },
 ];
 
-export default function UserSasaranStrategisPage() {
+export default function SasaranStrategisPage() {
   return (
-    <UserLayout>
-      <UserPageHeader
+    <LayoutShell>
+      <PageHeader
         title="Sasaran Strategis (SS)"
         description="Peta jalan strategis dan indikator kinerja makro (Level JPT Utama)."
       />
-      <UserTableCard
+      <TableCard
         title="Daftar Sasaran Strategis"
       >
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-gray-500 uppercase text-xs">
-              <th className="text-left py-1 pr-4">Kode</th>
-              <th className="text-left py-1 pr-4">Sasaran</th>
-              <th className="text-left py-1 pr-4">IKU</th>
-              <th className="text-left py-1 pr-4">Target</th>
-              <th className="text-left py-1 pr-4">Capaian</th>
-              <th className="text-left py-1">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((row) => (
-              <tr key={row.kode} className="border-b last:border-b-0">
-                <td className="font-semibold pr-4 py-2">{row.kode}</td>
-                <td className="pr-4 py-2">{row.sasaran}</td>
-                <td className="pr-4 py-2">{row.iku}</td>
-                <td className="pr-4 py-2">{row.target}</td>
-                <td className="pr-4 py-2">{row.capaian}</td>
-                <td className="py-2"><UserStatusBadge status={row.status} /></td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-gray-500 uppercase text-xs border-b border-gray-200">
+                <th className="text-left py-3 px-4 font-semibold whitespace-nowrap">No</th>
+                <th className="text-left py-3 px-4 font-semibold min-w-[200px]">Sasaran Strategis</th>
+                <th className="text-left py-3 px-4 font-semibold min-w-[200px]">Indikator Kinerja Sasaran Strategis</th>
+                <th className="text-left py-3 px-4 font-semibold whitespace-nowrap">Target Indikator Renstra</th>
+                <th className="text-left py-3 px-4 font-semibold whitespace-nowrap">Target Kinerja Perjanjian Kinerja</th>
+                <th className="text-left py-3 px-4 font-semibold whitespace-nowrap">Capaian Kinerja</th>
+                <th className="text-left py-3 px-4 font-semibold whitespace-nowrap">Persentase Capaian Kinerja</th>
+                <th className="text-center py-3 px-4 font-semibold whitespace-nowrap">Aksi</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </UserTableCard>
-    </UserLayout>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {data.map((row, index) => (
+                <tr key={row.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">{index + 1}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900">{row.sasaran_strategis}</td>
+                  <td className="px-4 py-3 text-gray-700">{row.indikator_kinerja}</td>
+                  <td className="px-4 py-3 text-gray-600">{row.target_renstra}</td>
+                  <td className="px-4 py-3 text-gray-600">{row.target_perjanjian}</td>
+                  <td className="px-4 py-3 text-gray-600">{row.capaian}</td>
+                  <td className="px-4 py-3 text-gray-600">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold ${
+                      parseFloat(row.persentase) >= 100 ? 'bg-emerald-100 text-emerald-800' : 
+                      parseFloat(row.persentase) >= 80 ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'
+                    }`}>
+                      {row.persentase}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-center gap-2">
+                      <button className="p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors" title="Lihat Detail">
+                        <IconEye size={18} stroke={2} />
+                      </button>
+                      <button className="p-1.5 bg-emerald-50 text-emerald-600 rounded-md hover:bg-emerald-100 transition-colors" title="Ubah Data">
+                        <IconEdit size={18} stroke={2} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </TableCard>
+    </LayoutShell>
   );
 }

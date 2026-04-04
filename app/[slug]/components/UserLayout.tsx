@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from "react";
-import Sidebar from "../../../src/components/Sidebar";
-import Topbar from "../../../src/components/Topbar";
+import Sidebar from "@/components/Sidebar";
+import Topbar from "@/components/Topbar";
 
-export default function UserLayout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   return (
     <div className="min-h-screen bg-[#eef2f6]">

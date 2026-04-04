@@ -1,11 +1,11 @@
-import AdminLayoutShell from "@/components/admin/AdminLayoutShell";
-import AdminPageHeader from "@/components/admin/AdminPageHeader";
-import AdminInfoCard from "@/components/admin/AdminInfoCard";
+import LayoutShell from "@/components/LayoutShell";
+import PageHeader from "@/components/PageHeader";
+import InfoCard from "@/components/InfoCard";
 
-export default function AdminVisiMisiPage() {
+export default function VisiMisiPage() {
   return (
-    <AdminLayoutShell>
-      <AdminPageHeader
+    <LayoutShell>
+      <PageHeader
         title="Visi, Misi & Tujuan"
         description="Fondasi arah kebijakan dan landasan perencanaan strategis LAN RI."
       />
@@ -21,15 +21,15 @@ export default function AdminVisiMisiPage() {
       {/* Grid 2 kolom */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Misi Organisasi */}
-        <AdminInfoCard title="Misi Organisasi" accent="blue">
+        <InfoCard title="Misi Organisasi" accent="blue">
           <ol className="list-decimal list-inside space-y-2">
             <li className="bg-gray-50 rounded-lg px-3 py-2">Meningkatkan kualitas SDM aparatur negara.</li>
             <li className="bg-gray-50 rounded-lg px-3 py-2">Mengembangkan inovasi tata kelola pemerintahan.</li>
             <li className="bg-gray-50 rounded-lg px-3 py-2">Memperkuat sistem pengawasan dan akuntabilitas.</li>
           </ol>
-        </AdminInfoCard>
+        </InfoCard>
         {/* Tujuan Strategis */}
-        <AdminInfoCard title="Tujuan Strategis" accent="orange">
+        <InfoCard title="Tujuan Strategis" accent="orange">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-gray-500 uppercase text-xs">
@@ -44,8 +44,8 @@ export default function AdminVisiMisiPage() {
               <tr><td className="font-semibold pr-4">T-04</td><td>Meningkatkan akuntabilitas kinerja</td></tr>
             </tbody>
           </table>
-        </AdminInfoCard>
+        </InfoCard>
       </div>
-    </AdminLayoutShell>
+    </LayoutShell>
   );
 }

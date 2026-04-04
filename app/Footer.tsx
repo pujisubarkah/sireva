@@ -1,7 +1,7 @@
 "use client";
 export default function Footer() {
   return (
-    <footer id="informasi" className="bg-[#08162d] text-white py-12">
+    <footer id="informasi" className="bg-blue-900 text-white py-12">
       <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl">
         {/* Brand */}
         <div>

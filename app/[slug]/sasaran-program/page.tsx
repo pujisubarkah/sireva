@@ -1,17 +1,17 @@
 "use client";
-import UserLayout from "../components/UserLayout";
-import UserPageHeader from "../../components/user/UserPageHeader";
-import UserTableCard from "../../components/user/UserTableCard";
-import UserProgressBar from "../../components/user/UserProgressBar";
+import LayoutShell from "@/components/LayoutShell";
+import PageHeader from "@/components/PageHeader";
+import TableCard from "@/components/TableCard";
+import ProgressBar from "@/components/ProgressBar";
 
-export default function UserSasaranProgramPage() {
+export default function SasaranProgramPage() {
   return (
-    <UserLayout>
-      <UserPageHeader
+    <LayoutShell>
+      <PageHeader
         title="Sasaran Program (SP)"
         description="Penjabaran strategis ke tingkat program kerja (Level JPT Pratama)."
       />
-      <UserTableCard
+      <TableCard
         title="Daftar Sasaran Program"
         toolbar={
           <select className="border border-gray-300 rounded-lg px-3 py-1 text-sm">
@@ -41,13 +41,13 @@ export default function UserSasaranProgramPage() {
               <td className="min-w-[180px]">
                 <div className="flex flex-col gap-1">
                   <span className="text-xs font-semibold text-gray-700">450 Orang / 1000 Orang</span>
-                  <UserProgressBar value={45} color="blue" />
+                  <ProgressBar value={45} color="blue" />
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
-      </UserTableCard>
-    </UserLayout>
+      </TableCard>
+    </LayoutShell>
   );
 }

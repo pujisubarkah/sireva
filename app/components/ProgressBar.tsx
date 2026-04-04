@@ -1,9 +1,9 @@
-interface UserProgressBarProps {
+interface ProgressBarProps {
 	value: number;
 	color?: "blue" | "green";
 }
 
-export default function UserProgressBar({ value, color = "blue" }: UserProgressBarProps) {
+export default function ProgressBar({ value, color = "blue" }: ProgressBarProps) {
 	const clamped = Math.max(0, Math.min(100, value));
 	const barColor = color === "green" ? "bg-emerald-500" : "bg-blue-500";
 	return (

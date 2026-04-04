@@ -1,10 +1,10 @@
-interface UserTableCardProps {
+interface TableCardProps {
   title?: string;
   toolbar?: React.ReactNode;
   children: React.ReactNode;
 }
 
-export default function UserTableCard({ title, toolbar, children }: UserTableCardProps) {
+export default function TableCard({ title, toolbar, children }: TableCardProps) {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm mb-8">
       {(title || toolbar) && (

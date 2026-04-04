@@ -11,7 +11,7 @@ const menu = [
 
 export default function Navbar() {
   return (
-    <header className="sticky top-0 z-30 bg-[#0B1F3A] h-[72px] flex items-center shadow">
+    <header className="sticky top-0 z-30 bg-blue-900 h-[72px] flex items-center shadow">
       <nav className="container mx-auto flex items-center justify-between px-6">
         <div className="text-white font-bold text-2xl tracking-wide">SI-REVA</div>
         <div className="flex items-center gap-6">
@@ -26,7 +26,7 @@ export default function Navbar() {
           ))}
           <Link
             href="/login"
-            className="ml-4 bg-white text-[#0B1F3A] font-semibold px-4 py-2 rounded-lg shadow hover:bg-gray-100 transition-colors text-sm md:text-base"
+            className="ml-4 bg-white text-blue-900 font-semibold px-4 py-2 rounded-lg shadow hover:bg-gray-100 transition-colors text-sm md:text-base"
           >
             Login
           </Link>

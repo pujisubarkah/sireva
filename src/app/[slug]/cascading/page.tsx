@@ -1,11 +1,11 @@
 "use client";
-import UserLayoutShell from "../../../../app/components/user/UserLayoutShell";
-import UserPageHeader from "@/components/user/UserPageHeader";
+import LayoutShell from "@/components/LayoutShell";
+import PageHeader from "@/components/PageHeader";
 
-export default function UserCascadingPage() {
+export default function CascadingPage() {
   return (
-    <UserLayoutShell>
-      <UserPageHeader
+    <LayoutShell>
+      <PageHeader
         title="Cascading Kinerja"
         description="Peta penurunan (alignment) sasaran dari tingkat organisasi hingga individu."
         action={
@@ -52,6 +52,6 @@ export default function UserCascadingPage() {
           </div>
         </div>
       </div>
-    </UserLayoutShell>
+    </LayoutShell>
   );
 }

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import Sidebar from "../../../src/components/Sidebar";
-import Topbar from "../../../src/components/Topbar";
+import Sidebar from "@/components/Sidebar";
+import Topbar from "@/components/Topbar";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const handleToggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 

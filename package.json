@@ -10,8 +10,9 @@
   },
   "dependencies": {
     "@idds/js": "^1.6.4",
+    "@idds/react": "^1.6.9",
     "@tabler/icons-react": "^3.41.1",
-    "@tailwindcss/vite": "^4.2.1",
+    "@tailwindcss/vite": "^4.2.2",
     "next": "16.1.7",
     "nodemailer": "^8.0.2",
     "react": "19.2.3",
@@ -25,7 +26,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.7",
-    "tailwindcss": "^4.2.1",
+    "tailwindcss": "^4.2.2",
     "typescript": "^5"
   }
 }

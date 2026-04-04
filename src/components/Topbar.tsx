@@ -5,9 +5,9 @@ interface TopbarProps {
 
 const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
   return (
-    <header className="h-[72px] bg-white border-b border-gray-200 flex items-center px-8 justify-between">
+    <header className="h-18 bg-lan-400 border-b border-gray-200 flex items-center px-8 justify-between">
       {/* Left: Hamburger + Search */}
-      <div className="flex items-center gap-4 flex-1 max-w-[420px]">
+      <div className="flex items-center gap-4 flex-1 max-w-105">
         <button
           className="mr-2 p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-800"
           aria-label="Toggle sidebar"
