@@ -1,3 +1,4 @@
+import { IconUser } from "@tabler/icons-react";
 interface UserStatCardProps {
 	title: string;
 	value: string;
@@ -27,10 +28,10 @@ const variantStyles = {
 export default function UserStatCard({ title, value, subtitle, badgeText, variant = "default" }: UserStatCardProps) {
 	const styles = variantStyles[variant] || variantStyles.default;
 	return (
-		<div className="bg-white rounded-2xl border border-gray-200 p-5 flex flex-col relative min-w-[180px] min-h-[120px] shadow-sm">
+		<div className="bg-white rounded-2xl border border-gray-200 p-5 flex flex-col relative min-w-45 min-h-[120px] shadow-sm">
 			{/* Icon area kiri atas */}
-			<div className={`absolute left-4 top-4 w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold ${styles.iconBg}`}>
-				<svg width="20" height="20" fill="none" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5"/></svg>
+			<div className={`absolute left-4 top-4 w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold`}>
+				<IconUser size={20} stroke={1.5} />
 			</div>
 			{/* Badge kanan atas */}
 			{badgeText && (

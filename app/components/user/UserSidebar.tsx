@@ -55,31 +55,21 @@ const menuItems = [
 ];
 
 export default function UserSidebar() {
-  const pathname = usePathname();
+  // Komponen ini placeholder, silakan sesuaikan dengan kebutuhan sidebar user
   return (
-    <aside className="h-screen w-[220px] bg-[#0a1834] flex flex-col justify-between py-6 px-4">
-      <nav className="flex-1">
-        <ul className="flex flex-col gap-2">
-          {menuItems.map((item) => {
-            const active = pathname === item.href;
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-3 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${active ? "bg-white text-blue-900 shadow" : "text-gray-200 hover:bg-blue-900/30"}`}
-                >
-                  <span className="w-5 h-5 flex items-center justify-center">{item.icon}</span>
-                  {item.label}
-                </Link>
-              </li>
-            );
-          })}
+    <aside className="w-64 bg-white border-r min-h-screen p-4">
+      <nav>
+        <ul className="space-y-2">
+          {menuItems.map((item) => (
+            <li key={item.href}>
+              <Link href={item.href} className="flex items-center gap-2 px-3 py-2 rounded hover:bg-blue-50 text-blue-900">
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            </li>
+          ))}
         </ul>
       </nav>
-      <div className="mt-8 flex flex-col items-center gap-2">
-        <div className="w-12 h-12 rounded-full bg-emerald-700 flex items-center justify-center text-white font-bold text-lg">SE</div>
-        <div className="text-xs text-gray-200 font-semibold">Staf Evaluator</div>
-      </div>
     </aside>
   );
 }

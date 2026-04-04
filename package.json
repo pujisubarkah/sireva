@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@idds/js": "^1.6.4",
-    "@tabler/icons-react": "^3.40.0",
+    "@tabler/icons-react": "^3.41.1",
     "@tailwindcss/vite": "^4.2.1",
     "next": "16.1.7",
     "nodemailer": "^8.0.2",
@@ -20,6 +20,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/nodemailer": "^7.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
