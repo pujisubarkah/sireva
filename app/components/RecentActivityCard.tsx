@@ -44,7 +44,7 @@ const userActivities = [
 export default function RecentActivityCard({ role }: RecentActivityCardProps) {
   const activities = role === "admin" ? adminActivities : userActivities;
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col min-h-[320px] max-h-[340px]">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col min-h-80 max-h-85">
       <div className="flex items-center gap-2 mb-4">
         <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-50">
           <svg width="18" height="18" fill="none" viewBox="0 0 20 20"><path d="M10 2v4M10 14v4M4.93 4.93l2.83 2.83M14.24 14.24l2.83 2.83M2 10h4M14 10h4M4.93 15.07l2.83-2.83M14.24 5.76l2.83-2.83" stroke="#2563eb" strokeWidth="2" strokeLinecap="round"/></svg>

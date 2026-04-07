@@ -38,7 +38,7 @@ const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
         </select>
       </div>
       {/* Right: Notif & User */}
-      <div className="flex items-center gap-5 min-w-[220px] justify-end">
+      <div className="flex items-center gap-5 min-wp-55 justify-end">
         <button className="relative p-2 rounded-full hover:bg-gray-100">
           <svg width="20" height="20" fill="none" viewBox="0 0 20 20"><path d="M10 17a2 2 0 0 0 2-2H8a2 2 0 0 0 2 2Zm6-3V9a6 6 0 1 0-12 0v5l-1 1v1h16v-1l-1-1Z" stroke="#0a1834" strokeWidth="1.5"/></svg>
         </button>

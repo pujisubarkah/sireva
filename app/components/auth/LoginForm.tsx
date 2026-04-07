@@ -73,11 +73,33 @@ export default function LoginForm() {
         <button
           className="bg-blue-900 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded-lg shadow focus:outline-none focus:shadow-outline transition-colors"
           type="button"
-          onClick={() => {
-            if ((form.username === "admin" || form.username === "user") && form.password === "12345678") {
-              setLoginStatus("success");
-              router.push(`/${form.username}/dashboard`);
-            } else {
+          onClick={async () => {
+            setLoginStatus(null);
+            try {
+              const res = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: form.username, password: form.password })
+              });
+              if (res.ok) {
+                const data = await res.json();
+                const userObj = data.user;
+                const { useUserStore } = await import("@/store/userStore");
+                useUserStore.getState().setUser({
+                  username: userObj.username,
+                  unit: userObj.unit_kerja,
+                  role: userObj.role,
+                });
+                setLoginStatus("success");
+                if (userObj.role && userObj.role.toLowerCase() === "admin") {
+                  router.push("/admin/dashboard");
+                } else {
+                  router.push("/users/dashboard");
+                }
+              } else {
+                setLoginStatus("error");
+              }
+            } catch (e) {
               setLoginStatus("error");
             }
           }}

@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from "react";
-import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import AppShell from "./AppShell";
+import { useUserStore } from "@/store/userStore";
 
 type SidebarVariant = "admin" | "user";
 
@@ -14,13 +14,14 @@ interface LayoutShellProps {
 }
 
 export default function LayoutShell({ children, sidebarVariant, showLaporanMenu = true }: LayoutShellProps) {
-  const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const handleToggleSidebar = () => setIsSidebarOpen((v) => !v);
+  const user = useUserStore((state) => state.user);
+  const hasHydrated = useUserStore((state) => state._hasHydrated);
 
-  // Auto-detect variant from URL slug if not explicitly provided
+  // Tunggu hydration selesai, lalu tentukan variant dari role
   const resolvedVariant: SidebarVariant =
-    sidebarVariant ?? (pathname.startsWith("/user/") ? "user" : "admin");
+    sidebarVariant ?? (!hasHydrated ? "admin" : user?.role && user.role.toLowerCase() !== "admin" ? "user" : "admin");
 
   return (
     <AppShell

@@ -3,6 +3,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useParams } from "next/navigation";
+import { useUserStore } from "@/store/userStore";
 import {
   IconDashboard,
   IconClipboardList,
@@ -104,14 +105,19 @@ const userMenuItems: MenuItem[] = [
   },
 ];
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, variant = "admin", showLaporan = true }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, variant, showLaporan = true }) => {
   const pathname = usePathname();
   const params = useParams();
   const slug = params.slug as string;
+  const user = useUserStore((state) => state.user);
 
-  const baseMenuItems = variant === "user" ? userMenuItems : adminMenuItems;
+  // Tentukan variant dari role zustand, kalau tidak ada pakai prop variant, default admin
+  const resolvedVariant: "admin" | "user" =
+    variant ?? (user?.role && user.role.toLowerCase() !== "admin" ? "user" : "admin");
+
+  const baseMenuItems = resolvedVariant === "user" ? userMenuItems : adminMenuItems;
   const menuItems = baseMenuItems.filter((item) => !(item.optional && !showLaporan));
-  const menuTitle = variant === "user" ? "Menu User" : "Menu Utama";
+  const menuTitle = resolvedVariant === "user" ? "Menu User" : "Menu Utama";
 
   const resolveHref = (href: string) => `/${slug}${href.slice(7)}`;
 

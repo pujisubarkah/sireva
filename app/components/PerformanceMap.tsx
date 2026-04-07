@@ -186,7 +186,7 @@ export default function PerformanceMap() {
                    </div>
 
                    {/* Sub Item 3 */}
-                   <div className="flex bg-white rounded-xl border border-amber-300 shadow-md hover:shadow-lg transition-shadow overflow-hidden h-[84px] relative group cursor-default bg-slate-50">
+                   <div className="flex rounded-xl border border-amber-300 shadow-md hover:shadow-lg transition-shadow overflow-hidden h-[84px] relative group cursor-default bg-slate-50">
                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-slate-400"></div>
                      <div className="p-4 flex-1 flex flex-col justify-center pl-5">
                        <p className="text-xs font-medium text-slate-500 leading-relaxed">Belum ada data dari rata-rata nasional</p>
@@ -203,7 +203,7 @@ export default function PerformanceMap() {
               <div className="w-1 h-10 bg-slate-300 mt-4 md:mt-0"></div>
 
               {/* Bottom Node */}
-              <div className="bg-blue-700 text-white rounded-2xl shadow-lg shadow-blue-700/20 px-8 py-3 text-center z-10 relative min-w-[280px]">
+              <div className="bg-blue-700 text-white rounded-2xl shadow-lg shadow-blue-700/20 px-8 py-3 text-center z-10 relative min-w-70">
                 <h3 className="text-lg font-bold tracking-wide">{sasaran.kode} ({activeIndikator.kode})</h3>
               </div>
             </div>

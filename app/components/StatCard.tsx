@@ -28,7 +28,7 @@ const variantStyles = {
 export default function StatCard({ title, value, subtitle, badgeText, variant = "default" }: StatCardProps) {
 	const styles = variantStyles[variant] || variantStyles.default;
 	return (
-		<div className="bg-white rounded-2xl border border-gray-200 p-5 flex flex-col relative min-w-45 min-h-[120px] shadow-sm">
+		<div className="bg-white rounded-2xl border border-gray-200 p-5 flex flex-col relative min-w-45 min-h-30 shadow-sm">
 			{/* Icon area kiri atas */}
 			<div className={`absolute left-4 top-4 w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold`}>
 				<IconUser size={20} stroke={1.5} />

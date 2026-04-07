@@ -1,9 +1,9 @@
+import React from "react";
 import LayoutShell from "@/components/LayoutShell";
 import PageHeader from "@/components/PageHeader";
 import TableCard from "@/components/TableCard";
 import { IconPlus } from "@tabler/icons-react";
 import { getVisiMisiTujuan, type VisiItem } from "@/db/queries/visi-misi-tujuan";
-import { IconEye, IconPencil } from "@tabler/icons-react";
 import VisiMisiTableClient, { TableRow } from "@/components/ui/VisiMisiTableClient";
 
 function flattenRows(items: VisiItem[]): TableRow[] {
@@ -46,7 +46,7 @@ export default async function VisiMisiPage() {
   } catch (error: unknown) {
     errorMessage = error instanceof Error ? error.message : "Gagal memuat data visi, misi, dan tujuan.";
   }
-  const VisiMisiTableClient = (await import("@/components/ui/VisiMisiTableClient")).default;
+  // Remove dynamic import, use static import above
   return (
     <LayoutShell>
       <PageHeader

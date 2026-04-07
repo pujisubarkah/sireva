@@ -3,6 +3,7 @@ import { useState } from "react";
 import { IconUser, IconLock, IconEye, IconEyeOff, IconWorld } from "@tabler/icons-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/userStore";
 
 export default function LoginForm() {
 	const [username, setUsername] = useState("");
@@ -10,23 +11,36 @@ export default function LoginForm() {
 	const [showPassword, setShowPassword] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const router = useRouter();
+	const userStore = useUserStore();
+
+	const setUser = useUserStore((state) => state.setUser);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setLoading(true);
-		// Simulasi loading
-		await new Promise((resolve) => setTimeout(resolve, 1500));
-		setLoading(false);
-		
-		if (password === "12345678") {
-			if (username.toLowerCase() === "admin" || username.toLowerCase() === "user") {
-				router.push(`/${username.toLowerCase()}/dashboard`);
-			} else {
-				alert("Gunakan username 'admin' atau 'user'.");
+		try {
+			const res = await fetch("/api/auth/login", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ username, password }),
+			});
+			const data = await res.json();
+			if (!res.ok) {
+				alert(data.error || "Login gagal.");
+				setLoading(false);
+				return;
 			}
-		} else {
-			alert("Password salah. Silakan gunakan password '12345678'.");
+			const userObj = data.user;
+			setUser({ username: userObj.username, unit: userObj.unit_kerja, role: userObj.role });
+			if (userObj.role && userObj.role.toLowerCase() === "admin") {
+				router.push("/admin/dashboard");
+			} else {
+				router.push("/users/dashboard");
+			}
+		} catch (err) {
+			alert("Gagal menghubungi server.");
 		}
+		setLoading(false);
 	};
 
 	return (
