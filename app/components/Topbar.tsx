@@ -156,7 +156,7 @@ const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
           {isDropdownOpen && (
             <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
               {/* User Info Header */}
-              <div className="px-4 py-4 bg-gradient-to-br from-blue-900 to-blue-700 flex items-center gap-3">
+              <div className="px-4 py-4 bg-linear-to-br from-blue-900 to-blue-700 flex items-center gap-3">
                 <div className="w-11 h-11 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-extrabold text-base shadow border border-emerald-400/40 shrink-0">
                   {user?.username ? user.username.slice(0, 2).toUpperCase() : "--"}
                 </div>
