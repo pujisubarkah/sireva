@@ -9,13 +9,29 @@
           </div>
           <!-- Right: Info & Social -->
           <div class="md:w-1/2 w-full flex flex-col justify-center">
-            <h2 class="text-2xl font-bold mb-2">Tentang <em class="not-italic text-yellow-400">e-SAKIP</em></h2>
-            <p class="mb-4">e-SAKIP merupakan Sistem Informasi Laporan Akuntabilitas Kinerja Instansi Pemerintah Online Kabupaten Tasikmalaya</p>
+            <h2 class="text-2xl font-bold mb-2">Tentang <em class="not-italic text-yellow-400">Sireva</em></h2>
+            <p class="mb-4">Sireva merupakan Sistem Informasi Laporan Akuntabilitas Kinerja Instansi Pemerintah Online Lembaga Administrasi Negara</p>
             <ul class="flex space-x-4 text-xl">
-              <li><a href="https://web.facebook.com/pemkabtasik/" target="_blank" aria-label="Facebook"><i class="fa fa-facebook"></i></a></li>
-              <li><a href="https://twitter.com/pemkabtasik" target="_blank" aria-label="Twitter"><i class="fa fa-twitter"></i></a></li>
-              <li><a href="https://www.instagram.com/pemkabtasik/" target="_blank" aria-label="Instagram"><i class="fa fa-instagram"></i></a></li>
-              <li><a href="https://tasikmalayakab.go.id/index.php/en/" target="_blank" aria-label="Website"><i class="fa fa-globe"></i></a></li>
+              <li>
+                <a href="https://www.facebook.com/lanri.official" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                  <IconBrandFacebook :size="22" stroke="1.8" />
+                </a>
+              </li>
+              <li>
+                <a href="https://x.com/lan_ri" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+                  <IconBrandX :size="22" stroke="1.8" />
+                </a>
+              </li>
+              <li>
+                <a href="https://www.instagram.com/lan_ri/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                  <IconBrandInstagram :size="22" stroke="1.8" />
+                </a>
+              </li>
+              <li>
+                <a href="https://lan.go.id" target="_blank" rel="noopener noreferrer" aria-label="Website">
+                  <IconWorld :size="22" stroke="1.8" />
+                </a>
+              </li>
             </ul>
           </div>
         </div>
@@ -30,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-// No logic needed for static footer
+import { IconBrandFacebook, IconBrandInstagram, IconBrandX, IconWorld } from '@tabler/icons-vue'
 </script>
 
 <style scoped>
