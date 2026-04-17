@@ -1,0 +1,97 @@
+<template>
+  <transition name="fade">
+    <aside
+      v-show="open"
+      class="h-full shrink-0 overflow-x-hidden transition-all duration-300 ease-in-out bg-blue-900 border-r border-blue-900/50 custom-scrollbar w-64 z-40"
+      aria-hidden="false"
+    >
+      <div class="w-64 min-h-full flex flex-col py-6 px-4">
+      <!-- Branding -->
+      <div class="flex flex-col items-center mb-8 shrink-0">
+        <img src="/logolanwhite.png" alt="Logo LAN RI" width="120" height="120" class="object-contain mb-3" />
+        <div class="text-[15px] text-yellow-400 font-bold mt-1 tracking-widest bg-yellow-400/10 px-2.5 py-0.5 rounded-full border border-yellow-400/20">SI-REVA NG</div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="flex-1 flex flex-col">
+        <div class="text-[10px] text-blue-300/60 font-bold mb-3 px-2 tracking-widest uppercase">{{ menuTitle }}</div>
+        <nav class="flex flex-col gap-1.5">
+          <template v-for="item in menuItems" :key="item.label">
+            <SidebarMenuItem :item="item" :iconMap="iconMap" :activePath="activePath" />
+          </template>
+        </nav>
+      </div>
+
+      <!-- Logout -->
+      <div class="mt-8 shrink-0 pt-4 border-t border-white/5">
+        <NuxtLink to="/login" @click="handleLogout" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 font-semibold text-sm hover:bg-red-500 hover:text-white transition-all duration-200 group">
+          <IconLogout :size="18" :stroke="'2'" class="transition-transform group-hover:-translate-x-1" />
+          Logout Sistem
+        </NuxtLink>
+      </div>
+    </div>
+  </aside>
+  </transition>
+</template>
+
+<script setup lang="ts">
+import { useSidebarMenu } from '@/composables/useSidebarMenu';
+import { useRoute } from 'vue-router';
+import {
+  IconDashboard,
+  IconClipboardList,
+  IconChartBar,
+  IconChevronDown,
+  IconChecklist,
+  IconFileText,
+  IconFlag,
+  IconTargetArrow,
+  IconFocus2,
+  IconListDetails,
+  IconActivity,
+  IconSitemap,
+  IconDatabase,
+  IconUser,
+  IconLogout
+} from '@tabler/icons-vue';
+
+const iconMap = {
+  IconDashboard,
+  IconClipboardList,
+  IconChartBar,
+  IconChevronDown,
+  IconChecklist,
+  IconFileText,
+  IconFlag,
+  IconTargetArrow,
+  IconFocus2,
+  IconListDetails,
+  IconActivity,
+  IconSitemap,
+  IconDatabase,
+  IconUser,
+  IconLogout
+};
+
+
+const props = defineProps({
+  open: {
+    type: Boolean,
+    default: true
+  }
+});
+const emit = defineEmits(['close-sidebar']);
+
+const { menuItems, menuTitle } = useSidebarMenu();
+const route = useRoute();
+const activePath = route.fullPath;
+
+import SidebarMenuItem from './SidebarMenuItem.vue';
+import { useAuthUser } from '@/composables/useAuthUser';
+
+const { clearAuthUser } = useAuthUser();
+
+function handleLogout() {
+  clearAuthUser();
+}
+</script>
