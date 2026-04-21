@@ -37,10 +37,8 @@ export const pool = new Pool({
 	ssl: getSslConfig(),
 })
 
-// Set search_path ke schema 'sireva' setiap koneksi
-pool.on('connect', async (client) => {
-	await client.query('SET search_path TO sireva')
-})
+
+
 
 // Instance drizzle ORM
 export const db = drizzle(pool)

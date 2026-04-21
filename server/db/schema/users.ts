@@ -1,15 +1,15 @@
-import { pgTable, serial, varchar, text, integer, timestamp } from 'drizzle-orm/pg-core'
+import { integer, serial, text, timestamp, varchar, foreignKey, unique } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { appSchema } from "./base";
 
-export const users = pgTable(
-  'users',
-  {
-    id: serial('id').primaryKey(),
-    created_at: timestamp('created_at', { withTimezone: true }),
-    unit_kerja: text('unit_kerja'),
-    username: varchar('username'),
-    password: varchar('password'),
-    role_id: integer('role_id'),
-    alias: varchar('alias'),
-    role: varchar('role'),
-  }
-)
+
+export const users = appSchema.table("users", {
+  id: serial("id").primaryKey().notNull(),
+  username: varchar("username", { length: 255 }).notNull(),
+  password: varchar("password", { length: 255 }).notNull(),
+  alias: varchar("alias", { length: 255 }),
+  unit_kerja: text("unit_kerja"),
+  role_id: integer("role_id"),
+  role: varchar("role", { length: 255 }),
+  created_at: timestamp("created_at", { mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+});

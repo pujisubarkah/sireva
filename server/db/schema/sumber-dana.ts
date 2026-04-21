@@ -1,6 +1,7 @@
-import { serial, varchar, pgTable } from "drizzle-orm/pg-core";
+import { integer, serial, varchar } from "drizzle-orm/pg-core";
+import { appSchema } from "./base";
 
-export const sumberDana = pgTable("sumber_dana", {
+export const sumberDana = appSchema.table("sumber_dana", {
   id: serial("id").primaryKey().notNull(),
-  nama: varchar("nama", { length: 100 }),
+  nama: varchar("nama", { length: 50 }),
 });
