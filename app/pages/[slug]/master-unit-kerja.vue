@@ -1,4 +1,4 @@
-<template>
+gi<template>
   <div class="space-y-4">
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 text-center">
