@@ -6,6 +6,18 @@
         <p class="text-sm text-slate-500 mt-1">Daftar sasaran, indikator, dan target perjanjian kinerja.</p>
       </div>
 
+      <div class="px-5 py-3 border-b border-slate-200 bg-white flex items-center justify-between gap-3">
+        <h2 class="text-sm font-semibold text-slate-700">Daftar Perjanjian Kinerja</h2>
+        <button
+          type="button"
+          @click="router.push(`/${$route.params.slug}/perjanjian-kinerja/add`)"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold shadow text-sm transition-colors cursor-pointer"
+        >
+          <IconPlus :size="16" :stroke="'2'" />
+          Tambah Perjanjian Kinerja
+        </button>
+      </div>
+
       <div class="p-5">
         <Table
           :columns="columns"
@@ -18,6 +30,7 @@
             <div class="flex items-center justify-center gap-2">
               <button
                 type="button"
+                @click="router.push(`/${$route.params.slug}/perjanjian-kinerja/edit?id=${row.id}`)"
                 :aria-label="`Edit ${row.sasaran}`"
                 title="Edit"
                 class="action-btn action-btn-edit"
@@ -26,6 +39,7 @@
               </button>
               <button
                 type="button"
+                @click="router.push(`/${$route.params.slug}/perjanjian-kinerja/view?id=${row.id}`)"
                 :aria-label="`Lihat ${row.sasaran}`"
                 title="Lihat"
                 class="action-btn action-btn-view"
@@ -43,8 +57,11 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-import { IconEye, IconPencil } from '@tabler/icons-vue'
+import { useRouter } from 'vue-router'
+import { IconEye, IconPencil, IconPlus } from '@tabler/icons-vue'
 import Table from '@/components/UI/Table.vue'
+
+const router = useRouter()
 
 interface PerjanjianKinerjaRow {
   id: number
