@@ -1,6 +1,5 @@
 <template>
   <div class="min-h-screen flex flex-col bg-white font-sans">
-    <Topbar />
     <Navbar />
     <main class="flex-1 px-4 sm:px-6 lg:px-8 py-4">
       <Breadcrumb />

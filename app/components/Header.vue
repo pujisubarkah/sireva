@@ -15,17 +15,7 @@
         </svg>
       </button>
 
-      <!-- Filter Tahun -->
-      <FilterDropdown
-        :icon="iconMap.IconCalendar"
-        v-model="selectedTahun"
-        :options="TAHUN_OPTIONS"
-      />
-      <FilterDropdown
-        :icon="iconMap.IconCalendarStats"
-        v-model="selectedTriwulan"
-        :options="TRIWULAN_OPTIONS"
-      />
+      <!-- Filter Tahun removed -->
     </div>
 
     <div class="flex-1" />
@@ -98,11 +88,9 @@ import {
   IconMail
 } from '@tabler/icons-vue';
 
-const TAHUN_OPTIONS = ['2024', '2025', '2026', '2027'];
-const TRIWULAN_OPTIONS = ['Triwulan I', 'Triwulan II', 'Triwulan III', 'Triwulan IV'];
 
-const selectedTahun = ref('2026');
-const selectedTriwulan = ref('Triwulan I');
+
+
 const isDropdownOpen = ref(false);
 const dropdownRef = ref(null);
 const { authUser, clearAuthUser } = useAuthUser();

@@ -146,15 +146,13 @@ const handleLogin = async () => {
   serverError.value = ''
 
   try {
-    const res = await fetch('/api/auth/login', {
+    const data = await $fetch<any>('/api/auth/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+      body: {
         usernameOrEmail: usernameOrEmail.value,
         password: password.value,
-      }),
+      },
     })
-    const data = await res.json()
     if (data.success) {
       toast.success('Login berhasil!')
       setAuthUser(data.user ?? null)

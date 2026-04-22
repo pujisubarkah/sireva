@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
             const val = targets[yearStr] || '0';
             
             // Cek apakah target sudah ada
-            const existing = await tx.select()
+            const [existingRecord] = await tx.select()
               .from(targetIndikator)
               .where(and(
                 eq(targetIndikator.indikatorId, id),
@@ -56,11 +56,11 @@ export default defineEventHandler(async (event) => {
               ))
               .limit(1);
 
-            if (existing.length > 0) {
+            if (existingRecord) {
               // Update
               await tx.update(targetIndikator)
                 .set({ target: val })
-                .where(eq(targetIndikator.id, existing[0].id));
+                .where(eq(targetIndikator.id, existingRecord.id));
             } else {
               // Insert
               await tx.insert(targetIndikator)
