@@ -5,7 +5,7 @@
         <div class="flex flex-col md:flex-row md:space-x-8">
           <!-- Left: Logo/Image -->
           <div class="md:w-1/2 w-full flex justify-center md:justify-start mb-6 md:mb-0">
-            <img src="/LANRI-ORG.png" width="300" alt="Logo" style="filter: drop-shadow(0 0 16px white);" />
+            <img src="/LANRI-ORG.png" width="300" alt="Logo" style="margin-left: 32px;" />
           </div>
           <!-- Right: Info & Social -->
           <div class="md:w-1/2 w-full flex flex-col justify-center">
@@ -13,7 +13,7 @@
             <p class="mb-4">Sireva merupakan Sistem Informasi Laporan Akuntabilitas Kinerja Instansi Pemerintah Online Lembaga Administrasi Negara</p>
             <ul class="flex space-x-4 text-xl">
               <li>
-                <a href="https://www.facebook.com/lanri.official" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <a href="https://www.facebook.com/HumasLANRI" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                   <IconBrandFacebook :size="22" stroke="1.8" />
                 </a>
               </li>
@@ -23,7 +23,7 @@
                 </a>
               </li>
               <li>
-                <a href="https://www.instagram.com/lan_ri/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <a href="https://www.instagram.com/humas_lan/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                   <IconBrandInstagram :size="22" stroke="1.8" />
                 </a>
               </li>
@@ -36,7 +36,7 @@
           </div>
         </div>
       </div>
-      <div class="mt-8 border-t border-gray-700 pt-4 text-center">
+      <div class="mt-8 border-t border-white pt-4 text-center">
         <p class="text-sm">Copyright © 2026 Lembaga Administrasi Negara
           <!--| Designed by <a rel="nofollow" href="https://templatemo.com">TemplateMo</a> -->
         </p>
