@@ -35,39 +35,36 @@
       <div v-else class="p-6 space-y-8">
         <!-- Section: Informasi Perjanjian Kinerja -->
         <div class="space-y-6">
-          <h2 class="text-sm font-bold text-blue-700 uppercase tracking-wider flex items-center gap-2">
-            <span class="w-1.5 h-4 bg-blue-700 rounded-full"></span>
-            Informasi Perjanjian Kinerja
-          </h2>
-          
-          <div class="grid grid-cols-1 gap-6">
-            <!-- Sasaran -->
-            <div class="space-y-1">
-              <span class="text-xs font-semibold text-slate-400 uppercase tracking-tight">Sasaran</span>
-              <p class="text-sm text-slate-800 font-bold bg-slate-50 p-4 rounded-xl border border-slate-100 leading-relaxed">
-                {{ viewData.sasaran || '-' }}
-              </p>
-            </div>
-
-            <!-- Indikator -->
-            <div class="space-y-1">
-              <span class="text-xs font-semibold text-slate-400 uppercase tracking-tight">Indikator</span>
-              <p class="text-sm text-slate-800 font-medium bg-slate-50 p-4 rounded-xl border border-slate-100 leading-relaxed italic">
-                {{ viewData.indikator || '-' }}
-              </p>
-            </div>
-
-            <!-- Target -->
-            <div class="space-y-1">
-              <span class="text-xs font-semibold text-slate-400 uppercase tracking-tight">Target</span>
-              <div class="flex items-center gap-3">
-                <p class="text-lg text-blue-700 font-black px-5 py-2 bg-blue-50 border border-blue-100 rounded-2xl">
-                  {{ viewData.target || '-' }}
+          <Accordion title="Rincian Perjanjian Kinerja" defaultOpen>
+            <div class="grid grid-cols-1 gap-6 pt-4">
+              <!-- Sasaran -->
+              <div class="space-y-1">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-tight">Sasaran</span>
+                <p class="text-sm text-slate-800 font-bold bg-slate-50 p-4 rounded-xl border border-slate-100 leading-relaxed">
+                  {{ viewData.sasaran || '-' }}
                 </p>
-                <span class="text-xs font-bold text-slate-400 uppercase">Tahun Berjalan</span>
+              </div>
+
+              <!-- Indikator -->
+              <div class="space-y-1">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-tight">Indikator</span>
+                <p class="text-sm text-slate-800 font-medium bg-slate-50 p-4 rounded-xl border border-slate-100 leading-relaxed italic">
+                  {{ viewData.indikator || '-' }}
+                </p>
+              </div>
+
+              <!-- Target -->
+              <div class="space-y-1">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-tight">Target</span>
+                <div class="flex items-center gap-3">
+                  <p class="text-lg text-blue-700 font-black px-5 py-2 bg-blue-50 border border-blue-100 rounded-2xl">
+                    {{ viewData.target || '-' }}
+                  </p>
+                  <span class="text-xs font-bold text-slate-400 uppercase">Tahun Berjalan</span>
+                </div>
               </div>
             </div>
-          </div>
+          </Accordion>
         </div>
 
         <!-- Section: Footer Metadata -->
@@ -95,6 +92,7 @@ definePageMeta({ layout: 'dashboard' })
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { IconX, IconPencil } from '@tabler/icons-vue';
+import Accordion from '@/components/UI/accordion.vue';
 
 const route = useRoute();
 const router = useRouter();

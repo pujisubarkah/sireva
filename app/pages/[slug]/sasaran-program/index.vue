@@ -10,7 +10,8 @@
         <h2 class="text-sm font-semibold text-slate-700">Daftar Sasaran Program</h2>
         <button
           type="button"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold shadow text-sm"
+          @click="router.push(`/${$route.params.slug}/sasaran-program/add`)"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold shadow text-sm cursor-pointer"
         >
           + Tambah Sasaran Program
         </button>
@@ -41,6 +42,7 @@
               <div class="flex items-center justify-center gap-2">
                 <button
                   type="button"
+                  @click="router.push(`/${$route.params.slug}/sasaran-program/edit?id=${row.id}`)"
                   title="Edit"
                   :aria-label="`Edit ${row.sasaranProgram}`"
                   class="action-btn action-btn-edit"
@@ -49,6 +51,7 @@
                 </button>
                 <button
                   type="button"
+                  @click="router.push(`/${$route.params.slug}/sasaran-program/view?id=${row.id}`)"
                   title="Lihat"
                   :aria-label="`Lihat ${row.sasaranProgram}`"
                   class="action-btn action-btn-view"
@@ -67,8 +70,11 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
+import { useRouter } from 'vue-router'
 import { IconEye, IconPencil } from '@tabler/icons-vue'
 import Table from '@/components/UI/Table.vue'
+
+const router = useRouter()
 
 const years = [2025, 2026, 2027, 2028, 2029] as const
 

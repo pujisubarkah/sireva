@@ -35,6 +35,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useSidebarMenu } from '@/composables/useSidebarMenu';
 import { useRoute } from 'vue-router';
 import {
@@ -84,7 +85,7 @@ const emit = defineEmits(['close-sidebar']);
 
 const { menuItems, menuTitle } = useSidebarMenu();
 const route = useRoute();
-const activePath = route.fullPath;
+const activePath = computed(() => route.path);
 
 import SidebarMenuItem from './SidebarMenuItem.vue';
 import { useAuthUser } from '@/composables/useAuthUser';

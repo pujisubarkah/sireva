@@ -57,6 +57,11 @@ const adminMenuItems: SidebarMenuItem[] = [
       { label: 'Master User', href: SIDEBAR_MENU_ROUTES.masterUser, icon: 'IconUser' },
     ],
   },
+  {
+    label: 'Laporan',
+    href: SIDEBAR_MENU_ROUTES.laporan,
+    icon: 'IconFileText',
+  },
 ];
 
 const userMenuItems: SidebarMenuItem[] = [

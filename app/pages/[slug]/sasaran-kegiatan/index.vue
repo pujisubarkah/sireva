@@ -10,10 +10,18 @@
         <h2 class="text-sm font-semibold text-slate-700">Daftar Sasaran Kegiatan</h2>
         <button
           type="button"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-semibold shadow text-sm"
+          @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/add`)"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-semibold shadow text-sm cursor-pointer"
         >
           + Tambah Sasaran Kegiatan
         </button>
+      </div>
+
+      <div class="px-5 pt-5">
+        <Alert 
+          variant="neutral" 
+          message="Sasaran kegiatan merupakan turunan teknis dari Sasaran Program yang difokuskan pada level operasional unit kerja." 
+        />
       </div>
 
       <div class="overflow-x-auto">
@@ -23,6 +31,7 @@
               <div class="flex items-center justify-center gap-2">
                 <button
                   type="button"
+                  @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/edit?id=${row.id}`)"
                   title="Edit"
                   :aria-label="`Edit ${row.kegiatan}`"
                   class="action-btn action-btn-edit"
@@ -31,6 +40,7 @@
                 </button>
                 <button
                   type="button"
+                  @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/view?id=${row.id}`)"
                   title="Lihat"
                   :aria-label="`Lihat ${row.kegiatan}`"
                   class="action-btn action-btn-view"
@@ -49,9 +59,13 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
+import { useRouter } from 'vue-router'
 import { IconEye, IconPencil } from '@tabler/icons-vue'
 import Table from '@/components/UI/Table.vue'
+import Alert from '@/components/UI/alert.vue'
 import { ref, onMounted } from 'vue'
+
+const router = useRouter()
 
 interface KegiatanRow {
   id: number
