@@ -5,7 +5,7 @@
         <div class="flex flex-col md:flex-row md:space-x-8">
           <!-- Left: Logo/Image -->
           <div class="md:w-1/2 w-full flex justify-center md:justify-start mb-6 md:mb-0">
-            <img src="/LANRI-ORG.png" width="300" alt="Logo" style="filter: drop-shadow(0 0 16px white);" />
+            <img src="/LANRI-ORG.png" width="300" alt="Logo" style="margin-left: 32px;" />
           </div>
           <!-- Right: Info & Social -->
           <div class="md:w-1/2 w-full flex flex-col justify-center">
@@ -36,7 +36,7 @@
           </div>
         </div>
       </div>
-      <div class="mt-8 border-t border-gray-700 pt-4 text-center">
+      <div class="mt-8 border-t border-white pt-4 text-center">
         <p class="text-sm">Copyright © 2026 Lembaga Administrasi Negara
           <!--| Designed by <a rel="nofollow" href="https://templatemo.com">TemplateMo</a> -->
         </p>

@@ -1,6 +1,6 @@
 <template>
   <section class="max-w-3xl mx-auto py-12 px-4">
-    <h1 class="text-2xl font-bold mb-4 text-blue-900">Produk Hukum</h1>
+    <h1 class="text-2xl font-bold mb-4 text-blue-900 uppercase border-b-2 border-blue-900 pb-2">PRODUK HUKUM</h1>
     <p class="mb-4 text-gray-800">Berikut adalah daftar produk hukum terkait perencanaan dan evaluasi yang berlaku di lingkungan Lembaga Administrasi Negara:</p>
     <ul class="list-disc pl-6 text-gray-800 space-y-2">
       <li>Peraturan Presiden No. 29 Tahun 2014 tentang Sistem Akuntabilitas Kinerja Instansi Pemerintah (SAKIP)</li>

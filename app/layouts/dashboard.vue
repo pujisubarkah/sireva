@@ -15,6 +15,8 @@
         class="h-20 shrink-0 border-b-2 border-white/30 bg-linear-to-r from-blue-900/95 to-blue-800/95 backdrop-blur-xl shadow-lg"
         style="z-index: 40;"
       />
+      <!-- Topbar di bawah Header -->
+      <Topbar />
       <!-- Main content scrollable -->
       <main class="flex-1 overflow-y-auto p-8 pb-12" style="min-height:0;">
         <Breadcrumb />
@@ -30,6 +32,7 @@
 import { ref } from 'vue';
 import Sidebar from '~/components/Sidebar.vue';
 import Header from '~/components/Header.vue';
+import Topbar from '~/components/Topbar.vue';
 import Breadcrumb from '~/components/Breadcrumb.vue';
 const sidebarOpen = ref(true)
 </script>

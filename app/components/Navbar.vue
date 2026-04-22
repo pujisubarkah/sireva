@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between px-4 py-2">
       <div class="flex items-center gap-3 min-w-0">
         <NuxtLink id="hdr_logo" class="cd-logo flex items-center shrink-0" to="/" title="SIREVA - NG">
-          <img id="hdr_img_logo" alt="Logo" width="120" height="72" src="/logolanwhite.png" class="navbar-logo" />
+          <img id="hdr_img_logo" alt="Logo" width="160" height="96" src="/logolanwhite.png" class="navbar-logo" />
         </NuxtLink>
         <div class="hidden sm:flex flex-col justify-center leading-tight">
           <span class="text-white font-bold text-lg tracking-wide">SIREVA - NG</span>

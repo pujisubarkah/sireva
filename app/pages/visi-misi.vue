@@ -1,6 +1,6 @@
 <template>
   <section class="max-w-3xl mx-auto py-12 px-4">
-    <h1 class="text-2xl font-bold mb-4 text-blue-900">Visi & Misi</h1>
+    <h1 class="text-2xl font-bold mb-4 text-blue-900 uppercase border-b-2 border-blue-900 pb-2">VISI & MISI</h1>
     <div class="mb-6">
       <h2 class="text-lg font-semibold text-yellow-600 mb-2">Visi</h2>
       <p class="text-gray-800">Menjadi lembaga yang unggul dalam perencanaan dan evaluasi pembangunan nasional berbasis akuntabilitas dan inovasi.</p>
