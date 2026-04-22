@@ -2,7 +2,7 @@
   <header class="cd-main-header menu indo-new-menu w-full bg-blue-900 border-b border-gray-200" style="box-shadow: none;">
     <div class="flex items-center justify-between px-4 py-2">
       <div class="flex items-center gap-3 min-w-0">
-        <NuxtLink id="hdr_logo" class="cd-logo flex items-center shrink-0" to="/" title="IM3 - Simpel. Jujur. Transparan">
+        <NuxtLink id="hdr_logo" class="cd-logo flex items-center shrink-0" to="/" title="SIREVA - NG">
           <img id="hdr_img_logo" alt="Logo" width="120" height="72" src="/logolanwhite.png" class="navbar-logo" />
         </NuxtLink>
         <div class="hidden sm:flex flex-col justify-center leading-tight">
