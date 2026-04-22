@@ -13,7 +13,7 @@
             <p class="mb-4">Sireva merupakan Sistem Informasi Laporan Akuntabilitas Kinerja Instansi Pemerintah Online Lembaga Administrasi Negara</p>
             <ul class="flex space-x-4 text-xl">
               <li>
-                <a href="https://www.facebook.com/lanri.official" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <a href="https://www.facebook.com/HumasLANRI" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                   <IconBrandFacebook :size="22" stroke="1.8" />
                 </a>
               </li>
@@ -23,7 +23,7 @@
                 </a>
               </li>
               <li>
-                <a href="https://www.instagram.com/lan_ri/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <a href="https://www.instagram.com/humas_lan/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                   <IconBrandInstagram :size="22" stroke="1.8" />
                 </a>
               </li>
