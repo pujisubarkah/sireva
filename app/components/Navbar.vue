@@ -28,16 +28,8 @@
             <span>MASUK</span>
           </button>
         </li>
-        <li>
-          <button class="cd-search-trigger w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100" type="button" aria-label="Search">
-            <span class="block w-4 h-4 bg-gray-400 rounded-full"></span>
-          </button>
-        </li>
-        <li>
-          <button class="cd-nav-trigger w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100" id="mobile_icon" type="button" aria-label="Menu">
-            <span id="s_mobile_icon" class="block w-5 h-0.5 bg-gray-100 rounded"></span>
-          </button>
-        </li>
+
+
       </ul>
     </div>
   </header>
