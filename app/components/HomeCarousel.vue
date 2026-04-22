@@ -26,21 +26,7 @@
         </div>
       </div>
 
-      <div class="absolute inset-x-0 bottom-4 z-10 flex items-center justify-between px-4 sm:px-6">
-        <div class="flex items-center gap-2 rounded-full bg-slate-950/45 px-3 py-2 backdrop-blur-sm">
-          <button
-            v-for="(slide, index) in slides"
-            :key="`${slide.src}-indicator`"
-            type="button"
-            :aria-label="`Tampilkan slide ${index + 1}`"
-            :class="[
-              'h-2.5 rounded-full transition-all duration-300',
-              index === currentIndex ? 'w-8 bg-white' : 'w-2.5 bg-white/45 hover:bg-white/70',
-            ]"
-            @click="setSlide(index)"
-          />
-        </div>
-
+      <div class="absolute inset-x-0 bottom-4 z-10 flex items-center justify-end px-4 sm:px-6">
         <div class="flex items-center gap-2">
           <button
             type="button"
