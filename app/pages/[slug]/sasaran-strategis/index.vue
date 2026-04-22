@@ -1,17 +1,35 @@
 <template>
   <div class="space-y-4">
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <!-- Header Utama -->
       <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 text-center">
         <h1 class="text-lg font-semibold text-slate-800">Sasaran Strategis</h1>
         <p class="text-sm text-slate-500 mt-1">Ringkasan indikator dan capaian per tahun.</p>
       </div>
 
-      <div v-if="loading" class="p-6 text-sm text-slate-500">Memuat data...</div>
-      <div v-else-if="!tableRows.length" class="p-6 text-sm text-slate-500">Data belum tersedia.</div>
+      <!-- Toolbar dengan Tombol Tambah -->
+      <div class="px-5 py-3 border-b border-slate-200 bg-white flex items-center justify-between gap-3">
+        <h2 class="text-sm font-semibold text-slate-700">Daftar Sasaran Strategis</h2>
+        <button
+          type="button"
+          @click="router.push(`/${$route.params.slug}/sasaran-strategis/add`)"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold shadow text-sm transition-colors cursor-pointer"
+        >
+          <IconPlus :size="16" :stroke="'2'" />
+          Tambah Sasaran Strategis
+        </button>
+      </div>
+
+      <!-- Konten Tabel -->
+      <div v-if="loading" class="p-6 text-sm text-slate-500 text-center">
+        <div class="inline-block animate-pulse">Memuat data...</div>
+      </div>
+      <div v-else-if="!tableRows.length" class="p-6 text-sm text-slate-500 text-center italic">Data belum tersedia.</div>
 
       <div v-else class="overflow-x-auto">
-        <div style="min-width: 1200px;">
+        <div style="min-width: 1200px;" class="p-5">
           <Table :columns="columns" :data="tableRows" :showPagination="false" rowKey="id">
+            <!-- Template Custom untuk Target Renstra -->
             <template #cell-targetRenstra="{ row }">
               <div class="metric-card metric-card-blue">
                 <div v-for="year in years" :key="`tr-${row.id}-${year}`" class="metric-row metric-row-blue">
@@ -21,6 +39,7 @@
               </div>
             </template>
 
+            <!-- Template Custom untuk Target Perjanjian -->
             <template #cell-targetPerjanjian="{ row }">
               <div class="metric-card metric-card-emerald">
                 <div v-for="year in years" :key="`tp-${row.id}-${year}`" class="metric-row metric-row-emerald">
@@ -30,6 +49,7 @@
               </div>
             </template>
 
+            <!-- Template Custom untuk Capaian -->
             <template #cell-capaian="{ row }">
               <div class="metric-card metric-card-slate">
                 <div v-for="year in years" :key="`cp-${row.id}-${year}`" class="metric-row metric-row-slate">
@@ -39,6 +59,7 @@
               </div>
             </template>
 
+            <!-- Template Custom untuk Persentase -->
             <template #cell-persentase="{ row }">
               <div class="metric-card metric-card-amber">
                 <div v-for="year in years" :key="`ps-${row.id}-${year}`" class="metric-row metric-row-amber">
@@ -48,12 +69,24 @@
               </div>
             </template>
 
+            <!-- Template Custom untuk Aksi -->
             <template #cell-aksi="{ row }">
-              <div class="flex items-center justify-center gap-2 pt-1">
-                <button type="button" :aria-label="`Edit ${row.indikatorKinerja}`" title="Edit" class="action-btn action-btn-edit">
+              <div class="flex items-center justify-center gap-2">
+                <button 
+                  type="button"
+                  @click="router.push(`/${$route.params.slug}/sasaran-strategis/edit?id=${row.id}`)"
+                  title="Edit" 
+                  class="action-btn action-btn-edit"
+                >
                   <IconPencil :size="16" :stroke="'2'" />
                 </button>
-                <button type="button" :aria-label="`Lihat ${row.indikatorKinerja}`" title="Lihat" class="action-btn action-btn-view">
+                <button 
+                  type="button" 
+                  @click="router.push(`/${$route.params.slug}/sasaran-strategis/view?id=${row.id}`)"
+                  :aria-label="`Lihat ${row.indikatorKinerja}`" 
+                  title="Lihat" 
+                  class="action-btn action-btn-view"
+                >
                   <IconEye :size="16" :stroke="'2'" />
                 </button>
               </div>
@@ -66,13 +99,23 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * Komponen Halaman Index Sasaran Strategis
+ * Menampilkan daftar sasaran strategis beserta indikator dan capaian multi-tahun.
+ */
+
 definePageMeta({ layout: 'dashboard' })
 
 import { computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import useSWRV from 'swrv';
-import { IconEye, IconPencil } from '@tabler/icons-vue';
+import { IconEye, IconPencil, IconPlus } from '@tabler/icons-vue';
 import Table from '@/components/UI/Table.vue';
 
+const router = useRouter();
+const route = useRoute();
+
+// Konfigurasi tahun yang ditampilkan
 const years = [2025, 2026, 2027, 2028, 2029];
 
 type YearValue = Record<number, string>;
@@ -102,13 +145,18 @@ const columns = [
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
+// Mengambil data dari berbagai API
 const { data: sasaranRes, isValidating: sasLoading } = useSWRV('/api/sasaran-strategis', fetcher);
 const { data: indikatorRes, isValidating: indikLoading } = useSWRV('/api/indikator-kinerja', fetcher);
 const { data: targetRes, isValidating: targetLoading } = useSWRV('/api/target-indikator', fetcher);
 const { data: tahunRes, isValidating: tahunLoading } = useSWRV('/api/tahun', fetcher);
 
+// Status loading gabungan
 const loading = computed(() => sasLoading.value || indikLoading.value || targetLoading.value || tahunLoading.value);
 
+/**
+ * Memetakan hasil API ke dalam struktur yang sesuai untuk tabel.
+ */
 const tableRows = computed<TableRow[]>(() => {
   if (loading.value) return [];
   if (!sasaranRes.value || !indikatorRes.value || !targetRes.value || !tahunRes.value) return [];
@@ -118,16 +166,19 @@ const tableRows = computed<TableRow[]>(() => {
   type Target = { indikatorId: number; tahunId: number | null; target: string | number | null };
   type Tahun = { id: number; tahun: number };
 
+  // Map sasaran berdasarkan ID
   const sasaranMap: Record<number, Sasaran> = (sasaranRes.value as Sasaran[]).reduce((acc: Record<number, Sasaran>, s: Sasaran) => {
     acc[s.id] = s;
     return acc;
   }, {});
 
+  // Map tahun berdasarkan ID
   const tahunMap: Record<number, number> = (tahunRes.value as Tahun[]).reduce((acc: Record<number, number>, item: Tahun) => {
     acc[item.id] = item.tahun;
     return acc;
   }, {});
 
+  // Map target berdasarkan kombinasi Indikator ID dan Tahun
   const targetMap: Record<string, string> = {};
   (targetRes.value as Target[]).forEach((target) => {
     const tahun = target.tahunId ? tahunMap[target.tahunId] : undefined;
@@ -155,6 +206,7 @@ const tableRows = computed<TableRow[]>(() => {
 </script>
 
 <style scoped>
+/* Styling Kartu Metrik (Target/Capaian) */
 .metric-card {
   border-radius: 0.5rem;
   border: 1px solid;
@@ -163,24 +215,25 @@ const tableRows = computed<TableRow[]>(() => {
 
 .metric-card-blue {
   border-color: rgb(191 219 254);
-  background-color: rgb(239 246 255);
+  background-color: rgb(239 246 255 / 0.5);
 }
 
 .metric-card-emerald {
   border-color: rgb(167 243 208);
-  background-color: rgb(236 253 245);
+  background-color: rgb(236 253 245 / 0.5);
 }
 
 .metric-card-slate {
   border-color: rgb(203 213 225);
-  background-color: rgb(248 250 252);
+  background-color: rgb(248 250 252 / 0.5);
 }
 
 .metric-card-amber {
   border-color: rgb(253 230 138);
-  background-color: rgb(255 251 235);
+  background-color: rgb(255 251 235 / 0.5);
 }
 
+/* Styling Baris didalam Kartu Metrik */
 .metric-row {
   display: flex;
   align-items: center;
@@ -194,64 +247,33 @@ const tableRows = computed<TableRow[]>(() => {
   border-bottom: none;
 }
 
-.metric-row-blue {
-  border-bottom-color: rgb(191 219 254);
-}
+.metric-row-blue { border-bottom-color: rgb(191 219 254); }
+.metric-row-emerald { border-bottom-color: rgb(167 243 208); }
+.metric-row-slate { border-bottom-color: rgb(203 213 225); }
+.metric-row-amber { border-bottom-color: rgb(253 230 138); }
 
-.metric-row-emerald {
-  border-bottom-color: rgb(167 243 208);
-}
-
-.metric-row-slate {
-  border-bottom-color: rgb(203 213 225);
-}
-
-.metric-row-amber {
-  border-bottom-color: rgb(253 230 138);
-}
-
+/* Styling Detail Metrik */
 .metric-year {
   font-size: 0.75rem;
   font-weight: 600;
 }
 
-.metric-year-blue {
-  color: rgb(30 64 175);
-}
-
-.metric-year-emerald {
-  color: rgb(6 95 70);
-}
-
-.metric-year-slate {
-  color: rgb(51 65 85);
-}
-
-.metric-year-amber {
-  color: rgb(146 64 14);
-}
+.metric-year-blue { color: rgb(30 64 175); }
+.metric-year-emerald { color: rgb(6 95 70); }
+.metric-year-slate { color: rgb(51 65 85); }
+.metric-year-amber { color: rgb(146 64 14); }
 
 .metric-value {
   font-size: 0.875rem;
   font-weight: 700;
 }
 
-.metric-value-blue {
-  color: rgb(30 58 138);
-}
+.metric-value-blue { color: rgb(30 58 138); }
+.metric-value-emerald { color: rgb(6 78 59); }
+.metric-value-slate { color: rgb(15 23 42); }
+.metric-value-amber { color: rgb(120 53 15); }
 
-.metric-value-emerald {
-  color: rgb(6 78 59);
-}
-
-.metric-value-slate {
-  color: rgb(15 23 42);
-}
-
-.metric-value-amber {
-  color: rgb(120 53 15);
-}
-
+/* Styling Tombol Aksi */
 .action-btn {
   height: 1.9rem;
   width: 1.9rem;
@@ -261,6 +283,7 @@ const tableRows = computed<TableRow[]>(() => {
   align-items: center;
   justify-content: center;
   transition: all 0.15s ease;
+  cursor: pointer;
 }
 
 .action-btn-edit {

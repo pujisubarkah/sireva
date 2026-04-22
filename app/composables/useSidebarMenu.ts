@@ -46,6 +46,7 @@ const adminMenuItems: SidebarMenuItem[] = [
     icon: 'IconChartBar',
     children: [
       { label: 'Cascading', href: SIDEBAR_MENU_ROUTES.cascading, icon: 'IconSitemap' },
+      { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.rencanaAksi, icon: 'IconChecklist' },
     ],
   },
   {
