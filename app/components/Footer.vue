@@ -1,5 +1,5 @@
 <template>
-  <footer id="contact-us" class="bg-blue-900 text-gray-100 pt-8 pb-4 mt-8">
+  <footer id="contact-us" class="bg-[#1F4F85] text-gray-100 pt-8 pb-4 mt-8">
     <div class="container mx-auto px-4">
       <div class="footer-content">
         <div class="flex flex-col md:flex-row md:space-x-8">
@@ -9,7 +9,7 @@
           </div>
           <!-- Right: Info & Social -->
           <div class="md:w-1/2 w-full flex flex-col justify-center">
-            <h2 class="text-2xl font-bold mb-2">Tentang <em class="not-italic text-yellow-400">Sireva</em></h2>
+            <h2 class="text-2xl font-bold mb-2">Tentang <em class="not-italic" style="color: #F7D628">Sireva</em></h2>
             <p class="mb-4">Sireva merupakan Sistem Informasi Laporan Akuntabilitas Kinerja Instansi Pemerintah Online Lembaga Administrasi Negara</p>
             <ul class="flex space-x-4 text-xl">
               <li>
