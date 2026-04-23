@@ -1,16 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Hero Section -->
-    <header class="bg-[#1A365D] text-white py-16 px-4 relative overflow-hidden">
-      <div class="absolute inset-0 opacity-10">
-        <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" stroke-width="0.5"/>
-          </pattern>
-          <rect width="100" height="100" fill="url(#grid)" />
-        </svg>
-      </div>
-      
+    <header class="bg-[#2663A3] text-white py-16 px-4 relative rounded-3xl mt-6 mx-2 shadow-lg">
       <div class="max-w-5xl mx-auto relative z-10 text-center">
         <div class="inline-flex items-center justify-center p-3 bg-blue-500/20 rounded-2xl mb-6 backdrop-blur-sm border border-white/10">
           <IconGavel class="w-8 h-8 text-blue-300" />

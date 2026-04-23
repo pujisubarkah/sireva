@@ -2,7 +2,7 @@
   <transition name="fade">
     <aside
       v-show="open"
-      class="h-full shrink-0 overflow-x-hidden transition-all duration-300 ease-in-out bg-blue-900 border-r border-blue-900/50 custom-scrollbar w-64 z-40"
+      class="shrink-0 border-r-2 border-white/50" style="background-color: #1F4F85; backdrop-filter: blur(12px); transition: all 0.3s; z-index: 50;"
       aria-hidden="false"
     >
       <div class="w-64 min-h-full flex flex-col py-6 px-4">
@@ -96,3 +96,14 @@ function handleLogout() {
   clearAuthUser();
 }
 </script>
+
+<style scoped>
+/* Hide scrollbar but keep scroll functionality */
+.custom-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+.custom-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+</style>

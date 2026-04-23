@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-gray-50 flex overflow-hidden" style="height: 100vh;">
+  <div class="bg-white flex overflow-hidden" style="height: 100vh;">
     <!-- Sidebar di kiri fixed -->
     <Sidebar
       :open="sidebarOpen"
@@ -12,13 +12,13 @@
       <!-- Header fixed top -->
       <Header
         @toggle-sidebar="sidebarOpen = !sidebarOpen"
-        class="h-20 shrink-0 border-b-2 border-white/30 bg-linear-to-r from-blue-900/95 to-blue-800/95 backdrop-blur-xl shadow-lg"
-        style="z-index: 40;"
+        class="h-20 shrink-0 border-b-2 border-white/30 shadow-lg"
+        style="z-index: 40; background-color: #1F4F85;"
       />
       <!-- Topbar di bawah Header -->
       <Topbar />
       <!-- Main content scrollable -->
-      <main class="flex-1 overflow-y-auto p-8 pb-12" style="min-height:0;">
+      <main class="flex-1 overflow-y-auto p-8 pb-12 bg-white" style="min-height:0;">
         <Breadcrumb />
         <slot />
       </main>

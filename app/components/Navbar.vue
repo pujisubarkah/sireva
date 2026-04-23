@@ -24,7 +24,13 @@
           <a href="https://ppid.lan.go.id/" target="_blank" rel="noopener" class="text-white hover:text-yellow-400 font-medium px-3 py-1">PPID</a>
         </li>
         <li>
-          <button id="hdr_login" class="beforelogin-btn px-4 py-1 rounded font-semibold" style="background-color: #F7D628; color: #1F1F1F; border: 1px solid #F7D628;" type="button" @click="showLogin = true">
+          <button
+            id="hdr_login"
+            class="beforelogin-btn px-4 py-1 rounded font-semibold transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2"
+            style="background-color: #F7D628; color: #1F1F1F; border: 1px solid #F7D628;"
+            type="button"
+            @click="showLogin = true"
+          >
             <span>MASUK</span>
           </button>
         </li>
@@ -66,7 +72,19 @@ const showLogin = ref(false)
   box-shadow: none;
 }
 .beforelogin-btn {
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.beforelogin-btn:hover {
+  background-color: #ffe066 !important;
+  color: #1F1F1F !important;
+  box-shadow: 0 2px 8px 0 #f7d62844;
+  border-color: #ffe066 !important;
+}
+.beforelogin-btn:active {
+  background-color: #f9d923 !important;
+  color: #1F1F1F !important;
+  box-shadow: 0 1px 4px 0 #f7d62833;
+  border-color: #f9d923 !important;
 }
 .indo-register-btn {
   transition: background 0.2s, color 0.2s;
