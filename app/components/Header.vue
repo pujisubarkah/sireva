@@ -63,7 +63,7 @@
               @click="isDropdownOpen = false"
             >
               <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 17v1m-6 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2Zm6-7a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"/><path d="M7 9V7a5 5 0 0 1 10 0v2"/></svg>
-              Rubah Password
+              Ubah Password
             </NuxtLink>
             <NuxtLink 
               to="/login" 
