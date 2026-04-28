@@ -10,6 +10,11 @@
         <h2 class="text-sm font-semibold text-slate-700">Daftar Sasaran Program</h2>
         <div class="flex items-center gap-3">
           <FilterDropdown
+            v-model="selectedUnitKerja"
+            :options="unitKerjaOptions"
+            :icon="IconBuilding"
+          />
+          <FilterDropdown
             v-model="selectedYear"
             :options="yearOptions"
             :icon="IconCalendarEvent"
@@ -78,7 +83,7 @@
 definePageMeta({ layout: 'dashboard' })
 
 import { useRouter } from 'vue-router'
-import { IconEye, IconPencil, IconCalendarEvent } from '@tabler/icons-vue'
+import { IconEye, IconPencil, IconCalendarEvent, IconBuilding } from '@tabler/icons-vue'
 import { ref, computed } from 'vue'
 import Table from '@/components/UI/Table.vue'
 import FilterDropdown from '@/components/FilterDropdown.vue'
@@ -87,6 +92,10 @@ const router = useRouter()
 
 const selectedYear = ref(String(new Date().getFullYear()))
 const yearOptions = ['2025', '2026', '2027', '2028', '2029']
+
+const dummyUnitKerja = ['Pusbangkom ASN', 'Puslatbang KDOD', 'Pusdatin LAN', 'Biro SDM dan Umum']
+const selectedUnitKerja = ref('Semua Unit Kerja')
+const unitKerjaOptions = ['Semua Unit Kerja', ...dummyUnitKerja]
 
 const years = computed(() => [Number(selectedYear.value)])
 
@@ -113,7 +122,7 @@ const columns = computed(() => [
   { key: 'aksi', label: 'Aksi', className: 'text-center w-24' },
 ])
 
-const tableRows: ProgramRow[] = [
+const baseData: ProgramRow[] = [
   {
     id: 1,
     no: 1,
@@ -145,6 +154,16 @@ const tableRows: ProgramRow[] = [
     aksi: '',
   },
 ]
+
+const tableRows = computed(() => {
+  let filteredData = baseData
+
+  if (selectedUnitKerja.value !== 'Semua Unit Kerja') {
+    filteredData = filteredData.filter((d: ProgramRow) => d.unitKerja === selectedUnitKerja.value)
+  }
+
+  return filteredData.map((d: ProgramRow, index: number) => ({ ...d, no: index + 1 }))
+})
 </script>
 
 <style scoped>

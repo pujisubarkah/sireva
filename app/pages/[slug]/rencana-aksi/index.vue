@@ -10,6 +10,18 @@
       <!-- Toolbar -->
       <div class="px-5 py-3 border-b border-slate-200 bg-white flex items-center justify-between gap-3">
         <h2 class="text-sm font-semibold text-slate-700">Daftar Rencana Aksi</h2>
+        <div class="flex items-center gap-3 ml-auto mr-3">
+          <FilterDropdown
+            v-model="selectedUnitKerja"
+            :options="unitKerjaOptions"
+            :icon="IconBuilding"
+          />
+          <FilterDropdown
+            v-model="selectedYear"
+            :options="yearOptions"
+            :icon="IconCalendarEvent"
+          />
+        </div>
         <button
           type="button"
           @click="openCreateModal"
@@ -182,9 +194,17 @@
 definePageMeta({ layout: 'dashboard' })
 
 import { computed, ref, onMounted } from 'vue'
-import { IconEye, IconPencil, IconTrash, IconPlus } from '@tabler/icons-vue'
+import { IconEye, IconPencil, IconTrash, IconPlus, IconBuilding, IconCalendarEvent } from '@tabler/icons-vue'
 import Table from '../../../components/UI/Table.vue'
+import FilterDropdown from '@/components/FilterDropdown.vue'
 import useSWRV from 'swrv'
+
+const selectedYear = ref(String(new Date().getFullYear()))
+const yearOptions = ['2025', '2026', '2027', '2028', '2029']
+
+const dummyUnitKerja = ['Pusbangkom ASN', 'Puslatbang KDOD', 'Pusdatin LAN', 'Biro SDM dan Umum']
+const selectedUnitKerja = ref('Semua Unit Kerja')
+const unitKerjaOptions = ['Semua Unit Kerja', ...dummyUnitKerja]
 
 // Fetchers & Data
 const fetcher = (url: string) => fetch(url).then(r => r.json());
@@ -192,20 +212,30 @@ const { data: rencanaData, mutate: refreshRencana, isValidating: loading } = use
 const { data: sasaranList } = useSWRV('/api/sasaran-strategis', fetcher);
 const { data: indikatorList } = useSWRV('/api/indikator-kinerja', fetcher);
 
-const columns = [
+const columns = computed(() => [
   { key: 'no', label: 'No', className: 'text-center w-14' },
   { key: 'sasaran', label: 'Sasaran' },
   { key: 'indikator', label: 'Indikator' },
+  { key: 'unitKerja', label: 'Unit Kerja' },
   { key: 'rencanaAksi', label: 'Rencana Aksi' },
-  { key: 'target', label: 'Target', className: 'text-center w-24' },
+  { key: 'target', label: `Target (${selectedYear.value})`, className: 'text-center w-24' },
   { key: 'aksi', label: 'Aksi', className: 'text-center w-28' },
-]
+])
 
 const tableRows = computed(() => {
-  return (rencanaData.value || []).map((row: any, index: number) => ({
-    ...row,
-    no: index + 1
-  }));
+  let filteredData = (rencanaData.value || []).map((row: any, index: number) => {
+    const unitKerja = dummyUnitKerja[row.id % dummyUnitKerja.length];
+    return {
+      ...row,
+      unitKerja
+    };
+  });
+
+  if (selectedUnitKerja.value !== 'Semua Unit Kerja') {
+    filteredData = filteredData.filter((d: any) => d.unitKerja === selectedUnitKerja.value);
+  }
+
+  return filteredData.map((d: any, index: number) => ({ ...d, no: index + 1 }));
 });
 
 const targetFields = [

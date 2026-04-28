@@ -8,6 +8,18 @@
 
       <div class="px-5 py-3 border-b border-slate-200 bg-white flex items-center justify-between gap-3">
         <h2 class="text-sm font-semibold text-slate-700">Daftar Perjanjian Kinerja</h2>
+        <div class="flex items-center gap-3 ml-auto mr-3">
+          <FilterDropdown
+            v-model="selectedUnitKerja"
+            :options="unitKerjaOptions"
+            :icon="IconBuilding"
+          />
+          <FilterDropdown
+            v-model="selectedYear"
+            :options="yearOptions"
+            :icon="IconCalendarEvent"
+          />
+        </div>
         <button
           type="button"
           @click="router.push(`/${$route.params.slug}/perjanjian-kinerja/add`)"
@@ -57,11 +69,20 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { IconEye, IconPencil, IconPlus } from '@tabler/icons-vue'
+import { IconEye, IconPencil, IconPlus, IconBuilding, IconCalendarEvent } from '@tabler/icons-vue'
 import Table from '@/components/UI/Table.vue'
+import FilterDropdown from '@/components/FilterDropdown.vue'
 
 const router = useRouter()
+
+const selectedYear = ref(String(new Date().getFullYear()));
+const yearOptions = ['2025', '2026', '2027', '2028', '2029'];
+
+const dummyUnitKerja = ['Pusbangkom ASN', 'Puslatbang KDOD', 'Pusdatin LAN', 'Biro SDM dan Umum'];
+const selectedUnitKerja = ref('Semua Unit Kerja');
+const unitKerjaOptions = ['Semua Unit Kerja', ...dummyUnitKerja];
 
 interface PerjanjianKinerjaRow {
   id: number
@@ -69,43 +90,62 @@ interface PerjanjianKinerjaRow {
   sasaran: string
   indikator: string
   target: string
+  unitKerja: string
   aksi: string
 }
 
-const columns = [
+const columns = computed(() => [
   { key: 'no', label: 'No', className: 'text-center w-16' },
   { key: 'sasaran', label: 'Sasaran' },
   { key: 'indikator', label: 'Indikator' },
-  { key: 'target', label: 'Target', className: 'text-center w-32' },
+  { key: 'unitKerja', label: 'Unit Kerja' },
+  { key: 'target', label: `Target (${selectedYear.value})`, className: 'text-center w-32' },
   { key: 'aksi', label: 'Aksi', className: 'text-center w-24' },
-]
+])
 
-const tableRows: PerjanjianKinerjaRow[] = [
+const baseData = [
   {
     id: 1,
     no: 1,
     sasaran: 'Terwujudnya ASN yang Profesional dan Kompeten',
     indikator: 'Indeks Kepuasan Peserta Pelatihan',
     target: '85.0',
-    aksi: '',
+    unitKerja: 'Pusbangkom ASN',
   },
   {
     id: 2,
-    no: 2,
     sasaran: 'Meningkatnya Kualitas Kurikulum Kediklatan ASN',
     indikator: 'Jumlah Modul Pelatihan Kepemimpinan Tersusun',
     target: '4 Modul',
-    aksi: '',
+    unitKerja: 'Puslatbang KDOD',
   },
   {
     id: 3,
-    no: 3,
     sasaran: 'Terintegrasinya Sistem Pembelajaran Digital LAN',
     indikator: 'Jumlah Fitur Platform Pembelajaran Aktif',
     target: '3 Fitur',
-    aksi: '',
+    unitKerja: 'Pusdatin LAN',
   },
 ]
+
+const tableRows = computed(() => {
+  let filteredData = baseData.map((item, index) => {
+    return {
+      id: item.id,
+      sasaran: item.sasaran,
+      indikator: item.indikator,
+      unitKerja: item.unitKerja,
+      target: item.target,
+      aksi: '',
+    };
+  });
+
+  if (selectedUnitKerja.value !== 'Semua Unit Kerja') {
+    filteredData = filteredData.filter((d: any) => d.unitKerja === selectedUnitKerja.value);
+  }
+
+  return filteredData.map((d: any, index: number) => ({ ...d, no: index + 1 }));
+});
 </script>
 
 <style scoped>

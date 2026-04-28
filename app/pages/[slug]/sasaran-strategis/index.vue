@@ -12,6 +12,11 @@
         <h2 class="text-sm font-semibold text-slate-700">Daftar Sasaran Strategis</h2>
         <div class="flex items-center gap-3">
           <FilterDropdown
+            v-model="selectedUnitKerja"
+            :options="unitKerjaOptions"
+            :icon="IconBuilding"
+          />
+          <FilterDropdown
             v-model="selectedYear"
             :options="yearOptions"
             :icon="IconCalendarEvent"
@@ -96,9 +101,13 @@ definePageMeta({ layout: 'dashboard' })
 import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import useSWRV from 'swrv';
-import { IconEye, IconPencil, IconPlus, IconTrash, IconCalendarEvent } from '@tabler/icons-vue';
+import { IconEye, IconPencil, IconPlus, IconTrash, IconCalendarEvent, IconBuilding } from '@tabler/icons-vue';
 import Table from '@/components/UI/Table.vue';
 import FilterDropdown from '@/components/FilterDropdown.vue';
+
+const dummyUnitKerja = ['Pusbangkom ASN', 'Puslatbang KDOD', 'Pusdatin LAN', 'Biro SDM dan Umum'];
+const selectedUnitKerja = ref('Semua Unit Kerja');
+const unitKerjaOptions = ['Semua Unit Kerja', ...dummyUnitKerja];
 
 const router = useRouter();
 const route = useRoute();
@@ -125,6 +134,7 @@ const columns = computed(() => [
   { key: 'no', label: 'No', className: 'text-center w-14' },
   { key: 'sasaranStrategis', label: 'Sasaran Strategis' },
   { key: 'indikatorKinerja', label: 'Indikator Kinerja' },
+  { key: 'unitKerja', label: 'Unit Kerja' },
   { key: 'targetRenstra', label: `Target Kinerja Renstra (${selectedYear.value})` },
 
   { key: 'aksi', label: 'Aksi', className: 'text-center w-24' },
@@ -174,19 +184,28 @@ const tableRows = computed<TableRow[]>(() => {
     }
   });
 
-  return (indikatorRes.value as Indikator[]).map((indikator, index) => {
+  let filteredData = (indikatorRes.value as Indikator[]).map((indikator, index) => {
     const sasaran = sasaranMap[indikator.sasaranId];
     if (!sasaran) return null;
+
+    const unitKerja = dummyUnitKerja[indikator.id % dummyUnitKerja.length];
+
     return {
       id: indikator.id,
-      no: index + 1,
       sasaranStrategis: sasaran.sasaranText,
       indikatorKinerja: indikator.namaIndikator,
+      unitKerja,
       targetRenstra: years.value.reduce((acc, y) => ({ ...acc, [y]: targetMap[`${indikator.id}-${y}`] || '-' }), {} as YearValue),
 
       aksi: '',
     };
-  }).filter((row): row is TableRow => Boolean(row));
+  }).filter((row: any): row is TableRow => Boolean(row));
+
+  if (selectedUnitKerja.value !== 'Semua Unit Kerja') {
+    filteredData = filteredData.filter((row: any) => row.unitKerja === selectedUnitKerja.value);
+  }
+
+  return filteredData.map((d: any, index: number) => ({ ...d, no: index + 1 }));
 });
 
 async function handleDelete(row: TableRow) {

@@ -7,6 +7,23 @@
         <p class="text-sm text-slate-500 mt-1">Pantau target dan realisasi dari indikator sasaran strategis.</p>
       </div>
 
+      <!-- Toolbar -->
+      <div class="px-5 py-3 border-b border-slate-200 bg-white flex items-center justify-between gap-3">
+        <h2 class="text-sm font-semibold text-slate-700">Realisasi Sasaran Strategis</h2>
+        <div class="flex items-center gap-3">
+          <FilterDropdown
+            v-model="selectedUnitKerja"
+            :options="unitKerjaOptions"
+            :icon="IconBuilding"
+          />
+          <FilterDropdown
+            v-model="selectedYear"
+            :options="yearOptions"
+            :icon="IconCalendarEvent"
+          />
+        </div>
+      </div>
+
       <!-- Konten Tabel -->
       <div v-if="loading" class="p-6 text-sm text-slate-500 text-center">
         <div class="inline-block animate-pulse">Memuat data...</div>
@@ -34,12 +51,19 @@ definePageMeta({ layout: 'dashboard' })
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import useSWRV from 'swrv';
+import { IconBuilding, IconCalendarEvent } from '@tabler/icons-vue';
 import Table from '@/components/UI/Table.vue';
+import FilterDropdown from '@/components/FilterDropdown.vue';
+
+const dummyUnitKerja = ['Pusbangkom ASN', 'Puslatbang KDOD', 'Pusdatin LAN', 'Biro SDM dan Umum'];
+const selectedUnitKerja = ref('Semua Unit Kerja');
+const unitKerjaOptions = ['Semua Unit Kerja', ...dummyUnitKerja];
+
+const selectedYear = ref(String(new Date().getFullYear()));
+const yearOptions = ['2025', '2026', '2027', '2028', '2029'];
 
 const router = useRouter();
 const fetcher = (url: string) => fetch(url).then(r => r.json());
-
-const currentYear = new Date().getFullYear();
 
 const { data: sasaranRes, isValidating: sasLoading } = useSWRV('/api/sasaran-strategis', fetcher);
 const { data: indikatorRes, isValidating: indikLoading } = useSWRV('/api/indikator-kinerja', fetcher);
@@ -49,20 +73,23 @@ const { data: realisasiRes, isValidating: realisasiLoading, mutate: mutateRealis
 
 const loading = computed(() => sasLoading.value || indikLoading.value || targetLoading.value || tahunLoading.value || realisasiLoading.value);
 
-const columns = [
+const columns = computed(() => [
   { key: 'no', label: 'No', className: 'text-center w-14' },
   { key: 'sasaranStrategis', label: 'Sasaran Strategis' },
   { key: 'indikatorKinerja', label: 'Indikator Kinerja' },
-  { key: 'target', label: `Target (${currentYear})`, className: 'text-center' },
-  { key: 'realisasi', label: `Realisasi (${currentYear})`, className: 'text-center' },
+  { key: 'unitKerja', label: 'Unit Kerja' },
+  { key: 'target', label: `Target (${selectedYear.value})`, className: 'text-center' },
+  { key: 'realisasi', label: `Realisasi (${selectedYear.value})`, className: 'text-center' },
   { key: 'capaian', label: 'Capaian', className: 'text-center w-24' },
-];
+]);
 
 const tableRows = computed(() => {
   if (loading.value || !sasaranRes.value || !indikatorRes.value || !targetRes.value || !tahunRes.value || !realisasiRes.value) return [];
 
+  const currYearNum = parseInt(selectedYear.value);
+
   // Cari ID tahun untuk tahun berjalan
-  const currentTahunObj = tahunRes.value.find((t: any) => t.tahun === currentYear);
+  const currentTahunObj = tahunRes.value.find((t: any) => t.tahun === currYearNum);
   const currentTahunId = currentTahunObj ? currentTahunObj.id : null;
 
   const sasaranMap = sasaranRes.value.reduce((acc: any, s: any) => {
@@ -78,13 +105,13 @@ const tableRows = computed(() => {
   }, {});
 
   const realisasiMap = realisasiRes.value.reduce((acc: any, r: any) => {
-    if (r.tahun === currentYear && r.indikatorKode) {
+    if (r.tahun === currYearNum && r.indikatorKode) {
       acc[r.indikatorKode] = parseFloat(r.realisasi) || 0;
     }
     return acc;
   }, {});
 
-  return indikatorRes.value.map((indikator: any, index: number) => {
+  let filteredData = indikatorRes.value.map((indikator: any, index: number) => {
     const target = parseFloat(targetMap[indikator.id]) || 0;
     const realisasi = realisasiMap[indikator.kode] || 0;
     
@@ -93,18 +120,28 @@ const tableRows = computed(() => {
       capaian = (realisasi / target) * 100;
     }
 
+    // Mock unit kerja
+    const unitKerja = dummyUnitKerja[indikator.id % dummyUnitKerja.length];
+
     return {
       id: indikator.id,
-      no: index + 1,
       indikatorKode: indikator.kode,
       sasaranStrategis: sasaranMap[indikator.sasaranId] || '-',
       indikatorKinerja: indikator.namaIndikator,
+      unitKerja,
       target: targetMap[indikator.id] || '-',
       targetVal: target,
       realisasi: realisasi || '-',
       capaian: capaian.toFixed(1),
     };
   });
+
+  if (selectedUnitKerja.value !== 'Semua Unit Kerja') {
+    filteredData = filteredData.filter((d: any) => d.unitKerja === selectedUnitKerja.value);
+  }
+
+  // Recalculate 'no' after filtering
+  return filteredData.map((d: any, index: number) => ({ ...d, no: index + 1 }));
 });
 
 </script>
