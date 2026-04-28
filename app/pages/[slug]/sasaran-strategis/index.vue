@@ -39,35 +39,6 @@
               </div>
             </template>
 
-            <!-- Template Custom untuk Target Perjanjian -->
-            <template #cell-targetPerjanjian="{ row }">
-              <div class="metric-card metric-card-emerald">
-                <div v-for="year in years" :key="`tp-${row.id}-${year}`" class="metric-row metric-row-emerald">
-                  <span class="metric-year metric-year-emerald">{{ year }}</span>
-                  <span class="metric-value metric-value-emerald">{{ row.targetPerjanjian[year] }}</span>
-                </div>
-              </div>
-            </template>
-
-            <!-- Template Custom untuk Capaian -->
-            <template #cell-capaian="{ row }">
-              <div class="metric-card metric-card-slate">
-                <div v-for="year in years" :key="`cp-${row.id}-${year}`" class="metric-row metric-row-slate">
-                  <span class="metric-year metric-year-slate">{{ year }}</span>
-                  <span class="metric-value metric-value-slate">{{ row.capaian[year] }}</span>
-                </div>
-              </div>
-            </template>
-
-            <!-- Template Custom untuk Persentase -->
-            <template #cell-persentase="{ row }">
-              <div class="metric-card metric-card-amber">
-                <div v-for="year in years" :key="`ps-${row.id}-${year}`" class="metric-row metric-row-amber">
-                  <span class="metric-year metric-year-amber">{{ year }}</span>
-                  <span class="metric-value metric-value-amber">{{ row.persentase[year] }}</span>
-                </div>
-              </div>
-            </template>
 
             <!-- Template Custom untuk Aksi -->
             <template #cell-aksi="{ row }">
@@ -89,6 +60,15 @@
                 >
                   <IconEye :size="16" :stroke="'2'" />
                 </button>
+                <button 
+                  type="button" 
+                  @click="handleDelete(row)"
+                  :aria-label="`Hapus ${row.indikatorKinerja}`" 
+                  title="Hapus" 
+                  class="action-btn action-btn-delete"
+                >
+                  <IconTrash :size="16" :stroke="'2'" />
+                </button>
               </div>
             </template>
           </Table>
@@ -109,14 +89,15 @@ definePageMeta({ layout: 'dashboard' })
 import { computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import useSWRV from 'swrv';
-import { IconEye, IconPencil, IconPlus } from '@tabler/icons-vue';
+import { IconEye, IconPencil, IconPlus, IconTrash } from '@tabler/icons-vue';
 import Table from '@/components/UI/Table.vue';
 
 const router = useRouter();
 const route = useRoute();
 
-// Konfigurasi tahun yang ditampilkan
-const years = [2025, 2026, 2027, 2028, 2029];
+// Konfigurasi tahun yang ditampilkan (tahun berjalan)
+const currentYear = new Date().getFullYear();
+const years = [currentYear];
 
 type YearValue = Record<number, string>;
 
@@ -126,9 +107,7 @@ interface TableRow {
   sasaranStrategis: string;
   indikatorKinerja: string;
   targetRenstra: YearValue;
-  targetPerjanjian: YearValue;
-  capaian: YearValue;
-  persentase: YearValue;
+
   aksi: string;
 }
 
@@ -137,9 +116,7 @@ const columns = [
   { key: 'sasaranStrategis', label: 'Sasaran Strategis' },
   { key: 'indikatorKinerja', label: 'Indikator Kinerja' },
   { key: 'targetRenstra', label: 'Target Kinerja Renstra' },
-  { key: 'targetPerjanjian', label: 'Target Kinerja Perjanjian' },
-  { key: 'capaian', label: 'Capaian' },
-  { key: 'persentase', label: 'Persentase' },
+
   { key: 'aksi', label: 'Aksi', className: 'text-center w-24' },
 ];
 
@@ -147,7 +124,7 @@ const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 // Mengambil data dari berbagai API
 const { data: sasaranRes, isValidating: sasLoading } = useSWRV('/api/sasaran-strategis', fetcher);
-const { data: indikatorRes, isValidating: indikLoading } = useSWRV('/api/indikator-kinerja', fetcher);
+const { data: indikatorRes, isValidating: indikLoading, mutate: mutateIndikator } = useSWRV('/api/indikator-kinerja', fetcher);
 const { data: targetRes, isValidating: targetLoading } = useSWRV('/api/target-indikator', fetcher);
 const { data: tahunRes, isValidating: tahunLoading } = useSWRV('/api/tahun', fetcher);
 
@@ -196,13 +173,29 @@ const tableRows = computed<TableRow[]>(() => {
       sasaranStrategis: sasaran.sasaranText,
       indikatorKinerja: indikator.namaIndikator,
       targetRenstra: years.reduce((acc, y) => ({ ...acc, [y]: targetMap[`${indikator.id}-${y}`] || '-' }), {} as YearValue),
-      targetPerjanjian: years.reduce((acc, y) => ({ ...acc, [y]: '-' }), {} as YearValue),
-      capaian: years.reduce((acc, y) => ({ ...acc, [y]: '-' }), {} as Record<number, string>),
-      persentase: years.reduce((acc, y) => ({ ...acc, [y]: '-' }), {} as Record<number, string>),
+
       aksi: '',
     };
   }).filter((row): row is TableRow => Boolean(row));
 });
+
+async function handleDelete(row: TableRow) {
+  if (!confirm(`Hapus target sasaran strategis "${row.indikatorKinerja}"?`)) return;
+  
+  try {
+    const result = await $fetch<any[]>('/api/indikator-kinerja', {
+      method: 'DELETE',
+      body: { id: row.id }
+    });
+
+    if (result) {
+      mutateIndikator();
+    }
+  } catch (error) {
+    console.error(error);
+    alert('Terjadi kesalahan saat menghapus data.');
+  }
+}
 </script>
 
 <style scoped>
@@ -308,5 +301,17 @@ const tableRows = computed<TableRow[]>(() => {
   color: rgb(255 255 255);
   border-color: rgb(37 99 235);
   background-color: rgb(37 99 235);
+}
+
+.action-btn-delete {
+  color: rgb(220 38 38);
+  border-color: rgb(254 202 202);
+  background-color: rgb(254 242 242);
+}
+
+.action-btn-delete:hover {
+  color: white;
+  border-color: rgb(220 38 38);
+  background-color: rgb(220 38 38);
 }
 </style>

@@ -24,10 +24,6 @@ export default defineEventHandler(async (event) => {
         indikatorId: rencanaAksi.indikatorId,
         rencanaAksi: rencanaAksi.namaRencanaAksi,
         target: rencanaAksi.target,
-        tw1: rencanaAksi.tw1,
-        tw2: rencanaAksi.tw2,
-        tw3: rencanaAksi.tw3,
-        tw4: rencanaAksi.tw4,
         indikator: indikatorKinerja.namaIndikator,
         sasaran: sasaranStrategis.sasaranText
       })
@@ -43,10 +39,6 @@ export default defineEventHandler(async (event) => {
         indikatorId: body.indikatorId,
         namaRencanaAksi: body.rencanaAksi,
         target: body.target,
-        tw1: body.tw1,
-        tw2: body.tw2,
-        tw3: body.tw3,
-        tw4: body.tw4,
       }).returning();
       return { success: true, data: res };
     }
@@ -60,10 +52,6 @@ export default defineEventHandler(async (event) => {
         indikatorId: body.indikatorId,
         namaRencanaAksi: body.rencanaAksi,
         target: body.target,
-        tw1: body.tw1,
-        tw2: body.tw2,
-        tw3: body.tw3,
-        tw4: body.tw4,
       }).where(eq(rencanaAksi.id, body.id)).returning();
       
       return { success: true, data: res };

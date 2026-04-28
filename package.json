@@ -23,6 +23,7 @@
 		"nuxt-ollama": "1.2.20",
 		"nuxt-swiper": "2.0.1",
 		"nuxt-toast": "1.4.0",
+		"pg": "^8.20.0",
 		"pinia": "^3.0.4",
 		"postgres": "^3.4.9",
 		"rollup": "4.60.1",

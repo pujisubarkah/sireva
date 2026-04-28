@@ -4,7 +4,7 @@
       <!-- Header Utama -->
       <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 text-center">
         <h1 class="text-lg font-semibold text-slate-800">Rencana Aksi</h1>
-        <p class="text-sm text-slate-500 mt-1">Rincian rencana aksi dan target capaian per triwulan.</p>
+        <p class="text-sm text-slate-500 mt-1">Rincian rencana aksi dan target capaian.</p>
       </div>
 
       <!-- Toolbar -->
@@ -28,6 +28,7 @@
 
       <!-- Tabel -->
       <div v-else class="p-5">
+        <div class="mb-4 p-2 bg-yellow-100 text-yellow-800 text-xs rounded">DEBUG: Render Table with {{ tableRows.length }} rows</div>
         <Table :columns="columns" :data="tableRows" rowKey="id" :showPagination="false">
           <template #cell-aksi="{ row }">
             <div class="flex items-center justify-center gap-1">
@@ -105,7 +106,7 @@
 
           <!-- Target & TW -->
           <div class="space-y-3">
-            <label class="block text-sm font-bold text-slate-700 uppercase tracking-wider">Target & Triwulan</label>
+            <label class="block text-sm font-bold text-slate-700 uppercase tracking-wider">Target Capaian</label>
             <div class="grid grid-cols-5 gap-3">
               <div v-for="field in targetFields" :key="field.key" class="space-y-1">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase text-center">{{ field.label }}</label>
@@ -182,7 +183,7 @@ definePageMeta({ layout: 'dashboard' })
 
 import { computed, ref, onMounted } from 'vue'
 import { IconEye, IconPencil, IconTrash, IconPlus } from '@tabler/icons-vue'
-import Table from '@/components/UI/Table.vue'
+import Table from '../../../components/UI/Table.vue'
 import useSWRV from 'swrv'
 
 // Fetchers & Data
@@ -197,10 +198,6 @@ const columns = [
   { key: 'indikator', label: 'Indikator' },
   { key: 'rencanaAksi', label: 'Rencana Aksi' },
   { key: 'target', label: 'Target', className: 'text-center w-24' },
-  { key: 'tw1', label: 'TW1', className: 'text-center w-20' },
-  { key: 'tw2', label: 'TW2', className: 'text-center w-20' },
-  { key: 'tw3', label: 'TW3', className: 'text-center w-20' },
-  { key: 'tw4', label: 'TW4', className: 'text-center w-20' },
   { key: 'aksi', label: 'Aksi', className: 'text-center w-28' },
 ]
 
@@ -213,10 +210,6 @@ const tableRows = computed(() => {
 
 const targetFields = [
   { key: 'target', label: 'Total' },
-  { key: 'tw1', label: 'TW I' },
-  { key: 'tw2', label: 'TW II' },
-  { key: 'tw3', label: 'TW III' },
-  { key: 'tw4', label: 'TW IV' },
 ] as const;
 
 // Logic Status
