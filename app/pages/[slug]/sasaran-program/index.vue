@@ -8,13 +8,20 @@
 
       <div class="px-5 py-3 border-b border-slate-200 bg-white flex items-center justify-between gap-3">
         <h2 class="text-sm font-semibold text-slate-700">Daftar Sasaran Program</h2>
-        <button
-          type="button"
-          @click="router.push(`/${$route.params.slug}/sasaran-program/add`)"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold shadow text-sm cursor-pointer"
-        >
-          + Tambah Sasaran Program
-        </button>
+        <div class="flex items-center gap-3">
+          <FilterDropdown
+            v-model="selectedYear"
+            :options="yearOptions"
+            :icon="IconCalendarEvent"
+          />
+          <button
+            type="button"
+            @click="router.push(`/${$route.params.slug}/sasaran-program/add`)"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold shadow text-sm cursor-pointer"
+          >
+            + Tambah Sasaran Program
+          </button>
+        </div>
       </div>
 
       <div class="overflow-x-auto">
@@ -71,15 +78,19 @@
 definePageMeta({ layout: 'dashboard' })
 
 import { useRouter } from 'vue-router'
-import { IconEye, IconPencil } from '@tabler/icons-vue'
+import { IconEye, IconPencil, IconCalendarEvent } from '@tabler/icons-vue'
+import { ref, computed } from 'vue'
 import Table from '@/components/UI/Table.vue'
+import FilterDropdown from '@/components/FilterDropdown.vue'
 
 const router = useRouter()
 
-const years = [2025, 2026, 2027, 2028, 2029] as const
+const selectedYear = ref(String(new Date().getFullYear()))
+const yearOptions = ['2025', '2026', '2027', '2028', '2029']
 
-type Year = typeof years[number]
-type YearMap = Record<Year, number>
+const years = computed(() => [Number(selectedYear.value)])
+
+type YearMap = Record<number, number>
 
 interface ProgramRow {
   id: number
@@ -92,15 +103,15 @@ interface ProgramRow {
   aksi: string
 }
 
-const columns = [
+const columns = computed(() => [
   { key: 'no', label: 'No', className: 'text-center w-14' },
   { key: 'sasaranProgram', label: 'Sasaran Program' },
   { key: 'satuan', label: 'Satuan', className: 'w-28' },
-  { key: 'targetRenstra', label: 'Target Kinerja Renstra' },
-  { key: 'targetPerjanjian', label: 'Target Kinerja Perjanjian Kinerja' },
+  { key: 'targetRenstra', label: `Target Kinerja Renstra (${selectedYear.value})` },
+  { key: 'targetPerjanjian', label: `Target Perjanjian Kinerja (${selectedYear.value})` },
   { key: 'unitKerja', label: 'Unit Kerja' },
   { key: 'aksi', label: 'Aksi', className: 'text-center w-24' },
-]
+])
 
 const tableRows: ProgramRow[] = [
   {

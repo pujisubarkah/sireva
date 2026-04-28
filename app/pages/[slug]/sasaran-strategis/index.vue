@@ -10,14 +10,21 @@
       <!-- Toolbar dengan Tombol Tambah -->
       <div class="px-5 py-3 border-b border-slate-200 bg-white flex items-center justify-between gap-3">
         <h2 class="text-sm font-semibold text-slate-700">Daftar Sasaran Strategis</h2>
-        <button
-          type="button"
-          @click="router.push(`/${$route.params.slug}/sasaran-strategis/add`)"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold shadow text-sm transition-colors cursor-pointer"
-        >
-          <IconPlus :size="16" :stroke="'2'" />
-          Tambah Sasaran Strategis
-        </button>
+        <div class="flex items-center gap-3">
+          <FilterDropdown
+            v-model="selectedYear"
+            :options="yearOptions"
+            :icon="IconCalendarEvent"
+          />
+          <button
+            type="button"
+            @click="router.push(`/${$route.params.slug}/sasaran-strategis/add`)"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold shadow text-sm transition-colors cursor-pointer"
+          >
+            <IconPlus :size="16" :stroke="'2'" />
+            Tambah Sasaran Strategis
+          </button>
+        </div>
       </div>
 
       <!-- Konten Tabel -->
@@ -86,18 +93,21 @@
 
 definePageMeta({ layout: 'dashboard' })
 
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import useSWRV from 'swrv';
-import { IconEye, IconPencil, IconPlus, IconTrash } from '@tabler/icons-vue';
+import { IconEye, IconPencil, IconPlus, IconTrash, IconCalendarEvent } from '@tabler/icons-vue';
 import Table from '@/components/UI/Table.vue';
+import FilterDropdown from '@/components/FilterDropdown.vue';
 
 const router = useRouter();
 const route = useRoute();
 
 // Konfigurasi tahun yang ditampilkan (tahun berjalan)
-const currentYear = new Date().getFullYear();
-const years = [currentYear];
+const selectedYear = ref(String(new Date().getFullYear()));
+const yearOptions = ['2025', '2026', '2027', '2028', '2029'];
+
+const years = computed(() => [Number(selectedYear.value)]);
 
 type YearValue = Record<number, string>;
 
@@ -111,14 +121,14 @@ interface TableRow {
   aksi: string;
 }
 
-const columns = [
+const columns = computed(() => [
   { key: 'no', label: 'No', className: 'text-center w-14' },
   { key: 'sasaranStrategis', label: 'Sasaran Strategis' },
   { key: 'indikatorKinerja', label: 'Indikator Kinerja' },
-  { key: 'targetRenstra', label: 'Target Kinerja Renstra' },
+  { key: 'targetRenstra', label: `Target Kinerja Renstra (${selectedYear.value})` },
 
   { key: 'aksi', label: 'Aksi', className: 'text-center w-24' },
-];
+]);
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -172,7 +182,7 @@ const tableRows = computed<TableRow[]>(() => {
       no: index + 1,
       sasaranStrategis: sasaran.sasaranText,
       indikatorKinerja: indikator.namaIndikator,
-      targetRenstra: years.reduce((acc, y) => ({ ...acc, [y]: targetMap[`${indikator.id}-${y}`] || '-' }), {} as YearValue),
+      targetRenstra: years.value.reduce((acc, y) => ({ ...acc, [y]: targetMap[`${indikator.id}-${y}`] || '-' }), {} as YearValue),
 
       aksi: '',
     };

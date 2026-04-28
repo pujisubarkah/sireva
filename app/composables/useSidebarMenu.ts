@@ -46,7 +46,10 @@ const adminMenuItems: SidebarMenuItem[] = [
     label: 'Pemantauan Kinerja',
     icon: 'IconChartBar',
     children: [
-      { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.pemantauanSasaranStrategis, icon: 'IconActivity' },
+      { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.pemantauanSasaranStrategis, icon: 'IconTargetArrow' },
+      { label: 'Perjanjian Kinerja', href: SIDEBAR_MENU_ROUTES.pemantauanPerjanjianKinerja, icon: 'IconChecklist' },
+      { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.pemantauanSasaranProgram, icon: 'IconFocus2' },
+      { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.pemantauanRencanaAksi, icon: 'IconChecklist' },
       { label: 'Cascading', href: SIDEBAR_MENU_ROUTES.cascading, icon: 'IconSitemap' },
     ],
   },
@@ -64,6 +67,7 @@ const adminMenuItems: SidebarMenuItem[] = [
     children: [
       { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.laporanSasaranStrategis, icon: 'IconReport' },
       { label: 'Perjanjian Kinerja', href: SIDEBAR_MENU_ROUTES.laporanPerjanjianKinerja, icon: 'IconReportAnalytics' },
+      { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.laporanSasaranProgram, icon: 'IconReport' },
       { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.laporanRencanaAksi, icon: 'IconReport' },
     ],
   },
@@ -88,7 +92,10 @@ const userMenuItems: SidebarMenuItem[] = [
     label: 'Pemantauan Kinerja',
     icon: 'IconChartBar',
     children: [
-      { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.pemantauanSasaranStrategis, icon: 'IconActivity' },
+      { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.pemantauanSasaranStrategis, icon: 'IconTargetArrow' },
+      { label: 'Perjanjian Kinerja', href: SIDEBAR_MENU_ROUTES.pemantauanPerjanjianKinerja, icon: 'IconChecklist' },
+      { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.pemantauanSasaranProgram, icon: 'IconFocus2' },
+      { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.pemantauanRencanaAksi, icon: 'IconChecklist' },
       { label: 'Cascading', href: SIDEBAR_MENU_ROUTES.cascading, icon: 'IconSitemap' },
     ],
   },
@@ -99,6 +106,7 @@ const userMenuItems: SidebarMenuItem[] = [
     children: [
       { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.laporanSasaranStrategis, icon: 'IconReport' },
       { label: 'Perjanjian Kinerja', href: SIDEBAR_MENU_ROUTES.laporanPerjanjianKinerja, icon: 'IconReportAnalytics' },
+      { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.laporanSasaranProgram, icon: 'IconReport' },
       { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.laporanRencanaAksi, icon: 'IconReport' },
     ],
   },

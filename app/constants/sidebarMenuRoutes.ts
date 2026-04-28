@@ -10,7 +10,11 @@ export const SIDEBAR_MENU_ROUTES = {
   masterUser: '/master-user',
   rencanaAksi: '/rencana-aksi',
   pemantauanSasaranStrategis: '/pemantauan-kinerja/sasaran-strategis',
+  pemantauanPerjanjianKinerja: '/pemantauan-kinerja/perjanjian-kinerja',
+  pemantauanSasaranProgram: '/pemantauan-kinerja/sasaran-program',
+  pemantauanRencanaAksi: '/pemantauan-kinerja/rencana-aksi',
   laporanSasaranStrategis: '/laporan/sasaran-strategis',
   laporanPerjanjianKinerja: '/laporan/perjanjian-kinerja',
+  laporanSasaranProgram: '/laporan/sasaran-program',
   laporanRencanaAksi: '/laporan/rencana-aksi',
 } as const;
