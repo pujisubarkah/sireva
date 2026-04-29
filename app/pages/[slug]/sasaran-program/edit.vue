@@ -1,140 +1,161 @@
 <template>
-  <div class="space-y-6">
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <!-- Header -->
-      <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-        <div>
-          <h1 class="text-lg font-semibold text-slate-800">Edit Sasaran Program</h1>
-          <p class="text-sm text-slate-500 mt-0.5">Perbarui data sasaran program, indikator, dan target tahunan.</p>
+  <div class="space-y-6 pb-10">
+    <!-- Breadcrumb & Back Button -->
+    <div class="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest px-2">
+      <button @click="router.push(`/${$route.params.slug}/sasaran-program`)" class="hover:text-[#2663A3] transition-colors flex items-center gap-1">
+        <IconArrowLeft :size="14" />
+        Sasaran Program
+      </button>
+      <span>/</span>
+      <span class="text-slate-600 tracking-normal capitalize font-black">Edit Program</span>
+    </div>
+
+    <!-- Premium Form Header -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-8 py-10 bg-gradient-to-r from-blue-700 to-indigo-800 relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-8 opacity-10">
+          <IconPencil :size="120" class="text-white" />
         </div>
-        <button
-          type="button"
-          @click="router.push(`/${$route.params.slug}/sasaran-program`)"
-          class="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-          title="Kembali"
-        >
-          <IconX :size="20" />
-        </button>
+        <div class="relative z-10 flex items-center gap-6">
+          <div class="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+            <IconPencil :size="32" class="text-white" />
+          </div>
+          <div>
+            <h1 class="text-2xl font-black text-white tracking-tight">Perbarui Sasaran Program</h1>
+            <p class="text-blue-100 mt-1 text-sm font-medium">Lakukan perubahan pada data sasaran program dan target tahunan.</p>
+          </div>
+        </div>
       </div>
 
       <!-- Loading State -->
-      <div v-if="fetching" class="p-12 text-center text-slate-500">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-700/30 border-t-blue-700 mb-4"></div>
-        <p>Memuat rincian data...</p>
+      <div v-if="fetching" class="p-20 text-center">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-700/30 border-t-blue-700 mb-4"></div>
+        <p class="text-slate-500 font-bold">Memuat data program...</p>
       </div>
 
       <!-- Form -->
-      <form v-else @submit.prevent="handleSubmit" class="p-6 space-y-8">
+      <form v-else @submit.prevent="handleSubmit" class="p-8 space-y-12">
         
-        <!-- Section: Informasi Utama -->
+        <!-- Section 01: Informasi Utama -->
         <div class="space-y-6">
-          <h2 class="text-sm font-bold text-blue-700 uppercase tracking-wider flex items-center gap-2">
-            <span class="w-1.5 h-4 bg-blue-700 rounded-full"></span>
-            Informasi Sasaran Program
-          </h2>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-blue-600/20">
+              01
+            </div>
+            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Informasi Utama</h2>
+          </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Sasaran Program -->
-            <div class="md:col-span-2 space-y-1.5">
-              <label for="sasaranProgram" class="block text-sm font-medium text-slate-700">Nama Sasaran Program</label>
+            <div class="md:col-span-2 space-y-2">
+              <label for="sasaranProgram" class="block text-sm font-bold text-slate-700 ml-1">Nama Sasaran Program</label>
               <textarea 
                 id="sasaranProgram" 
                 v-model="form.sasaranProgram" 
-                required 
-                class="field-input min-h-[80px]" 
+                rows="3"
+                class="field-input resize-none"
                 placeholder="Masukkan deskripsi sasaran program..."
+                required
               ></textarea>
             </div>
 
             <!-- Satuan -->
-            <div class="space-y-1.5">
-              <label for="satuan" class="block text-sm font-medium text-slate-700">Satuan</label>
+            <div class="space-y-2">
+              <label for="satuan" class="block text-sm font-bold text-slate-700 ml-1">Satuan</label>
               <input 
                 id="satuan" 
                 v-model="form.satuan" 
                 type="text" 
-                required 
                 class="field-input" 
-                placeholder="Contoh: Orang, Persentase, Skor, dsb" 
+                placeholder="Misal: Orang, Persentase, Skor..." 
+                required
               />
             </div>
 
             <!-- Unit Kerja -->
-            <div class="space-y-1.5">
-              <label for="unitKerja" class="block text-sm font-medium text-slate-700">Unit Kerja Pelaksana</label>
+            <div class="space-y-2">
+              <label for="unitKerja" class="block text-sm font-bold text-slate-700 ml-1">Unit Kerja Pelaksana</label>
               <input 
                 id="unitKerja" 
                 v-model="form.unitKerja" 
                 type="text" 
-                required 
                 class="field-input" 
-                placeholder="Contoh: Pusbangkom ASN" 
+                placeholder="Misal: Pusbangkom ASN" 
+                required
               />
             </div>
           </div>
         </div>
 
-        <hr class="border-slate-100" />
+        <div class="h-px bg-slate-100"></div>
 
-        <!-- Section: Target Renstra -->
-        <div class="space-y-6">
-          <h2 class="text-sm font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
-            <span class="w-1.5 h-4 bg-emerald-700 rounded-full"></span>
-            Target Kinerja Renstra
-          </h2>
+        <!-- Section 02: Target Kinerja -->
+        <div class="space-y-8">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-indigo-600/20">
+              02
+            </div>
+            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Target Tahunan</h2>
+          </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-            <div v-for="year in years" :key="`renstra-${year}`" class="space-y-2 p-4 rounded-xl border border-slate-100 bg-slate-50/50 shadow-inner">
-              <label :for="`renstra-${year}`" class="block text-xs font-bold text-slate-500 uppercase text-center">{{ year }}</label>
-              <input 
-                :id="`renstra-${year}`" 
-                v-model="form.targetRenstra[year]" 
-                type="text" 
-                class="field-input text-center font-bold text-emerald-700 text-lg" 
-                placeholder="0" 
-              />
+          <!-- Target Renstra Grid -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-bold text-emerald-700 flex items-center gap-2 ml-1">
+              <IconFlag :size="16" />
+              Target Kinerja Renstra
+            </h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+              <div v-for="year in years" :key="`renstra-${year}`" class="relative group">
+                <div class="absolute -top-2 left-3 px-2 bg-white text-[9px] font-black text-slate-400 group-focus-within:text-emerald-600 transition-colors z-10">
+                  {{ year }}
+                </div>
+                <input 
+                  v-model="form.targetRenstra[year]" 
+                  type="text" 
+                  class="field-input !pt-4 text-center font-bold text-emerald-700" 
+                  placeholder="0" 
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        <hr class="border-slate-100" />
-
-        <!-- Section: Target PK -->
-        <div class="space-y-6">
-          <h2 class="text-sm font-bold text-amber-700 uppercase tracking-wider flex items-center gap-2">
-            <span class="w-1.5 h-4 bg-amber-700 rounded-full"></span>
-            Target Perjanjian Kinerja (PK)
-          </h2>
-
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-            <div v-for="year in years" :key="`pk-${year}`" class="space-y-2 p-4 rounded-xl border border-slate-100 bg-slate-50/50 shadow-inner">
-              <label :for="`pk-${year}`" class="block text-xs font-bold text-slate-500 uppercase text-center">{{ year }}</label>
-              <input 
-                :id="`pk-${year}`" 
-                v-model="form.targetPerjanjian[year]" 
-                type="text" 
-                class="field-input text-center font-bold text-amber-700 text-lg" 
-                placeholder="0" 
-              />
+          <!-- Target PK Grid -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-bold text-amber-700 flex items-center gap-2 ml-1">
+              <IconTarget :size="16" />
+              Target Perjanjian Kinerja (PK)
+            </h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+              <div v-for="year in years" :key="`pk-${year}`" class="relative group">
+                <div class="absolute -top-2 left-3 px-2 bg-white text-[9px] font-black text-slate-400 group-focus-within:text-amber-600 transition-colors z-10">
+                  {{ year }}
+                </div>
+                <input 
+                  v-model="form.targetPerjanjian[year]" 
+                  type="text" 
+                  class="field-input !pt-4 text-center font-bold text-amber-700" 
+                  placeholder="0" 
+                />
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Footer Actions -->
-        <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
+        <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-8 mt-4 border-t border-slate-100">
           <button 
             type="button" 
             @click="router.push(`/${$route.params.slug}/sasaran-program`)"
-            class="px-6 py-2.5 rounded-lg border border-slate-300 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-all cursor-pointer"
+            class="w-full sm:w-auto px-8 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm hover:bg-slate-200 transition-colors"
           >
             Batal
           </button>
           <button 
             type="submit" 
             :disabled="submitting"
-            class="px-8 py-2.5 rounded-lg bg-blue-700 text-white font-bold text-sm shadow-xl shadow-blue-700/20 hover:bg-blue-800 transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+            class="w-full sm:w-auto px-10 py-3 rounded-xl bg-blue-700 text-white font-bold text-sm shadow-xl shadow-blue-700/20 hover:bg-blue-800 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <IconCheck v-if="!submitting" :size="20" />
+            <IconCheck v-if="!submitting" :size="20" :stroke-width="3" />
             <span v-else class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
             Simpan Perubahan
           </button>
@@ -153,7 +174,7 @@ definePageMeta({ layout: 'dashboard' })
 
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { IconX, IconCheck } from '@tabler/icons-vue';
+import { IconArrowLeft, IconPencil, IconCheck, IconFlag, IconTarget } from '@tabler/icons-vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -176,7 +197,6 @@ const form = ref({
 // Load data on mount
 onMounted(async () => {
   if (!id) {
-    alert('ID tidak ditemukan.');
     router.push(`/${route.params.slug}/sasaran-program`);
     return;
   }
@@ -184,11 +204,9 @@ onMounted(async () => {
   try {
     fetching.value = true;
     
-    // Mocking API call to load data
-    console.log('Fetching data for Sasaran Program ID:', id);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Simulasi pengambilan data
+    await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Mock data based on the row selected
     const mockData = [
       {
         id: 1,
@@ -197,26 +215,10 @@ onMounted(async () => {
         targetRenstra: { 2025: 800, 2026: 900, 2027: 1000, 2028: 1100, 2029: 1200 },
         targetPerjanjian: { 2025: 780, 2026: 880, 2027: 980, 2028: 1050, 2029: 1150 },
         unitKerja: 'Pusbangkom ASN',
-      },
-      {
-        id: 2,
-        sasaranProgram: 'Program Penguatan Inovasi Kelembagaan',
-        satuan: 'Inovasi',
-        targetRenstra: { 2025: 8, 2026: 10, 2027: 12, 2028: 14, 2029: 16 },
-        targetPerjanjian: { 2025: 7, 2026: 9, 2027: 11, 2028: 13, 2029: 15 },
-        unitKerja: 'Puslatbang KDOD',
-      },
-      {
-        id: 3,
-        sasaranProgram: 'Program Digitalisasi Layanan Pembelajaran',
-        satuan: 'Layanan',
-        targetRenstra: { 2025: 5, 2026: 7, 2027: 9, 2028: 11, 2029: 13 },
-        targetPerjanjian: { 2025: 5, 2026: 6, 2027: 8, 2028: 10, 2029: 12 },
-        unitKerja: 'Pusdatin LAN',
       }
     ];
 
-    const data = mockData.find(m => m.id === id);
+    const data = mockData.find(m => m.id === id) || mockData[0];
     if (data) {
       form.value = {
         ...data,
@@ -227,30 +229,22 @@ onMounted(async () => {
 
   } catch (error) {
     console.error('Gagal mengambil data:', error);
-    alert('Terjadi kesalahan saat memuat data.');
   } finally {
     fetching.value = false;
   }
 });
 
 /**
- * Handle form submission (Update)
+ * Handle form submission
  */
 const handleSubmit = async () => {
   submitting.value = true;
-  
   try {
-    // Mocking API call to update data
-    console.log('Updating Sasaran Program data:', form.value);
-    
-    // Simulate network delay
+    console.log('Updating Sasaran Program:', form.value);
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Redirect back to index
     router.push(`/${route.params.slug}/sasaran-program`);
   } catch (error) {
     console.error('Error updating data:', error);
-    alert('Gagal menyimpan perubahan ke server. Silakan coba lagi.');
   } finally {
     submitting.value = false;
   }
@@ -260,13 +254,13 @@ const handleSubmit = async () => {
 <style scoped>
 .field-input {
   width: 100%;
-  border: 1px solid rgb(214 211 209);
+  border: 1px solid rgb(226 232 240);
   border-radius: 0.75rem;
-  padding: 0.65rem 1rem;
+  padding: 0.75rem 1rem;
   font-size: 0.875rem;
-  color: rgb(15 23 42);
+  color: rgb(30 41 59);
   background-color: white;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .field-input:focus {
@@ -275,10 +269,7 @@ const handleSubmit = async () => {
   box-shadow: 0 0 0 4px rgb(191 219 254 / 0.4);
 }
 
-.field-input:disabled {
-  background-color: rgb(248 250 252);
-  color: rgb(148 163 184);
-  cursor: not-allowed;
-  border-color: rgb(241 245 249);
+.field-input::placeholder {
+  color: rgb(203 213 225);
 }
 </style>

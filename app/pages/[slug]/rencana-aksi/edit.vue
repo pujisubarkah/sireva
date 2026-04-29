@@ -2,12 +2,12 @@
   <div class="space-y-6 pb-10">
     <!-- Breadcrumb & Back Button -->
     <div class="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest px-2">
-      <button @click="router.push(`/${$route.params.slug}/perjanjian-kinerja`)" class="hover:text-[#2663A3] transition-colors flex items-center gap-1">
+      <button @click="router.push(`/${$route.params.slug}/rencana-aksi`)" class="hover:text-[#2663A3] transition-colors flex items-center gap-1">
         <IconArrowLeft :size="14" />
-        Perjanjian Kinerja
+        Rencana Aksi
       </button>
       <span>/</span>
-      <span class="text-slate-600 tracking-normal capitalize font-black">Edit Perjanjian</span>
+      <span class="text-slate-600 tracking-normal capitalize font-black">Edit Rencana</span>
     </div>
 
     <!-- Premium Form Header -->
@@ -21,8 +21,8 @@
             <IconPencil :size="32" class="text-white" />
           </div>
           <div>
-            <h1 class="text-2xl font-black text-white tracking-tight">Perbarui Perjanjian Kinerja</h1>
-            <p class="text-indigo-100 mt-1 text-sm font-medium">Sesuaikan detail komitmen dan target kinerja tahunan.</p>
+            <h1 class="text-2xl font-black text-white tracking-tight">Perbarui Rencana Aksi</h1>
+            <p class="text-indigo-100 mt-1 text-sm font-medium">Sesuaikan langkah operasional dan target triwulanan.</p>
           </div>
         </div>
       </div>
@@ -30,73 +30,92 @@
       <!-- Loading State -->
       <div v-if="fetching" class="p-20 text-center">
         <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-700/30 border-t-indigo-700 mb-4"></div>
-        <p class="text-slate-500 font-bold tracking-widest text-xs uppercase">Sinkronisasi Data...</p>
+        <p class="text-slate-500 font-bold tracking-widest text-xs uppercase">Menyiapkan Data...</p>
       </div>
 
       <!-- Form -->
       <form v-else @submit.prevent="handleSubmit" class="p-8 space-y-12">
         
-        <!-- Section 01: Informasi Utama -->
+        <!-- Section 01: Konteks Strategis -->
         <div class="space-y-6">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-indigo-600/20">
               01
             </div>
-            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Informasi Utama</h2>
+            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Konteks Strategis</h2>
           </div>
           
-          <div class="grid grid-cols-1 gap-6">
-            <!-- Sasaran -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-70 cursor-not-allowed">
+            <!-- Sasaran (Readonly in Edit) -->
             <div class="space-y-2">
-              <label for="sasaran" class="block text-sm font-bold text-slate-700 ml-1">Sasaran</label>
-              <textarea 
-                id="sasaran" 
-                v-model="form.sasaran" 
-                rows="3"
-                class="field-input resize-none"
-                placeholder="Masukkan deskripsi sasaran..."
-                required
-              ></textarea>
+              <label class="block text-sm font-bold text-slate-700 ml-1">Sasaran Terkait</label>
+              <div class="field-input bg-slate-50 font-medium">
+                {{ form.sasaran || 'Memuat...' }}
+              </div>
             </div>
 
-            <!-- Indikator -->
+            <!-- Indikator (Readonly in Edit) -->
             <div class="space-y-2">
-              <label for="indikator" class="block text-sm font-bold text-slate-700 ml-1">Indikator Kinerja</label>
-              <textarea 
-                id="indikator" 
-                v-model="form.indikator" 
-                rows="3"
-                class="field-input resize-none"
-                placeholder="Masukkan deskripsi indikator..."
-                required
-              ></textarea>
+              <label class="block text-sm font-bold text-slate-700 ml-1">Indikator Kinerja</label>
+              <div class="field-input bg-slate-50 font-medium">
+                {{ form.indikator || 'Memuat...' }}
+              </div>
             </div>
           </div>
+          <p class="text-[10px] text-slate-400 italic ml-1">* Konteks strategis tidak dapat diubah setelah data dibuat.</p>
         </div>
 
         <div class="h-px bg-slate-100"></div>
 
-        <!-- Section 02: Target Perubahan -->
+        <!-- Section 02: Rincian Aksi -->
         <div class="space-y-6">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-blue-600/20">
               02
             </div>
-            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Target Perubahan</h2>
+            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Detail Perubahan</h2>
           </div>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Target -->
+          <div class="grid grid-cols-1 gap-6">
+            <!-- Deskripsi Aksi -->
             <div class="space-y-2">
-              <label for="target" class="block text-sm font-bold text-slate-700 ml-1">Target Tahunan</label>
-              <input 
-                id="target" 
-                v-model="form.target" 
-                type="text" 
-                class="field-input font-bold text-[#2663A3]"
-                placeholder="Misal: 85%, 10 Modul, dsb" 
+              <label for="rencanaAksi" class="block text-sm font-bold text-slate-700 ml-1">Deskripsi Rencana Aksi</label>
+              <textarea 
+                id="rencanaAksi" 
+                v-model="form.rencanaAksi" 
+                rows="4"
+                class="field-input resize-none"
+                placeholder="Jelaskan langkah nyata yang akan dilakukan..."
                 required
-              />
+              ></textarea>
+            </div>
+
+            <!-- Target Capaian -->
+            <div class="space-y-4 pt-4">
+              <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Target Capaian Operasional</h3>
+              <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                <div class="space-y-2 col-span-2 sm:col-span-1">
+                  <label class="block text-[10px] font-black text-slate-400 uppercase text-center tracking-tighter">Total Target</label>
+                  <input 
+                    v-model.number="form.target" 
+                    type="number" 
+                    step="0.01"
+                    class="field-input !p-3 text-center font-black text-[#2663A3] text-lg bg-blue-50/50 border-blue-100" 
+                    placeholder="0"
+                    required
+                  />
+                </div>
+                <div v-for="tw in [1, 2, 3, 4]" :key="tw" class="space-y-2">
+                  <label class="block text-[10px] font-bold text-slate-400 uppercase text-center tracking-tighter">TW {{ tw }}</label>
+                  <input 
+                    v-model.number="form[`tw${tw}`]" 
+                    type="number" 
+                    step="0.01"
+                    class="field-input !p-3 text-center font-bold text-slate-600" 
+                    placeholder="0"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -105,7 +124,7 @@
         <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-8 mt-4 border-t border-slate-100">
           <button 
             type="button" 
-            @click="router.push(`/${$route.params.slug}/perjanjian-kinerja`)"
+            @click="router.push(`/${$route.params.slug}/rencana-aksi`)"
             class="w-full sm:w-auto px-8 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm hover:bg-slate-200 transition-colors"
           >
             Batal
@@ -127,7 +146,7 @@
 
 <script setup lang="ts">
 /**
- * Komponen Edit Perjanjian Kinerja
+ * Komponen Edit Rencana Aksi
  */
 
 definePageMeta({ layout: 'dashboard' })
@@ -144,30 +163,41 @@ const id = Number(route.query.id);
 const fetching = ref(true);
 const submitting = ref(false);
 
-const form = ref({
+const form = ref<any>({
   id: id,
   sasaran: '',
   indikator: '',
-  target: ''
+  rencanaAksi: '',
+  target: 0,
+  tw1: 0,
+  tw2: 0,
+  tw3: 0,
+  tw4: 0,
 });
 
-// Load data on mount
 onMounted(async () => {
   if (!id) {
-    router.push(`/${route.params.slug}/perjanjian-kinerja`);
+    router.push(`/${route.params.slug}/rencana-aksi`);
     return;
   }
 
   try {
     fetching.value = true;
+    
+    // Simulasi pengambilan data
     await new Promise(resolve => setTimeout(resolve, 800));
     
     // Mock data
     form.value = {
       id: id,
-      sasaran: 'Terwujudnya ASN yang Profesional dan Kompeten melalui penguatan sistem merit.',
-      indikator: 'Indeks Kepuasan Peserta Pelatihan Kediklatan ASN',
-      target: id === 1 ? '85.0' : id === 2 ? '4 Modul' : '3 Fitur'
+      sasaran: 'Terwujudnya ASN Berakhlak dan Berdaya Saing Global',
+      indikator: 'Persentase ASN yang lulus sertifikasi kompetensi global',
+      rencanaAksi: 'Melakukan pemetaan kompetensi ASN di seluruh instansi pusat dan daerah.',
+      target: 85,
+      tw1: 20,
+      tw2: 40,
+      tw3: 60,
+      tw4: 85,
     };
 
   } catch (error) {
@@ -177,15 +207,12 @@ onMounted(async () => {
   }
 });
 
-/**
- * Handle form submission (Update)
- */
 const handleSubmit = async () => {
   submitting.value = true;
   try {
-    console.log('Updating PK data:', form.value);
+    console.log('Updating Rencana Aksi:', form.value);
     await new Promise(resolve => setTimeout(resolve, 1000));
-    router.push(`/${route.params.slug}/perjanjian-kinerja`);
+    router.push(`/${route.params.slug}/rencana-aksi`);
   } catch (error) {
     console.error('Error updating data:', error);
   } finally {

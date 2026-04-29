@@ -1,18 +1,43 @@
 <template>
-  <div class="space-y-4">
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 text-center">
-        <h1 class="text-lg font-semibold text-slate-800">Sasaran Kegiatan (SK)</h1>
-        <p class="text-sm text-slate-500 mt-1">Daftar rinci kegiatan operasional (Level Administrator/Pengawas).</p>
+  <div class="space-y-6 pb-10">
+    <!-- Header Section -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-8 py-8 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-widest mb-3">
+            Perencanaan Operasional
+          </div>
+          <h1 class="text-3xl font-black text-slate-800 tracking-tight">Sasaran Kegiatan (SK)</h1>
+          <p class="text-slate-500 mt-1 text-sm font-medium">Daftar rinci kegiatan operasional pada Level Administrator/Pengawas.</p>
+        </div>
+        <div class="flex items-center gap-3">
+           <button
+            @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/add`)"
+            class="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#2663A3] text-white font-bold text-sm shadow-xl shadow-blue-700/20 hover:bg-blue-800 hover:scale-[1.02] transition-all"
+          >
+            <IconPlus :size="18" :stroke-width="3" />
+            Tambah Kegiatan
+          </button>
+        </div>
       </div>
 
-      <div class="px-5 py-3 border-b border-slate-200 bg-white flex items-center justify-between gap-3">
-        <h2 class="text-sm font-semibold text-slate-700">Daftar Sasaran Kegiatan</h2>
-        <div class="flex items-center gap-3 ml-auto mr-3">
+      <!-- Filter & Search Bar -->
+      <div class="px-8 py-4 bg-white flex flex-col lg:flex-row lg:items-center gap-4">
+        <div class="relative flex-1">
+          <IconSearch class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" :size="20" />
+          <input 
+            v-model="searchQuery"
+            type="text" 
+            placeholder="Cari nama kegiatan atau program..."
+            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-[#2663A3] transition-all"
+          />
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
           <FilterDropdown
             v-model="selectedUnitKerja"
             :options="unitKerjaOptions"
             :icon="IconBuilding"
+            class="min-w-[200px]"
           />
           <FilterDropdown
             v-model="selectedYear"
@@ -20,66 +45,123 @@
             :icon="IconCalendarEvent"
           />
         </div>
-        <button
-          type="button"
-          @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/add`)"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-semibold shadow text-sm cursor-pointer"
-        >
-          + Tambah Sasaran Kegiatan
-        </button>
       </div>
+    </div>
 
-      <div class="px-5 pt-5">
-        <Alert 
-          variant="neutral" 
-          message="Sasaran kegiatan merupakan turunan teknis dari Sasaran Program yang difokuskan pada level operasional unit kerja." 
-        />
-      </div>
+    <!-- Alert Information -->
+    <div class="px-2">
+      <Alert 
+        variant="neutral" 
+        message="Sasaran kegiatan merupakan turunan teknis dari Sasaran Program yang difokuskan pada level operasional unit kerja." 
+      />
+    </div>
 
-      <div class="overflow-x-auto">
-        <div style="min-width: 1200px;" class="p-5">
-          <Table :columns="columns" :data="tableRows" :showPagination="false" rowKey="id">
-            <template #cell-aksi="{ row }">
-              <div class="flex items-center justify-center gap-2">
+    <!-- Grouped Cards State -->
+    <div v-if="Object.keys(groupedData).length > 0" class="space-y-8">
+      <div v-for="(kegiatans, programName) in groupedData" :key="programName" class="space-y-4">
+        <!-- Program Group Header -->
+        <div class="flex items-center gap-3 px-2">
+          <div class="h-8 w-1.5 bg-[#2663A3] rounded-full"></div>
+          <h2 class="text-sm font-black text-slate-500 uppercase tracking-[0.2em]">{{ programName }}</h2>
+          <div class="h-px flex-1 bg-slate-100 ml-2"></div>
+          <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">{{ kegiatans.length }} KEGIATAN</span>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div 
+            v-for="kegiatan in kegiatans" 
+            :key="kegiatan.id"
+            class="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 flex flex-col overflow-hidden"
+          >
+            <!-- Card Body -->
+            <div class="p-6 flex-1 space-y-4">
+              <div class="flex justify-between items-start gap-3">
+                <p class="text-sm font-bold text-slate-800 leading-snug group-hover:text-[#2663A3] transition-colors">
+                  {{ kegiatan.kegiatan }}
+                </p>
+                <div class="p-2 rounded-lg bg-slate-50 text-slate-400 opacity-0 group-hover:opacity-100 transition-all">
+                  <IconFileDescription :size="18" />
+                </div>
+              </div>
+
+              <!-- Metadata -->
+              <div class="space-y-2">
+                <div class="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
+                  <IconBuilding :size="14" class="text-slate-400" />
+                  <span>{{ kegiatan.unitKerja }}</span>
+                </div>
+                <div class="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
+                  <IconCoin :size="14" class="text-emerald-500" />
+                  <span class="font-bold text-slate-700">Anggaran: {{ kegiatan.anggaran }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between group-hover:bg-blue-50/50 transition-colors">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider italic">ID: SK-{{ kegiatan.id.toString().padStart(3, '0') }}</span>
+              <div class="flex items-center gap-2">
                 <button
-                  type="button"
-                  @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/edit?id=${row.id}`)"
-                  title="Edit"
-                  :aria-label="`Edit ${row.kegiatan}`"
-                  class="action-btn action-btn-edit"
+                  @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/view?id=${kegiatan.id}`)"
+                  class="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-200 shadow-sm transition-all"
+                  title="Lihat Detail"
                 >
-                  <IconPencil :size="16" :stroke="'2'" />
+                  <IconEye :size="16" />
                 </button>
                 <button
-                  type="button"
-                  @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/view?id=${row.id}`)"
-                  title="Lihat"
-                  :aria-label="`Lihat ${row.kegiatan}`"
-                  class="action-btn action-btn-view"
+                  @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/edit?id=${kegiatan.id}`)"
+                  class="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-emerald-600 hover:border-emerald-200 shadow-sm transition-all"
+                  title="Edit Kegiatan"
                 >
-                  <IconEye :size="16" :stroke="'2'" />
+                  <IconPencil :size="16" />
                 </button>
               </div>
-            </template>
-          </Table>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else class="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-20 text-center">
+      <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+        <IconSearch :size="40" class="text-slate-300" />
+      </div>
+      <h3 class="text-lg font-bold text-slate-800">Tidak ada kegiatan ditemukan</h3>
+      <p class="text-slate-500 mt-2 max-w-sm mx-auto text-sm">Coba sesuaikan kata kunci pencarian atau filter Unit Kerja Anda.</p>
+      <button 
+        @click="searchQuery = ''; selectedUnitKerja = 'Semua Unit Kerja'"
+        class="mt-6 text-blue-600 font-bold text-sm hover:underline"
+      >
+        Reset Filter
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+/**
+ * Komponen Sasaran Kegiatan (SK)
+ * Migrasi ke Grouped Card Layout untuk skalabilitas data tinggi.
+ */
+
 definePageMeta({ layout: 'dashboard' })
 
-import { useRouter } from 'vue-router'
-import { IconEye, IconPencil, IconCalendarEvent, IconBuilding } from '@tabler/icons-vue'
-import Table from '@/components/UI/Table.vue'
+import { ref, onMounted, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { 
+  IconPlus, IconSearch, IconBuilding, IconCalendarEvent, 
+  IconEye, IconPencil, IconCoin, IconFileDescription 
+} from '@tabler/icons-vue'
 import FilterDropdown from '@/components/FilterDropdown.vue'
 import Alert from '@/components/UI/alert.vue'
-import { ref, onMounted, computed } from 'vue'
 
 const router = useRouter()
+const route = useRoute()
 
+// State Filters
+const searchQuery = ref('')
 const selectedYear = ref(String(new Date().getFullYear()))
 const yearOptions = ['2025', '2026', '2027', '2028', '2029']
 
@@ -89,33 +171,33 @@ const unitKerjaOptions = ['Semua Unit Kerja', ...dummyUnitKerja]
 
 interface KegiatanRow {
   id: number
-  no: number
   program: string
   kegiatan: string
   unitKerja: string
   anggaran: string
-  aksi: string
 }
-
-const columns = computed(() => [
-  { key: 'no', label: 'No', className: 'text-center w-14' },
-  { key: 'program', label: 'Program' },
-  { key: 'kegiatan', label: 'Kegiatan' },
-  { key: 'unitKerja', label: 'Unit Kerja' },
-  { key: 'anggaran', label: `Anggaran (${selectedYear.value})`, className: 'text-right w-40' },
-  { key: 'aksi', label: 'Aksi', className: 'text-center w-24' },
-])
 
 const baseData = ref<KegiatanRow[]>([])
 
-const tableRows = computed(() => {
-  let filteredData = baseData.value;
+// Logic Pengelompokan Data (Group by Program)
+const groupedData = computed(() => {
+  let filtered = baseData.value.filter(item => {
+    const matchesSearch = item.kegiatan.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
+                         item.program.toLowerCase().includes(searchQuery.value.toLowerCase());
+    const matchesUnit = selectedUnitKerja.value === 'Semua Unit Kerja' || item.unitKerja === selectedUnitKerja.value;
+    return matchesSearch && matchesUnit;
+  });
 
-  if (selectedUnitKerja.value !== 'Semua Unit Kerja') {
-    filteredData = filteredData.filter((d) => d.unitKerja === selectedUnitKerja.value);
-  }
+  const groups: Record<string, KegiatanRow[]> = {};
+  filtered.forEach(item => {
+    const key = item.program || 'Tanpa Program';
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+    groups[key].push(item);
+  });
 
-  return filteredData.map((d, index) => ({ ...d, no: index + 1 }));
+  return groups;
 });
 
 function formatCurrency(value: any): string {
@@ -131,20 +213,18 @@ function formatCurrency(value: any): string {
 onMounted(async () => {
   try {
     const [kegiatanData, programData] = await Promise.all([
-      $fetch('/api/master-kegiatan'),
-      $fetch('/api/master-program'),
+      $fetch<any[]>('/api/master-kegiatan'),
+      $fetch<any[]>('/api/master-program'),
     ])
 
     const programMap = new Map(programData.map((p: any) => [p.id, p.namaProgram]))
 
-    baseData.value = kegiatanData.map((item: any, index: number) => ({
+    baseData.value = kegiatanData.map((item: any) => ({
       id: item.id,
-      no: index + 1,
-      program: programMap.get(item.programId) || '-',
+      program: programMap.get(item.programId) || 'Program Tidak Terdefinisi',
       kegiatan: item.namaKegiatan,
       unitKerja: dummyUnitKerja[item.id % dummyUnitKerja.length] || 'Pusbangkom ASN',
       anggaran: formatCurrency(item.total),
-      aksi: '',
     }))
   } catch (error) {
     console.error('Error fetching data:', error)
@@ -153,101 +233,8 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.metric-card {
-  border-radius: 0.5rem;
-  border: 1px solid;
-  padding: 0.5rem;
-}
-
-.metric-card-blue {
-  border-color: rgb(191 219 254);
-  background-color: rgb(239 246 255 / 0.5);
-}
-
-.metric-card-emerald {
-  border-color: rgb(167 243 208);
-  background-color: rgb(236 253 245 / 0.5);
-}
-
-.metric-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.35rem 0;
-  border-bottom: 1px solid;
-}
-
-.metric-row:last-child {
-  border-bottom: none;
-}
-
-.metric-row-blue {
-  border-bottom-color: rgb(191 219 254);
-}
-
-.metric-row-emerald {
-  border-bottom-color: rgb(167 243 208);
-}
-
-.metric-year {
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.metric-year-blue {
-  color: rgb(30 64 175);
-}
-
-.metric-year-emerald {
-  color: rgb(6 95 70);
-}
-
-.metric-value {
-  font-size: 0.875rem;
-  font-weight: 700;
-}
-
-.metric-value-blue {
-  color: rgb(30 58 138);
-}
-
-.metric-value-emerald {
-  color: rgb(6 78 59);
-}
-
-.action-btn {
-  height: 1.9rem;
-  width: 1.9rem;
-  border-radius: 0.5rem;
-  border: 1px solid;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-}
-
-.action-btn-edit {
-  color: rgb(22 101 52);
-  border-color: rgb(167 243 208);
-  background-color: rgb(236 253 245);
-}
-
-.action-btn-edit:hover {
-  color: rgb(255 255 255);
-  border-color: rgb(22 163 74);
-  background-color: rgb(22 163 74);
-}
-
-.action-btn-view {
-  color: rgb(30 64 175);
-  border-color: rgb(191 219 254);
-  background-color: rgb(239 246 255);
-}
-
-.action-btn-view:hover {
-  color: rgb(255 255 255);
-  border-color: rgb(37 99 235);
-  background-color: rgb(37 99 235);
+/* Grid transisi halus */
+.group:hover {
+  transform: translateY(-4px);
 }
 </style>

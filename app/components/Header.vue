@@ -1,4 +1,3 @@
-
 <template>
   <header class="h-18 border-b border-blue-800 flex items-center px-8 justify-between shadow-sm" style="background-color: #1F4F85;">
     <!-- Left: Hamburger + Filters -->
@@ -90,9 +89,6 @@ import {
   IconCalendarStats,
   IconMail
 } from '@tabler/icons-vue';
-
-
-
 
 const isDropdownOpen = ref(false);
 const dropdownRef = ref(null);

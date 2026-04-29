@@ -1,157 +1,179 @@
 <template>
-  <div class="space-y-6">
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+  <div class="space-y-6 max-w-4xl mx-auto pb-10">
+    <!-- Breadcrumb / Kembali -->
+    <button 
+      @click="router.push(`/${$route.params.slug}/sasaran-strategis`)"
+      class="group inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-[#2663A3] transition-colors"
+    >
+      <div class="p-1.5 rounded-lg bg-white border border-slate-200 group-hover:border-blue-200 group-hover:bg-blue-50 transition-all">
+        <IconArrowLeft :size="16" />
+      </div>
+      Kembali ke Daftar
+    </button>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <!-- Header -->
-      <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center justify-between">
         <div>
-          <h1 class="text-lg font-semibold text-slate-800">Tambah Sasaran Strategis</h1>
-          <p class="text-sm text-slate-500 mt-0.5">Input data sasaran, indikator, dan target tahunan.</p>
+          <h1 class="text-2xl font-bold text-slate-800">Tambah Sasaran Strategis</h1>
+          <p class="text-sm text-slate-500 mt-1">Input data sasaran, indikator, dan target tahunan baru.</p>
         </div>
-        <button
-          type="button"
-          @click="router.push(`/${$route.params.slug}/sasaran-strategis`)"
-          class="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-          title="Kembali"
-        >
-          <IconX :size="20" />
-        </button>
+        <div class="hidden sm:block">
+          <div class="p-3 bg-blue-50 rounded-2xl border border-blue-100">
+            <IconPlus :size="24" class="text-[#2663A3]" />
+          </div>
+        </div>
       </div>
 
       <!-- Form -->
-      <form @submit.prevent="handleSubmit" class="p-6 space-y-8">
+      <form @submit.prevent="handleSubmit" class="p-8 space-y-8">
         
-        <!-- Section: Tujuan & Sasaran -->
+        <!-- Section 01: Konteks Strategis -->
         <div class="space-y-6">
-          <h2 class="text-sm font-bold text-blue-700 uppercase tracking-wider flex items-center gap-2">
-            <span class="w-1.5 h-4 bg-blue-700 rounded-full"></span>
-            Informasi Sasaran Strategis
-          </h2>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-blue-600/20">
+              01
+            </div>
+            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Konteks Strategis</h2>
+          </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Pilih Tujuan -->
-            <div class="space-y-1.5">
-              <label for="tujuanId" class="block text-sm font-medium text-slate-700">Pilih Tujuan</label>
+            <div class="space-y-2">
+              <label for="tujuanId" class="block text-sm font-bold text-slate-700 ml-1">Tujuan Strategis</label>
               <select 
                 id="tujuanId" 
                 v-model="form.tujuanId" 
                 class="field-input"
                 required
               >
-                <option :value="null">-- Pilih Tujuan --</option>
+                <option :value="null">-- Pilih Tujuan Strategis --</option>
                 <option v-for="t in tujuanList" :key="t.id" :value="t.id">{{ t.tujuanText }}</option>
               </select>
             </div>
 
-            <!-- Pilih Sasaran (Jika tidak membuat baru) -->
-            <div class="space-y-1.5">
-              <label for="sasaranId" class="block text-sm font-medium text-slate-700">Pilih Sasaran Strategis</label>
-              <div class="flex flex-col gap-2">
+            <!-- Pilih Sasaran -->
+            <div class="space-y-2">
+              <label for="sasaranId" class="block text-sm font-bold text-slate-700 ml-1">Sasaran Strategis</label>
+              <div class="space-y-3">
                 <select 
                   id="sasaranId" 
                   v-model="form.sasaranId" 
-                  class="field-input"
+                  class="field-input shadow-sm"
                   :disabled="isNewSasaran"
                   :required="!isNewSasaran"
                 >
                   <option :value="null">-- Pilih Sasaran Strategis --</option>
                   <option v-for="s in filteredSasaranList" :key="s.id" :value="s.id">{{ s.sasaranText }}</option>
                 </select>
-                <div class="flex items-center gap-2">
-                  <input type="checkbox" id="newSasaranToggle" v-model="isNewSasaran" class="rounded text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                  <label for="newSasaranToggle" class="text-xs text-slate-500 font-medium cursor-pointer">Buat Sasaran Strategis Baru</label>
-                </div>
+                <label class="flex items-center gap-2 group cursor-pointer select-none">
+                  <div class="relative flex items-center justify-center w-5 h-5 border-2 border-slate-300 rounded-md transition-all group-hover:border-blue-500" :class="{'bg-blue-600 border-blue-600 shadow-md shadow-blue-200': isNewSasaran}">
+                    <IconCheck v-if="isNewSasaran" :size="14" stroke-width="4" class="text-white" />
+                    <input type="checkbox" v-model="isNewSasaran" class="absolute opacity-0 w-full h-full cursor-pointer" />
+                  </div>
+                  <span class="text-xs font-bold transition-colors" :class="isNewSasaran ? 'text-blue-700' : 'text-slate-500'">Buat Sasaran Strategis Baru</span>
+                </label>
               </div>
             </div>
 
-            <!-- Input Sasaran Baru (Jika checkbox dicentang) -->
-            <div v-if="isNewSasaran" class="md:col-span-2 space-y-1.5">
-              <label for="sasaranText" class="block text-sm font-medium text-slate-700">Nama Sasaran Strategis Baru</label>
+            <!-- Input Sasaran Baru -->
+            <div v-if="isNewSasaran" class="md:col-span-2 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+              <label for="sasaranText" class="block text-sm font-bold text-slate-700 ml-1 text-blue-700">Nama Sasaran Strategis Baru</label>
               <textarea 
                 id="sasaranText" 
                 v-model="form.sasaranText" 
                 required 
-                class="field-input min-h-[80px]" 
-                placeholder="Masukkan deskripsi sasaran strategis baru..."
+                class="field-input min-h-[100px] border-blue-200 bg-blue-50/30 focus:bg-white" 
+                placeholder="Masukkan deskripsi sasaran strategis baru dengan lengkap..."
               ></textarea>
             </div>
           </div>
         </div>
 
-        <hr class="border-slate-100" />
+        <div class="h-px bg-slate-100"></div>
 
-        <!-- Section: Indikator -->
+        <!-- Section 02: Detail Indikator -->
         <div class="space-y-6">
-          <h2 class="text-sm font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
-            <span class="w-1.5 h-4 bg-emerald-700 rounded-full"></span>
-            Indikator Kinerja
-          </h2>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-emerald-500/20">
+              02
+            </div>
+            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Detail Indikator Kinerja</h2>
+          </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="md:col-span-2 space-y-1.5">
-              <label for="namaIndikator" class="block text-sm font-medium text-slate-700">Nama Indikator</label>
+            <div class="md:col-span-2 space-y-2">
+              <label for="namaIndikator" class="block text-sm font-bold text-slate-700 ml-1">Nama Indikator</label>
               <input 
                 id="namaIndikator" 
                 v-model="form.namaIndikator" 
                 type="text" 
                 required 
                 class="field-input" 
-                placeholder="Masukkan nama indikator kinerja..." 
+                placeholder="Contoh: Persentase Capaian Kinerja..." 
               />
             </div>
-            <div class="space-y-1.5">
-              <label for="satuan" class="block text-sm font-medium text-slate-700">Satuan</label>
+            <div class="space-y-2">
+              <label for="satuan" class="block text-sm font-bold text-slate-700 ml-1">Satuan</label>
               <input 
                 id="satuan" 
                 v-model="form.satuan" 
                 type="text" 
                 required 
                 class="field-input" 
-                placeholder="Contoh: Persentase, Skor, Rp, dsb" 
+                placeholder="Contoh: %, Dokumen, Skor" 
               />
             </div>
           </div>
         </div>
 
-        <hr class="border-slate-100" />
+        <div class="h-px bg-slate-100"></div>
 
-        <!-- Section: Target Tahunan -->
+        <!-- Section 03: Target Capaian -->
         <div class="space-y-6">
-          <h2 class="text-sm font-bold text-amber-700 uppercase tracking-wider flex items-center gap-2">
-            <span class="w-1.5 h-4 bg-amber-700 rounded-full"></span>
-            Target Capaian Tahunan (Renstra)
-          </h2>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-amber-500/20">
+              03
+            </div>
+            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Target Tahunan (Renstra)</h2>
+          </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-            <div v-for="year in years" :key="year" class="space-y-2 p-4 rounded-xl border border-slate-100 bg-slate-50/50 shadow-inner">
-              <label :for="`target-${year}`" class="block text-xs font-bold text-slate-500 uppercase text-center">{{ year }}</label>
-              <input 
-                :id="`target-${year}`" 
-                v-model="form.targets[year]" 
-                type="text" 
-                class="field-input text-center font-bold text-blue-700 text-lg" 
-                placeholder="0" 
-              />
+          <div class="bg-slate-50 rounded-2xl border border-slate-200 p-6 shadow-inner">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+              <div v-for="year in years" :key="year" class="space-y-2 group">
+                <label :for="`target-${year}`" class="block text-[10px] font-black text-slate-400 uppercase tracking-widest text-center group-focus-within:text-blue-600 transition-colors">{{ year }}</label>
+                <div class="relative">
+                  <input 
+                    :id="`target-${year}`" 
+                    v-model="form.targets[year]" 
+                    type="text" 
+                    class="field-input text-center font-bold text-blue-700 text-lg hover:border-blue-300 transition-all shadow-sm" 
+                    placeholder="0" 
+                  />
+                  <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-blue-600 rounded-full opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Footer Actions -->
-        <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
+        <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-6 mt-4 border-t border-slate-100">
           <button 
             type="button" 
             @click="router.push(`/${$route.params.slug}/sasaran-strategis`)"
-            class="px-6 py-2.5 rounded-lg border border-slate-300 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-all cursor-pointer"
+            class="w-full sm:w-auto px-8 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm hover:bg-slate-200 transition-colors"
           >
             Batal
           </button>
           <button 
             type="submit" 
             :disabled="submitting"
-            class="px-8 py-2.5 rounded-lg bg-blue-700 text-white font-bold text-sm shadow-xl shadow-blue-700/20 hover:bg-blue-800 transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+            class="w-full sm:w-auto px-10 py-3 rounded-xl bg-[#2663A3] text-white font-bold text-sm shadow-xl shadow-blue-700/20 hover:bg-blue-800 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <IconCheck v-if="!submitting" :size="20" />
+            <IconCheck v-if="!submitting" :size="20" :stroke-width="3" />
             <span v-else class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-            Simpan Data
+            Simpan Data Baru
           </button>
         </div>
       </form>
@@ -161,14 +183,15 @@
 
 <script setup lang="ts">
 /**
- * Komponen Tambah Sasaran Strategis (Improved)
+ * Komponen Tambah Sasaran Strategis
+ * UI Modern dengan pengalaman pengguna yang ditingkatkan.
  */
 
 definePageMeta({ layout: 'dashboard' })
 
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { IconX, IconCheck } from '@tabler/icons-vue';
+import { IconArrowLeft, IconPlus, IconCheck } from '@tabler/icons-vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -209,9 +232,6 @@ onMounted(async () => {
   }
 });
 
-/**
- * Handle form submission
- */
 const handleSubmit = async () => {
   submitting.value = true;
   
@@ -241,19 +261,19 @@ const handleSubmit = async () => {
 <style scoped>
 .field-input {
   width: 100%;
-  border: 1px solid rgb(214 211 209);
+  border: 1px solid rgb(226 232 240);
   border-radius: 0.75rem;
-  padding: 0.65rem 1rem;
+  padding: 0.75rem 1rem;
   font-size: 0.875rem;
-  color: rgb(15 23 42);
+  color: rgb(30 41 59);
   background-color: white;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .field-input:focus {
   outline: none;
-  border-color: rgb(37 99 235);
-  box-shadow: 0 0 0 4px rgb(191 219 254 / 0.4);
+  border-color: #2663A3;
+  box-shadow: 0 0 0 4px rgba(38, 99, 163, 0.1);
 }
 
 .field-input:disabled {
@@ -263,8 +283,7 @@ const handleSubmit = async () => {
   border-color: rgb(241 245 249);
 }
 
-input[type="checkbox"] {
-  width: 1.1rem;
-  height: 1.1rem;
+.field-input::placeholder {
+  color: rgb(203 213 225);
 }
 </style>
