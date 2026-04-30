@@ -150,19 +150,20 @@ const columns = computed(() => [
   { key: 'aksi', label: '', className: 'w-14 text-center' }
 ]);
 
-// Dummy Data State (for simulation)
-const { data: pkData } = useSWRV('/api/indikator-kinerja', fetcher)
+// Fetch Real Committed Data with Filters
+const pkUrl = computed(() => `/api/perjanjian-kinerja?tahun=${selectedYear.value}&unitKerja=${selectedUnitKerja.value}`);
+const { data: pkData } = useSWRV(pkUrl, fetcher);
 
 const tableRows = computed(() => {
   if (!pkData.value) return [];
   
   let data = (pkData.value || []).map((item: any) => ({
     id: item.id,
-    sasaran: item.sasaranText || 'Sasaran Umum',
-    indikator: item.namaIndikator,
-    target: 0,
-    realisasi: '-',
-    capaian: '-',
+    sasaran: item.sasaranText || 'Sasaran Strategis',
+    indikator: item.indikatorName || item.namaIndikator,
+    target: item.target || 0,
+    realisasi: item.realisasi || '-',
+    capaian: item.capaian || '-',
     unitKerja: item.unitKerja || '-'
   }));
 

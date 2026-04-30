@@ -22,7 +22,7 @@
           </div>
           <div>
             <h1 class="text-2xl font-black text-white tracking-tight">Buat Komitmen Kinerja</h1>
-            <p class="text-blue-100 mt-1 text-sm font-medium">Lengkapi rincian indikator dan target untuk perjanjian kinerja tahunan.</p>
+            <p class="text-blue-100 mt-1 text-sm font-medium">Pilih sasaran dan indikator untuk ditetapkan sebagai komitmen tahunan.</p>
           </div>
         </div>
       </div>
@@ -30,70 +30,104 @@
       <!-- Form -->
       <form @submit.prevent="handleSubmit" class="p-8 space-y-12">
         
-        <!-- Section 01: Deskripsi Kinerja -->
+        <!-- Section 01: Identitas Komitmen -->
         <div class="space-y-6">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-blue-600/20">
               01
             </div>
-            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Deskripsi Kinerja</h2>
-          </div>
-          
-          <div class="grid grid-cols-1 gap-6">
-            <!-- Sasaran -->
-            <div class="space-y-2">
-              <label for="sasaran" class="block text-sm font-bold text-slate-700 ml-1">Sasaran</label>
-              <textarea 
-                id="sasaran" 
-                v-model="form.sasaran" 
-                rows="3"
-                class="field-input resize-none"
-                placeholder="Masukkan deskripsi sasaran..."
-                required
-              ></textarea>
-            </div>
-
-            <!-- Indikator -->
-            <div class="space-y-2">
-              <label for="indikator" class="block text-sm font-bold text-slate-700 ml-1">Indikator Kinerja</label>
-              <textarea 
-                id="indikator" 
-                v-model="form.indikator" 
-                rows="3"
-                class="field-input resize-none"
-                placeholder="Masukkan deskripsi indikator..."
-                required
-              ></textarea>
-            </div>
-          </div>
-        </div>
-
-        <div class="h-px bg-slate-100"></div>
-
-        <!-- Section 02: Target Capaian -->
-        <div class="space-y-6">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-indigo-600/20">
-              02
-            </div>
-            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Target Capaian</h2>
+            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Identitas Komitmen</h2>
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Target -->
-            <div class="space-y-2">
-              <label for="target" class="block text-sm font-bold text-slate-700 ml-1">Target Tahunan</label>
-              <input 
-                id="target" 
-                v-model="form.target" 
-                type="text" 
-                class="field-input font-bold text-[#2663A3]"
-                placeholder="Misal: 85%, 10 Modul, dsb" 
+            <!-- Unit Kerja -->
+            <div class="space-y-2 md:col-span-2">
+              <label for="unitKerja" class="block text-sm font-bold text-slate-700 ml-1">Unit Kerja Pelaksana</label>
+              <select 
+                id="unitKerja" 
+                v-model="form.unitKerja" 
+                class="field-input"
                 required
-              />
+              >
+                <option value="" disabled selected>Pilih Unit Kerja...</option>
+                <option v-for="unit in units" :key="unit.id" :value="unit.nama">
+                  {{ unit.nama }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Pilih Tahun -->
+            <div class="space-y-2">
+              <label for="tahun" class="block text-sm font-bold text-slate-700 ml-1">Tahun Anggaran</label>
+              <select 
+                id="tahun" 
+                v-model="form.tahun" 
+                class="field-input"
+                required
+                @change="fetchTargetRenstra"
+              >
+                <option v-for="y in [2024, 2025, 2026, 2027, 2028, 2029]" :key="y" :value="y">{{ y }}</option>
+              </select>
+            </div>
+
+            <!-- Sasaran -->
+            <div class="space-y-2 md:col-span-2">
+              <label for="sasaranId" class="block text-sm font-bold text-slate-700 ml-1">Sasaran Strategis / Program</label>
+              <select 
+                id="sasaranId" 
+                v-model="form.sasaranId" 
+                class="field-input"
+                required
+                @change="handleSasaranChange"
+              >
+                <option :value="null" disabled>-- Pilih Sasaran --</option>
+                <option v-for="s in uniqueSasaranList" :key="s.id" :value="s.id">
+                  [{{ s.kode || 'SS' }}] {{ s.sasaranText }}
+                </option>
+              </select>
+              <p class="text-[11px] text-slate-400 ml-1">Pilih sasaran yang akan menjadi acuan komitmen ini.</p>
+            </div>
+
+            <!-- Indikator -->
+            <div class="space-y-2 md:col-span-2">
+              <label for="indikatorId" class="block text-sm font-bold text-slate-700 ml-1">Indikator Kinerja</label>
+              <div class="relative">
+                <select 
+                  id="indikatorId" 
+                  v-model="form.indikatorId" 
+                  class="field-input pr-32"
+                  required
+                  :disabled="!form.sasaranId"
+                  @change="fetchTargetRenstra"
+                >
+                  <option :value="null" disabled>-- Pilih Indikator --</option>
+                  <option v-for="i in filteredIndikatorList" :key="i.id" :value="i.id">
+                    [{{ i.kode || 'IKU' }}] {{ i.namaIndikator }}
+                  </option>
+                </select>
+                
+                <!-- Renstra Target Badge -->
+                <div v-if="form.target && isAutoFilled" class="absolute right-12 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  <div class="px-3 py-1 bg-blue-50 border border-blue-100 rounded-lg flex items-center gap-2">
+                    <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Target Renstra:</span>
+                    <span class="text-sm font-black text-[#2663A3]">{{ form.target }}</span>
+                    <span class="text-[10px] font-bold text-blue-400">{{ selectedIndikator?.satuan }}</span>
+                  </div>
+                </div>
+
+                <div v-if="loadingTarget" class="absolute right-12 top-1/2 -translate-y-1/2">
+                   <div class="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                </div>
+              </div>
+              <p v-if="!form.sasaranId" class="text-[10px] text-amber-600 font-bold ml-1 italic">Silakan pilih sasaran terlebih dahulu.</p>
+              <p v-else-if="isAutoFilled" class="text-[10px] text-blue-600 font-bold ml-1 flex items-center gap-1">
+                <IconCheck :size="12" /> Target otomatis ditarik dari data Renstra 5 tahunan.
+              </p>
             </div>
           </div>
         </div>
+
+        <!-- Section 02 removed as requested (using auto-sync from Renstra) -->
 
         <!-- Footer Actions -->
         <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-8 mt-4 border-t border-slate-100">
@@ -111,7 +145,7 @@
           >
             <IconCheck v-if="!submitting" :size="20" :stroke-width="3" />
             <span v-else class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-            Simpan Data PK
+            Simpan Komitmen PK
           </button>
         </div>
       </form>
@@ -122,37 +156,131 @@
 <script setup lang="ts">
 /**
  * Komponen Tambah Perjanjian Kinerja
+ * Diperbarui dengan fitur Sinkronisasi Target Otomatis dari Renstra.
  */
 
 definePageMeta({ layout: 'dashboard' })
 
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import useSWRV from 'swrv';
 import { IconArrowLeft, IconFileCheck, IconCheck } from '@tabler/icons-vue';
 
 const router = useRouter();
 const route = useRoute();
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+
+// Fetch Data Referensi
+const { data: units } = useSWRV('/api/unit-kerja', fetcher);
+const { data: sasaranList } = useSWRV('/api/sasaran-strategis', fetcher);
+const { data: indikatorList } = useSWRV('/api/indikator-kinerja', fetcher);
+
+// Deduplicated Sasaran List
+const uniqueSasaranList = computed(() => {
+  if (!sasaranList.value) return [];
+  const map = new Map();
+  (sasaranList.value as any[]).forEach(s => {
+    if (!map.has(s.sasaranText)) {
+      map.set(s.sasaranText, s);
+    }
+  });
+  return Array.from(map.values());
+});
 
 // State Form
 const submitting = ref(false);
+const loadingTarget = ref(false);
+const isAutoFilled = ref(false);
 
 const form = ref({
-  sasaran: '',
-  indikator: '',
+  tahun: new Date().getFullYear(),
+  unitKerja: '',
+  sasaranId: null as number | null,
+  indikatorId: null as number | null,
   target: ''
 });
+
+// Logic Filter Indikator
+const filteredIndikatorList = computed(() => {
+  if (!form.value.sasaranId || !indikatorList.value) return [];
+  return (indikatorList.value as any[]).filter(i => i.sasaranId === form.value.sasaranId);
+});
+
+// Ambil info indikator terpilih untuk label satuan
+const selectedIndikator = computed(() => {
+  if (!form.value.indikatorId || !indikatorList.value) return null;
+  return (indikatorList.value as any[]).find(i => i.id === form.value.indikatorId);
+});
+
+/**
+ * Handle Sasaran Change
+ */
+const handleSasaranChange = () => {
+  form.value.indikatorId = null;
+  form.value.target = '';
+  isAutoFilled.value = false;
+};
+
+/**
+ * Fetch Target from Renstra automatically
+ */
+const fetchTargetRenstra = async () => {
+  if (!form.value.indikatorId || !form.value.tahun) return;
+
+  loadingTarget.value = true;
+  try {
+    const targetData = await $fetch<any[]>('/api/target-indikator');
+    const tahunData = await $fetch<any[]>('/api/tahun');
+    
+    const tahunObj = tahunData.find(t => Number(t.tahun) === Number(form.value.tahun));
+    
+    if (tahunObj) {
+      const found = targetData.find(t => t.indikatorId === form.value.indikatorId && t.tahunId === tahunObj.id);
+      
+      if (found) {
+        form.value.target = String(found.target);
+        isAutoFilled.value = true;
+      } else {
+        form.value.target = '';
+        isAutoFilled.value = false;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch renstra target:', error);
+  } finally {
+    loadingTarget.value = false;
+  }
+};
 
 /**
  * Handle form submission
  */
 const handleSubmit = async () => {
+  if (!form.value.indikatorId || !form.value.unitKerja) {
+    alert('Harap lengkapi semua isian wajib.');
+    return;
+  }
+
   submitting.value = true;
   try {
-    console.log('Saving PK data:', form.value);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    router.push(`/${route.params.slug}/perjanjian-kinerja`);
-  } catch (error) {
-    console.error('Error saving data:', error);
+    const result = await $fetch<any>('/api/perjanjian-kinerja', {
+      method: 'POST',
+      body: {
+        tahun: Number(form.value.tahun),
+        unitKerja: form.value.unitKerja,
+        sasaranId: form.value.sasaranId,
+        indikatorId: form.value.indikatorId,
+        target: form.value.target,
+        status: 'Approved'
+      }
+    });
+
+    if (result) {
+      router.push(`/${route.params.slug}/perjanjian-kinerja`);
+    }
+  } catch (error: any) {
+    console.error('Error saving PK:', error);
+    alert(error.data?.statusMessage || 'Gagal menyimpan komitmen PK. Silakan coba lagi.');
   } finally {
     submitting.value = false;
   }
@@ -177,7 +305,18 @@ const handleSubmit = async () => {
   box-shadow: 0 0 0 4px rgba(38, 99, 163, 0.1);
 }
 
-.field-input::placeholder {
-  color: rgb(203 213 225);
+.field-input:disabled {
+  background-color: rgb(248 250 252);
+  color: rgb(148 163 184);
+  cursor: not-allowed;
+}
+
+select.field-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
 }
 </style>

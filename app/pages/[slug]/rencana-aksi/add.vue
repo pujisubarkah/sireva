@@ -22,7 +22,7 @@
           </div>
           <div>
             <h1 class="text-2xl font-black text-white tracking-tight">Buat Rencana Aksi Baru</h1>
-            <p class="text-blue-100 mt-1 text-sm font-medium">Definisikan langkah operasional untuk mencapai target indikator.</p>
+            <p class="text-blue-100 mt-1 text-sm font-medium">Definisikan langkah operasional untuk mencapai target output kegiatan.</p>
           </div>
         </div>
       </div>
@@ -30,44 +30,52 @@
       <!-- Form -->
       <form @submit.prevent="handleSubmit" class="p-8 space-y-12">
         
-        <!-- Section 01: Konteks Strategis -->
+        <!-- Section 01: Konteks Operasional -->
         <div class="space-y-6">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-blue-600/20">
               01
             </div>
-            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Konteks Strategis</h2>
+            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Konteks Operasional</h2>
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Pilih Sasaran -->
-            <div class="space-y-2">
-              <label for="sasaranId" class="block text-sm font-bold text-slate-700 ml-1">Sasaran Terkait</label>
+            <!-- Unit Kerja -->
+            <div class="space-y-2 md:col-span-2">
+              <label for="unitKerja" class="block text-sm font-bold text-slate-700 ml-1">Unit Kerja Pelaksana</label>
               <select 
-                id="sasaranId" 
-                v-model="form.sasaranId" 
+                id="unitKerja" 
+                v-model="form.unitKerja" 
                 class="field-input"
                 required
               >
-                <option :value="null" disabled>-- Pilih Sasaran --</option>
-                <option v-for="s in sasaranList" :key="s.id" :value="s.id">{{ s.sasaranText }}</option>
+                <option value="" disabled selected>-- Pilih Unit Kerja --</option>
+                <option v-for="unit in units" :key="unit.id" :value="unit.nama">
+                  {{ unit.nama }}
+                </option>
               </select>
             </div>
 
-            <!-- Pilih Indikator -->
-            <div class="space-y-2">
-              <label for="indikatorId" class="block text-sm font-bold text-slate-700 ml-1">Indikator Kinerja</label>
+            <!-- Pilih Sasaran Kegiatan -->
+            <div class="space-y-2 md:col-span-2">
+              <label for="kegiatanId" class="block text-sm font-bold text-slate-700 ml-1">Induk Sasaran Kegiatan (Output)</label>
               <select 
-                id="indikatorId" 
-                v-model="form.indikatorId" 
+                id="kegiatanId" 
+                v-model="form.kegiatanId" 
                 class="field-input"
                 required
-                :disabled="!form.sasaranId"
               >
-                <option :value="null" disabled>-- Pilih Indikator --</option>
-                <option v-for="i in filteredIndikatorList" :key="i.id" :value="i.id">{{ i.namaIndikator }}</option>
+                <option :value="null" disabled>-- Pilih Sasaran Kegiatan --</option>
+                <option v-for="k in kegiatanList" :key="k.id" :value="k.id">{{ k.sasaranText }}</option>
               </select>
-              <p v-if="!form.sasaranId" class="text-[10px] text-amber-600 font-bold ml-1">Pilih sasaran terlebih dahulu.</p>
+            </div>
+
+            <!-- Info Indikator (Read Only atau Select jika ada banyak) -->
+            <div class="space-y-2 md:col-span-2">
+              <label class="block text-sm font-bold text-slate-700 ml-1">Indikator Output Terkait</label>
+              <div class="field-input bg-slate-50 text-slate-500 font-medium">
+                {{ selectedKegiatan?.namaIndikator || 'Pilih kegiatan terlebih dahulu' }}
+              </div>
             </div>
           </div>
         </div>
@@ -86,7 +94,7 @@
           <div class="grid grid-cols-1 gap-6">
             <!-- Deskripsi Aksi -->
             <div class="space-y-2">
-              <label for="rencanaAksi" class="block text-sm font-bold text-slate-700 ml-1">Deskripsi Rencana Aksi</label>
+              <label for="rencanaAksi" class="block text-sm font-bold text-slate-700 ml-1">Deskripsi Rencana Aksi (Tahapan)</label>
               <textarea 
                 id="rencanaAksi" 
                 v-model="form.rencanaAksi" 
@@ -99,31 +107,40 @@
 
             <!-- Target Capaian -->
             <div class="space-y-4 pt-4">
-              <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Target Capaian Operasional</h3>
-              <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+              <div class="flex items-center justify-between ml-1">
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.1em]">Target Capaian Operasional</h3>
+                <span v-if="isAutoFilled" class="text-[9px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
+                  <IconLock :size="10" /> Sinkron PK
+                </span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-6 gap-4">
                 <div class="space-y-2 col-span-2 sm:col-span-1">
                   <label class="block text-[10px] font-black text-slate-400 uppercase text-center tracking-tighter">Total Target</label>
                   <input 
                     v-model.number="form.target" 
                     type="number" 
                     step="0.01"
-                    class="field-input !p-3 text-center font-black text-[#2663A3] text-lg bg-blue-50/50 border-blue-100" 
+                    class="field-input !p-3 text-center font-black text-[#2663A3] text-lg transition-all duration-500" 
                     placeholder="0"
                     required
                   />
                 </div>
-                <div v-for="tw in [1, 2, 3, 4]" :key="tw" class="space-y-2">
-                  <label class="block text-[10px] font-bold text-slate-400 uppercase text-center tracking-tighter">TW {{ tw }}</label>
+                <!-- Monthly Inputs B01-B12 -->
+                <div v-for="m in 12" :key="m" class="space-y-2">
+                  <label class="block text-[10px] font-bold text-slate-400 uppercase text-center tracking-tighter">B{{ String(m).padStart(2, '0') }}</label>
                   <input 
-                    v-model.number="form[`tw${tw}`]" 
+                    v-model.number="form['b' + String(m).padStart(2, '0')]" 
                     type="number" 
                     step="0.01"
-                    class="field-input !p-3 text-center font-bold text-slate-600" 
+                    class="field-input !p-2 text-center text-xs font-semibold text-slate-600" 
                     placeholder="0"
                   />
                 </div>
               </div>
-              <p class="text-[11px] text-slate-400 italic ml-1">Target TW (Triwulan) digunakan untuk memonitor progres berkala.</p>
+              <p class="text-[11px] text-slate-400 italic ml-1 flex items-center gap-1">
+                <IconCheck v-if="isAutoFilled" :size="12" class="text-blue-500" />
+                {{ isAutoFilled ? 'Total target terkunci sesuai sasaran kegiatan.' : 'Target TW (Triwulan) digunakan untuk memonitor progres berkala.' }}
+              </p>
             </div>
           </div>
         </div>
@@ -161,7 +178,7 @@ definePageMeta({ layout: 'dashboard' })
 
 import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { IconArrowLeft, IconPlus, IconCheck } from '@tabler/icons-vue';
+import { IconArrowLeft, IconPlus, IconCheck, IconLock } from '@tabler/icons-vue';
 import useSWRV from 'swrv';
 
 const router = useRouter();
@@ -169,36 +186,71 @@ const route = useRoute();
 
 // State
 const submitting = ref(false);
+const isAutoFilled = ref(false);
 
 const form = ref<any>({
-  sasaranId: null,
-  indikatorId: null,
+  kegiatanId: null,
+  unitKerja: '',
   rencanaAksi: '',
   target: 0,
-  tw1: 0,
-  tw2: 0,
-  tw3: 0,
-  tw4: 0,
+  ...Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`b${String(i + 1).padStart(2, '0')}`, 0]))
+});
+
+// Watch kegiatan change to auto-fill target
+import { watch } from 'vue';
+watch(() => form.value.kegiatanId, (newId) => {
+  if (newId && kegiatanList.value) {
+    const k = (kegiatanList.value as any[]).find(item => item.id === newId);
+    if (k) {
+      form.value.unitKerja = k.unitKerja || '';
+      form.value.target = Number(k.anggaran || 100); 
+      isAutoFilled.value = true;
+    }
+  } else {
+    isAutoFilled.value = false;
+  }
 });
 
 // Fetchers
 const fetcher = (url: string) => fetch(url).then(r => r.json());
-const { data: sasaranList } = useSWRV('/api/sasaran-strategis', fetcher);
-const { data: indikatorList } = useSWRV('/api/indikator-kinerja', fetcher);
+const { data: kegiatanList } = useSWRV('/api/sasaran-kegiatan', fetcher);
+const { data: units } = useSWRV('/api/unit-kerja', fetcher);
 
-const filteredIndikatorList = computed(() => {
-  if (!form.value.sasaranId || !indikatorList.value) return [];
-  return (indikatorList.value as any[]).filter(i => i.sasaranId === form.value.sasaranId);
+const selectedKegiatan = computed(() => {
+  if (!form.value.kegiatanId || !kegiatanList.value) return null;
+  return (kegiatanList.value as any[]).find(k => k.id === form.value.kegiatanId);
 });
 
 const handleSubmit = async () => {
+  if (!form.value.kegiatanId) {
+    alert('Silakan pilih Sasaran Kegiatan terlebih dahulu.');
+    return;
+  }
+
   submitting.value = true;
   try {
-    console.log('Saving Rencana Aksi:', form.value);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    router.push(`/${route.params.slug}/rencana-aksi`);
-  } catch (error) {
+    const result = await $fetch<any>('/api/rencana-aksi', {
+      method: 'POST',
+      body: {
+        indikatorId: form.value.kegiatanId,
+        namaAksi: form.value.rencanaAksi,
+        unitKerja: form.value.unitKerja,
+        target: form.value.target,
+        b01: form.value.b01, b02: form.value.b02, b03: form.value.b03, b04: form.value.b04,
+        b05: form.value.b05, b06: form.value.b06, b07: form.value.b07, b08: form.value.b08,
+        b09: form.value.b09, b10: form.value.b10, b11: form.value.b11, b12: form.value.b12
+      }
+    });
+
+    if (result && (result.success !== false)) {
+      router.push(`/${route.params.slug}/rencana-aksi`);
+    } else {
+      alert('Gagal menyimpan: ' + (result?.message || 'Data tidak tersimpan.'));
+    }
+  } catch (error: any) {
     console.error('Error saving data:', error);
+    const msg = error.data?.statusMessage || error.data?.message || 'Terjadi kesalahan pada server.';
+    alert('Gagal menyimpan data: ' + msg);
   } finally {
     submitting.value = false;
   }

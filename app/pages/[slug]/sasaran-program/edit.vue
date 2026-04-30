@@ -36,17 +36,31 @@
       <!-- Form -->
       <form v-else @submit.prevent="handleSubmit" class="p-8 space-y-12">
         
-        <!-- Section 01: Informasi Utama -->
+        <!-- Section 01: Hirarki & Sasaran -->
         <div class="space-y-6">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-blue-600/20">
               01
             </div>
-            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Informasi Utama</h2>
+            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Hirarki & Sasaran</h2>
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Sasaran Program -->
+            <!-- Induk Sasaran Strategis -->
+            <div class="md:col-span-2 space-y-2">
+              <label for="sasaranStrategisId" class="block text-sm font-bold text-slate-700 ml-1">Induk Sasaran Strategis</label>
+              <select 
+                id="sasaranStrategisId" 
+                v-model="form.sasaranStrategisId" 
+                class="field-input"
+                required
+              >
+                <option :value="null" disabled>-- Pilih Sasaran Strategis --</option>
+                <option v-for="s in sasaranStrategisList" :key="s.id" :value="s.id">{{ s.sasaranText }}</option>
+              </select>
+            </div>
+
+            <!-- Nama Sasaran Program -->
             <div class="md:col-span-2 space-y-2">
               <label for="sasaranProgram" class="block text-sm font-bold text-slate-700 ml-1">Nama Sasaran Program</label>
               <textarea 
@@ -57,6 +71,19 @@
                 placeholder="Masukkan deskripsi sasaran program..."
                 required
               ></textarea>
+            </div>
+
+            <!-- Indikator Program -->
+            <div class="md:col-span-2 space-y-2">
+              <label for="namaIndikator" class="block text-sm font-bold text-slate-700 ml-1">Indikator Kinerja Program</label>
+              <input 
+                id="namaIndikator" 
+                v-model="form.namaIndikator" 
+                type="text" 
+                class="field-input" 
+                placeholder="Masukkan nama indikator..." 
+                required
+              />
             </div>
 
             <!-- Satuan -->
@@ -75,14 +102,17 @@
             <!-- Unit Kerja -->
             <div class="space-y-2">
               <label for="unitKerja" class="block text-sm font-bold text-slate-700 ml-1">Unit Kerja Pelaksana</label>
-              <input 
+              <select 
                 id="unitKerja" 
                 v-model="form.unitKerja" 
-                type="text" 
-                class="field-input" 
-                placeholder="Misal: Pusbangkom ASN" 
+                class="field-input"
                 required
-              />
+              >
+                <option value="" disabled selected>Pilih Unit Kerja...</option>
+                <option v-for="unit in units" :key="unit.id" :value="unit.nama">
+                  {{ unit.nama }}
+                </option>
+              </select>
             </div>
           </div>
         </div>
@@ -174,11 +204,16 @@ definePageMeta({ layout: 'dashboard' })
 
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import useSWRV from 'swrv';
 import { IconArrowLeft, IconPencil, IconCheck, IconFlag, IconTarget } from '@tabler/icons-vue';
 
 const router = useRouter();
 const route = useRoute();
 const years = [2025, 2026, 2027, 2028, 2029];
+
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+const { data: units } = useSWRV('/api/unit-kerja', fetcher);
+const { data: sasaranStrategisList } = useSWRV('/api/sasaran-strategis', fetcher);
 
 // State
 const id = Number(route.query.id);
@@ -187,7 +222,9 @@ const submitting = ref(false);
 
 const form = ref({
   id: id,
+  sasaranStrategisId: null as number | null,
   sasaranProgram: '',
+  namaIndikator: '',
   satuan: '',
   unitKerja: '',
   targetRenstra: years.reduce((acc, y) => ({ ...acc, [y]: '' }), {} as Record<number, string>),
@@ -204,26 +241,26 @@ onMounted(async () => {
   try {
     fetching.value = true;
     
-    // Simulasi pengambilan data
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // Fetch real data
+    const res = await $fetch<any>(`/api/sasaran-program?id=${id}`);
+    const data = Array.isArray(res) ? res[0] : res;
     
-    const mockData = [
-      {
-        id: 1,
-        sasaranProgram: 'Program Pelatihan ASN',
-        satuan: 'Orang',
-        targetRenstra: { 2025: 800, 2026: 900, 2027: 1000, 2028: 1100, 2029: 1200 },
-        targetPerjanjian: { 2025: 780, 2026: 880, 2027: 980, 2028: 1050, 2029: 1150 },
-        unitKerja: 'Pusbangkom ASN',
-      }
-    ];
-
-    const data = mockData.find(m => m.id === id) || mockData[0];
     if (data) {
       form.value = {
-        ...data,
-        targetRenstra: Object.entries(data.targetRenstra).reduce((acc, [y, v]) => ({ ...acc, [Number(y)]: String(v) }), {}),
-        targetPerjanjian: Object.entries(data.targetPerjanjian).reduce((acc, [y, v]) => ({ ...acc, [Number(y)]: String(v) }), {})
+        id: data.id,
+        sasaranStrategisId: data.sasaranStrategisId,
+        sasaranProgram: data.sasaranText,
+        namaIndikator: data.namaIndikator || '',
+        satuan: data.satuan || '',
+        unitKerja: data.unitKerja || '',
+        targetRenstra: {
+          2025: data.target2025 || '0',
+          2026: data.target2026 || '0',
+          2027: data.target2027 || '0',
+          2028: data.target2028 || '0',
+          2029: data.target2029 || '0'
+        },
+        targetPerjanjian: years.reduce((acc, y) => ({ ...acc, [y]: '0' }), {}) // PK target logic might be different later
       } as any;
     }
 
@@ -238,13 +275,32 @@ onMounted(async () => {
  * Handle form submission
  */
 const handleSubmit = async () => {
-  submitting.value = true;
   try {
-    console.log('Updating Sasaran Program:', form.value);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    router.push(`/${route.params.slug}/sasaran-program`);
-  } catch (error) {
+    const payload = {
+      id: form.value.id,
+      sasaranStrategisId: form.value.sasaranStrategisId,
+      sasaranText: form.value.sasaranProgram,
+      namaIndikator: form.value.namaIndikator,
+      satuan: form.value.satuan,
+      unitKerja: form.value.unitKerja,
+      target2025: form.value.targetRenstra[2025],
+      target2026: form.value.targetRenstra[2026],
+      target2027: form.value.targetRenstra[2027],
+      target2028: form.value.targetRenstra[2028],
+      target2029: form.value.targetRenstra[2029]
+    };
+
+    const result = await $fetch<any>('/api/sasaran-program', {
+      method: 'PUT',
+      body: payload
+    });
+
+    if (result) {
+      router.push(`/${route.params.slug}/sasaran-program`);
+    }
+  } catch (error: any) {
     console.error('Error updating data:', error);
+    alert('Gagal menyimpan perubahan: ' + (error.data?.statusMessage || 'Terjadi kesalahan.'));
   } finally {
     submitting.value = false;
   }

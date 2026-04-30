@@ -118,10 +118,10 @@
                   <p class="text-xs font-bold text-slate-400 italic">Terdistribusi ke 4 Triwulan</p>
                 </div>
 
-                <div class="space-y-4">
-                  <div v-for="tw in [1, 2, 3, 4]" :key="tw" class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100 hover:scale-[1.02] transition-transform">
-                    <span class="text-xs font-black text-slate-400 uppercase">Triwulan {{ tw }}</span>
-                    <span class="text-base font-black text-slate-700">{{ viewData[`tw${tw}`] || 0 }}</span>
+                <div class="grid grid-cols-2 gap-3">
+                  <div v-for="m in 12" :key="m" class="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-100 hover:scale-[1.02] transition-transform">
+                    <span class="text-[10px] font-black text-slate-400 uppercase">B{{ String(m).padStart(2, '0') }}</span>
+                    <span class="text-sm font-black text-slate-700">{{ viewData[`b${String(m).padStart(2, '0')}`] || 0 }}</span>
                   </div>
                 </div>
               </div>
@@ -185,22 +185,26 @@ onMounted(async () => {
   try {
     fetching.value = true;
     
-    // Simulasi pengambilan data
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // Fetch real data
+    const res = await $fetch<any>(`/api/rencana-aksi?id=${id}`);
+    const existingData = Array.isArray(res) ? res[0] : res;
     
-    // Mock data
-    viewData.value = {
-      id: id,
-      sasaran: 'Terwujudnya ASN Berakhlak dan Berdaya Saing Global',
-      indikator: 'Persentase ASN yang lulus sertifikasi kompetensi global',
-      rencanaAksi: 'Melakukan pemetaan kompetensi ASN di seluruh instansi pusat dan daerah serta menyusun roadmap pengembangan karir berbasis digital.',
-      target: 85,
-      tw1: 20,
-      tw2: 40,
-      tw3: 60,
-      tw4: 85,
-      unitKerja: 'Pusbangkom ASN',
-    };
+    if (existingData) {
+      // We also need the labels (sasaran/indikator) which might not be in the direct record
+      // But the GET all API has them. For detail, we can fetch all and filter or adjust API.
+      // Better: Adjust API to return joined data even for single ID or join here.
+      // For now, let's fetch the list version to get labels.
+      const allData = await $fetch<any[]>('/api/rencana-aksi');
+      const richData = allData.find((d: any) => d.id === id);
+      
+      viewData.value = {
+        ...existingData,
+        rencanaAksi: existingData.namaRencanaAksi,
+        sasaran: richData?.sasaran || '-',
+        indikator: richData?.indikator || '-',
+        unitKerja: richData?.unitKerja || existingData.unitKerja || '-'
+      };
+    }
 
   } catch (error) {
     console.error('Error fetching view data:', error);

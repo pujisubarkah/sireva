@@ -37,7 +37,7 @@ const fetcher = (url: string) => fetch(url).then(res => res.json())
 const { data: sasaranStratRes } = useSWRV('/api/sasaran-strategis', fetcher)
 const { data: sasaranProgRes } = useSWRV('/api/sasaran-program', fetcher)
 const { data: sasaranKegRes } = useSWRV('/api/sasaran-kegiatan', fetcher)
-const { data: pendanaanRes } = useSWRV('/api/pendanaan', fetcher)
+const { data: pkRes } = useSWRV('/api/perjanjian-kinerja', fetcher)
 const { data: visiRes } = useSWRV('/api/visi', fetcher)
 
 // --- Aggregation Logic ---
@@ -48,39 +48,40 @@ const counts = computed(() => ({
 }))
 
 const performance = computed(() => {
-  const mockBase = 82.4
+  const pkData = pkRes.value || []
+  const totalPk = pkData.length
+  
+  // For now, if no realisasi logic yet, use target coverage or safe default
+  const avgTarget = totalPk > 0 ? 100 : 0 
+  
   return {
-    overall: mockBase,
-    ss: 88.5,
-    sp: 76.2,
-    sk: 84.1,
-    status: mockBase > 80 ? 'Sangat Baik' : 'Baik',
-    trend: '+2.4%'
+    overall: avgTarget,
+    ss: counts.value.ss > 0 ? 100 : 0,
+    sp: counts.value.sp > 0 ? 100 : 0,
+    sk: counts.value.sk > 0 ? 100 : 0,
+    status: totalPk > 0 ? 'Aktif' : 'Draft',
+    trend: totalPk > 0 ? 'Data Live' : 'No Data'
   }
 })
 
 const financials = computed(() => {
-  const data = pendanaanRes.value || []
-  let totalPagu = 0
-  let totalReals = 0
+  const kegData = sasaranKegRes.value || []
+  let totalAnggaran = 0
   
-  data.forEach((item: any) => {
-    totalPagu += parseFloat(item.pagu || 0)
-    totalReals += parseFloat(item.realisasi || 0)
+  kegData.forEach((item: any) => {
+    totalAnggaran += parseFloat(item.anggaran || 0)
   })
   
-  if (totalPagu === 0) {
-    totalPagu = 145000000000 
-    totalReals = 32500000000
-  }
+  // Simulation for realization until module is ready
+  let totalReals = totalAnggaran * 0.22 
 
-  const pct = (totalReals / totalPagu) * 100
+  const pct = totalAnggaran > 0 ? (totalReals / totalAnggaran) * 100 : 0
   
   return {
-    pagu: (totalPagu / 1_000_000_000).toFixed(1),
+    pagu: (totalAnggaran / 1_000_000_000).toFixed(1),
     reals: (totalReals / 1_000_000_000).toFixed(1),
     pct: pct.toFixed(1),
-    remaining: ((totalPagu - totalReals) / 1_000_000_000).toFixed(1)
+    remaining: ((totalAnggaran - totalReals) / 1_000_000_000).toFixed(1)
   }
 })
 

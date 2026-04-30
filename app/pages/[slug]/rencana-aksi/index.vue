@@ -73,13 +73,14 @@
               <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400">Rencana Aksi</th>
               <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-1/5">Unit Kerja</th>
               <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-24 text-center">Target</th>
+              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-32 text-center">Anggaran</th>
               <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-32 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
             <tr v-for="(item, index) in tableRows" :key="item.id" class="group hover:bg-slate-50/80 transition-colors">
               <td class="p-5 text-center">
-                <span class="text-sm font-bold text-slate-400">{{ index + 1 }}</span>
+                <span class="text-sm font-bold text-slate-400">{{ Number(index) + 1 }}</span>
               </td>
               <td class="p-5">
                 <p class="text-sm font-bold text-slate-800 leading-tight">{{ item.indikator }}</p>
@@ -96,6 +97,11 @@
               <td class="p-5 text-center">
                 <span class="px-3 py-1.5 rounded-xl text-xs font-black bg-blue-50 text-blue-700 border border-blue-200 inline-flex min-w-[4rem] justify-center shadow-sm">
                   {{ item.target }}
+                </span>
+              </td>
+              <td class="p-5 text-center">
+                <span class="text-xs font-black text-emerald-600">
+                  Rp {{ Number(item.anggaran || 0).toLocaleString('id-ID') }}
                 </span>
               </td>
               <td class="p-5 text-center">

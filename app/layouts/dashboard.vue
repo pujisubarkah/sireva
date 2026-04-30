@@ -8,7 +8,7 @@
       style="box-shadow: 4px 0 20px 0 rgba(0,0,0,0.08); width: 280px;"
     />
     <!-- Content area -->
-    <div class="flex-1 flex flex-col">
+    <div class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
       <!-- Header fixed top -->
       <Header
         @toggle-sidebar="sidebarOpen = !sidebarOpen"
@@ -16,15 +16,35 @@
         style="z-index: 40; background-color: #1F4F85;"
       />
       <!-- Topbar di bawah Header -->
-      <Topbar />
+      <Topbar class="shrink-0" />
+      
       <!-- Main content scrollable -->
-      <main class="flex-1 overflow-y-auto p-8 pb-12 bg-white" style="min-height:0;">
-        <Breadcrumb />
-        <slot />
+      <main class="flex-1 overflow-y-auto p-8 pb-20 bg-white custom-content-scroll">
+        <Breadcrumb class="mb-6" />
+        <div class="max-w-7xl mx-auto">
+          <slot />
+        </div>
       </main>
     </div>
   </div>
 </template>
+
+<style scoped>
+.custom-content-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+.custom-content-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-content-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-content-scroll::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 20px;
+}
+</style>
 
 <script setup lang="ts">
 // Layout dashboard: Sidebar kiri + Header atas konten

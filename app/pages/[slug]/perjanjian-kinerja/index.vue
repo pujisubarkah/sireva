@@ -162,32 +162,28 @@ const unitKerjaOptions = computed(() => {
   return ['Semua Unit Kerja', ...units]
 });
 
-const { data: pkData } = useSWRV('/api/indikator-kinerja', fetcher)
+const { data: committedPK } = useSWRV(() => `/api/perjanjian-kinerja?tahun=${selectedYear.value}&unitKerja=${selectedUnitKerja.value}`, fetcher)
+const { data: allIndikators } = useSWRV('/api/indikator-kinerja', fetcher)
+const { data: allSasaran } = useSWRV('/api/sasaran-strategis', fetcher)
 
 const tableRows = computed(() => {
-  if (!pkData.value) return [];
+  if (!committedPK.value || !allIndikators.value || !allSasaran.value) return [];
   
-  let data = (pkData.value || []).map((item: any) => ({
-    id: item.id,
-    sasaran: item.sasaranText || 'Sasaran Umum',
-    indikator: item.namaIndikator,
-    target: '0', // TODO: Fetch from target-indikator
-    unitKerja: item.unitKerja || '-',
-  }));
+  const indicatorMap = new Map((allIndikators.value as any[]).map(i => [i.id, i]));
+  const sasaranMap = new Map((allSasaran.value as any[]).map(s => [s.id, s]));
 
-  if (selectedUnitKerja.value !== 'Semua Unit Kerja') {
-    data = data.filter((d: any) => d.unitKerja === selectedUnitKerja.value);
-  }
-
-  if (searchQuery.value) {
-    const q = searchQuery.value.toLowerCase()
-    data = data.filter((d: any) => 
-      d.sasaran.toLowerCase().includes(q) || 
-      d.indikator.toLowerCase().includes(q)
-    )
-  }
-
-  return data
+  return (committedPK.value as any[]).map((pk: any) => {
+    const indicator = indicatorMap.get(pk.indikatorId);
+    const sasaran = sasaranMap.get(pk.sasaranId);
+    
+    return {
+      id: pk.id,
+      sasaran: sasaran?.sasaranText || 'Sasaran Umum',
+      indikator: indicator?.namaIndikator || 'Indikator Tidak Ditemukan',
+      target: pk.target || '-',
+      unitKerja: pk.unitKerja || '-',
+    };
+  });
 })
 
 const groupedData = computed(() => {
@@ -208,10 +204,10 @@ const groupedData = computed(() => {
 })
 
 async function handleDelete(item: any) {
-  if (!confirm(`Apakah Anda yakin ingin menghapus indikator "${item.indikator}"? Data yang dihapus tidak dapat dikembalikan.`)) return;
+  if (!confirm(`Apakah Anda yakin ingin membatalkan komitmen PK untuk indikator "${item.indikator}"?`)) return;
   
   try {
-    const result = await $fetch<any[]>('/api/indikator-kinerja', {
+    const result = await $fetch<any[]>('/api/perjanjian-kinerja', {
       method: 'DELETE',
       body: { id: item.id }
     });

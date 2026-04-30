@@ -113,6 +113,13 @@
                 </div>
               </div>
             </template>
+
+            <!-- Anggaran Cell -->
+            <template #cell-anggaran="{ row }">
+              <span class="text-xs font-black text-emerald-600">
+                Rp {{ Number(row.anggaran || 0).toLocaleString('id-ID') }}
+              </span>
+            </template>
           </Table>
         </div>
       </div>
@@ -145,7 +152,8 @@ const searchQuery = ref('');
 
 const router = useRouter();
 
-const { data: rencanaData, isValidating: loading } = useSWRV('/api/rencana-aksi', fetcher);
+const rencanaUrl = computed(() => `/api/rencana-aksi?tahun=${selectedYear.value}&unitKerja=${selectedUnitKerja.value}`);
+const { data: rencanaData, isValidating: loading } = useSWRV(rencanaUrl, fetcher);
 
 const columns = computed(() => [
   { key: 'no', label: 'No', className: 'text-center w-14' },
@@ -154,6 +162,7 @@ const columns = computed(() => [
   { key: 'unitKerja', label: 'Unit Kerja' },
   { key: 'rencanaAksi', label: 'Rencana Aksi' },
   { key: 'target', label: `Target (${selectedYear.value})`, className: 'text-center w-28' },
+  { key: 'anggaran', label: 'Anggaran', className: 'text-center w-32' },
   { key: 'realisasi', label: 'Realisasi', className: 'text-center w-28 font-semibold' },
   { key: 'capaian', label: '% Capaian', className: 'w-40' },
   { key: 'aksi', label: '', className: 'w-14 text-center' }

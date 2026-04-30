@@ -63,10 +63,11 @@
           <thead>
             <tr class="bg-slate-50/50 border-b border-slate-200">
               <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">No</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-[20%]">Program</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400">Kegiatan</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-1/5">Unit Kerja</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-36 text-right">Anggaran</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-[15%]">Program</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-[15%]">Kegiatan</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400">Indikator Kinerja</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center w-24">Target</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center w-32">Anggaran</th>
               <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-32 text-center">Aksi</th>
             </tr>
           </thead>
@@ -83,14 +84,20 @@
                   <p class="text-sm font-semibold text-slate-700 leading-snug">{{ kegiatan.kegiatan }}</p>
                 </td>
                 <td class="p-4">
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-50 text-slate-600 border border-slate-200">
-                    <IconBuilding :size="12" class="text-slate-400"/>
-                    {{ kegiatan.unitKerja }}
-                  </span>
+                  <div class="space-y-1">
+                    <p class="text-sm font-bold text-[#2663A3] leading-snug">{{ kegiatan.sasaranText }}</p>
+                    <span class="inline-flex items-center gap-1 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      <IconBuilding :size="10"/>
+                      {{ kegiatan.unitKerja }}
+                    </span>
+                  </div>
                 </td>
-                <td class="p-4 text-right">
-                  <span class="text-sm font-black text-emerald-600 font-mono">{{ kegiatan.anggaran }}</span>
-                </td>
+                 <td class="p-4 text-center">
+                   <span class="px-2.5 py-1 rounded-lg text-[11px] font-black bg-blue-50 text-blue-700 border border-blue-100">{{ kegiatan.target || 0 }}</span>
+                 </td>
+                 <td class="p-4 text-center">
+                   <span class="text-sm font-black text-emerald-600 font-mono">{{ formatCurrency(kegiatan.anggaran) }}</span>
+                 </td>
                 <td class="p-4 text-center">
                   <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button 
@@ -169,7 +176,9 @@ interface KegiatanRow {
   id: number
   program: string
   kegiatan: string
+  sasaranText: string
   unitKerja: string
+  target: any
   anggaran: string
 }
 
@@ -219,10 +228,12 @@ onMounted(async () => {
 
     baseData.value = skRes.map((item: any) => ({
       id: item.id,
-      program: progMap.get(item.programId) || 'Program Umum',
-      kegiatan: item.sasaranText,
+      program: item.kegiatanName || progMap.get(item.programId) || 'Program Umum',
+      kegiatan: item.kegiatanName || 'Kegiatan Utama',
+      sasaranText: item.sasaranText || '-',
       unitKerja: item.unitKerja || '-',
-      anggaran: '0',
+      target: item.target || 0,
+      anggaran: item.anggaran || '0',
     }))
   } catch (error) {
     console.error('Error fetching data:', error)

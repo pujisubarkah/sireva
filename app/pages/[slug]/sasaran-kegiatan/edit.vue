@@ -22,7 +22,7 @@
           </div>
           <div>
             <h1 class="text-2xl font-black text-white tracking-tight">Perbarui Sasaran Kegiatan</h1>
-            <p class="text-blue-100 mt-1 text-sm font-medium">Lakukan perubahan pada rincian kegiatan dan alokasi anggaran.</p>
+            <p class="text-blue-100 mt-1 text-sm font-medium">Lakukan perubahan pada rincian kegiatan, indikator output, dan alokasi anggaran.</p>
           </div>
         </div>
       </div>
@@ -36,27 +36,43 @@
       <!-- Form -->
       <form v-else @submit.prevent="handleSubmit" class="p-8 space-y-10">
         
-        <!-- Section 01: Konteks Program -->
+        <!-- Section 01: Hirarki & Konteks -->
         <div class="space-y-6">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-blue-600/20">
               01
             </div>
-            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Konteks Program</h2>
+            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Hirarki & Konteks</h2>
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Unit Kerja -->
+            <div class="space-y-2 md:col-span-2">
+              <label for="unitKerja" class="block text-sm font-bold text-slate-700 ml-1">Unit Kerja Pelaksana</label>
+              <select 
+                id="unitKerja" 
+                v-model="form.unitKerja" 
+                class="field-input"
+                required
+              >
+                <option value="" disabled selected>-- Pilih Unit Kerja --</option>
+                <option v-for="unit in units" :key="unit.id" :value="unit.nama">
+                  {{ unit.nama }}
+                </option>
+              </select>
+            </div>
+
             <!-- Pilih Program -->
             <div class="space-y-2 md:col-span-2">
-              <label for="programId" class="block text-sm font-bold text-slate-700 ml-1">Program Strategis Terkait</label>
+              <label for="programId" class="block text-sm font-bold text-slate-700 ml-1">Induk Sasaran Program (Outcome Antara)</label>
               <select 
                 id="programId" 
                 v-model="form.programId" 
                 class="field-input"
                 required
               >
-                <option value="" disabled>-- Pilih Program Strategis --</option>
-                <option v-for="p in programs" :key="p.id" :value="p.id">{{ p.namaProgram }}</option>
+                <option value="" disabled>-- Pilih Sasaran Program --</option>
+                <option v-for="p in programs" :key="p.id" :value="p.id">{{ p.sasaranProgram || p.namaProgram }}</option>
               </select>
             </div>
           </div>
@@ -76,7 +92,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Nama Kegiatan -->
             <div class="space-y-2 md:col-span-2">
-              <label for="namaKegiatan" class="block text-sm font-bold text-slate-700 ml-1">Nama Sasaran Kegiatan</label>
+              <label for="namaKegiatan" class="block text-sm font-bold text-slate-700 ml-1">Nama Sasaran Kegiatan (Output)</label>
               <textarea 
                 id="namaKegiatan" 
                 v-model="form.namaKegiatan" 
@@ -85,6 +101,19 @@
                 placeholder="Deskripsi kegiatan..."
                 required
               ></textarea>
+            </div>
+
+            <!-- Indikator Kegiatan -->
+            <div class="space-y-2 md:col-span-2">
+              <label for="namaIndikator" class="block text-sm font-bold text-slate-700 ml-1">Indikator Kinerja Kegiatan (Output)</label>
+              <input 
+                id="namaIndikator" 
+                v-model="form.namaIndikator" 
+                type="text" 
+                class="field-input" 
+                placeholder="Masukkan nama indikator output..." 
+                required
+              />
             </div>
 
             <!-- Anggaran -->
@@ -98,6 +127,32 @@
                   type="number" 
                   class="field-input !pl-12 font-bold text-slate-800"
                   placeholder="0"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Target & Satuan -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <label for="target" class="block text-sm font-bold text-slate-700 ml-1">Target Kinerja</label>
+                <input 
+                  id="target" 
+                  v-model="form.target" 
+                  type="number" 
+                  class="field-input font-bold" 
+                  placeholder="0" 
+                  required
+                />
+              </div>
+              <div class="space-y-2">
+                <label for="satuan" class="block text-sm font-bold text-slate-700 ml-1">Satuan</label>
+                <input 
+                  id="satuan" 
+                  v-model="form.satuan" 
+                  type="text" 
+                  class="field-input" 
+                  placeholder="Misal: Dokumen, Laporan..." 
                   required
                 />
               </div>
@@ -139,6 +194,7 @@ definePageMeta({ layout: 'dashboard' })
 
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import useSWRV from 'swrv';
 import { IconArrowLeft, IconPencil, IconCheck } from '@tabler/icons-vue';
 
 const router = useRouter();
@@ -150,10 +206,17 @@ const fetching = ref(true);
 const submitting = ref(false);
 const programs = ref<any[]>([]);
 
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+const { data: units } = useSWRV('/api/unit-kerja', fetcher);
+
 const form = ref({
   id: id,
   programId: '',
+  unitKerja: '',
   namaKegiatan: '',
+  namaIndikator: '',
+  satuan: '',
+  target: 0,
   total: 0
 });
 
@@ -167,20 +230,23 @@ onMounted(async () => {
   try {
     fetching.value = true;
     
-    const [progRes, kegRes] = await Promise.all([
-      $fetch<any[]>('/api/master-program'),
-      $fetch<any[]>('/api/master-kegiatan')
-    ]);
-
-    programs.value = progRes;
+    // Fetch individual record
+    const res = await $fetch<any>(`/api/sasaran-kegiatan?id=${id}`);
+    const existingData = Array.isArray(res) ? res[0] : res;
     
-    const existingData = kegRes.find((k: any) => k.id === id);
+    // Fetch master programs for dropdown
+    programs.value = await $fetch<any[]>('/api/master-program');
+
     if (existingData) {
       form.value = {
         id: existingData.id,
         programId: existingData.programId,
-        namaKegiatan: existingData.namaKegiatan,
-        total: existingData.total
+        unitKerja: existingData.unitKerja || '',
+        namaKegiatan: existingData.sasaranText,
+        namaIndikator: existingData.namaIndikator || '',
+        satuan: existingData.satuan || '',
+        target: existingData.target || 0,
+        total: Number(existingData.anggaran || 0)
       };
     } else {
       throw new Error('Data tidak ditemukan');
@@ -199,16 +265,25 @@ onMounted(async () => {
  * Handle form submission
  */
 const handleSubmit = async () => {
-  submitting.value = true;
-  
   try {
-    console.log('Updating Sasaran Kegiatan:', form.value);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await $fetch<any>('/api/sasaran-kegiatan', {
+      method: 'PUT',
+      body: {
+        id: form.value.id,
+        programId: form.value.programId,
+        sasaranText: form.value.namaKegiatan,
+        namaIndikator: form.value.namaIndikator,
+        satuan: form.value.satuan,
+        target: form.value.target,
+        unitKerja: form.value.unitKerja,
+        anggaran: String(form.value.total)
+      }
+    });
     
     router.push(`/${route.params.slug}/sasaran-kegiatan`);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating data:', error);
-    alert('Gagal menyimpan perubahan ke server.');
+    alert('Gagal menyimpan perubahan: ' + (error.data?.statusMessage || 'Terjadi kesalahan pada server.'));
   } finally {
     submitting.value = false;
   }

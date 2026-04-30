@@ -136,7 +136,8 @@ const unitKerjaOptions = computed(() => {
 });
 
 const yearOptions = ['2025', '2026', '2027', '2028', '2029'];
-const { data: monitoringData, isValidating: loading } = useSWRV('/api/sasaran-program', fetcher);
+const monitoringUrl = computed(() => `/api/sasaran-program?tahun=${selectedYear.value}&unitKerja=${selectedUnitKerja.value}`);
+const { data: monitoringData, isValidating: loading } = useSWRV(monitoringUrl, fetcher);
 
 const searchQuery = ref('');
 
@@ -157,10 +158,10 @@ const tableRows = computed(() => {
   let data = (monitoringData.value || []).map((item: any) => ({
     id: item.id,
     sasaranProgram: item.sasaranText,
-    satuan: 'Layanan',
-    target: 0,
-    realisasi: '-',
-    capaian: '-',
+    satuan: item.satuan || 'Layanan',
+    target: item[`target${selectedYear.value}`] || 0,
+    realisasi: item.realisasi || '-',
+    capaian: item.capaian || '-',
     unitKerja: item.unitKerja || '-'
   }));
 

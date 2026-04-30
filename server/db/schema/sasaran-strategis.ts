@@ -7,6 +7,7 @@ export const sasaranStrategis = appSchema.table("sasaran_strategis", {
   tujuanId: integer("tujuan_id"),
   kode: varchar("kode", { length: 10 }),
   sasaranText: text("sasaran_text").notNull(),
+  unitKerja: varchar("unit_kerja", { length: 255 }),
 }, (table) => [
   foreignKey({
     columns: [table.tujuanId],

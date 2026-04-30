@@ -31,6 +31,13 @@ export default defineEventHandler(async (event) => {
         })
         .where(eq(indikatorKinerja.id, id));
 
+      // 1b. Sync Unit Kerja to Sasaran Strategis
+      if (sasaranId && unitKerja) {
+        await tx.update(sasaranStrategis)
+          .set({ unitKerja: unitKerja })
+          .where(eq(sasaranStrategis.id, sasaranId));
+      }
+
       // 2. Update Target Indikator
       // Untuk mempermudah, kita bisa menghapus target lama dan memasukkan yang baru
       // atau melakukan update per tahun. Di sini kita gunakan update/upsert logic.

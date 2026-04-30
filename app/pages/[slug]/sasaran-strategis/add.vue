@@ -51,18 +51,41 @@
                 <option v-for="unit in unitKerjaList" :key="unit.id" :value="unit.nama">{{ unit.nama }}</option>
               </select>
             </div>
-            <!-- Pilih Tujuan -->
+            <!-- Pilih Kegiatan -->
             <div class="space-y-2">
-              <label for="tujuanId" class="block text-sm font-bold text-slate-700 ml-1">Tujuan Strategis</label>
-              <select 
-                id="tujuanId" 
-                v-model="form.tujuanId" 
-                class="field-input"
-                required
-              >
-                <option :value="null">-- Pilih Tujuan Strategis --</option>
-                <option v-for="t in tujuanList" :key="t.id" :value="t.id">{{ t.tujuanText }}</option>
-              </select>
+              <label for="tujuanId" class="block text-sm font-bold text-slate-700 ml-1">Nama Kegiatan</label>
+              <div class="space-y-3">
+                <select 
+                  id="tujuanId" 
+                  v-model="form.tujuanId" 
+                  class="field-input shadow-sm"
+                  :disabled="isNewKegiatan"
+                  :required="!isNewKegiatan"
+                >
+                  <option :value="null">-- Pilih Kegiatan --</option>
+                  <option v-for="t in tujuanList" :key="t.id" :value="t.id">{{ t.tujuanText }}</option>
+                </select>
+                <label class="flex items-center gap-2 group cursor-pointer select-none">
+                  <div class="relative flex items-center justify-center w-5 h-5 border-2 border-slate-300 rounded-md transition-all group-hover:border-blue-500" :class="{'bg-indigo-600 border-indigo-600 shadow-md shadow-indigo-200': isNewKegiatan}">
+                    <IconCheck v-if="isNewKegiatan" :size="14" stroke-width="4" class="text-white" />
+                    <input type="checkbox" v-model="isNewKegiatan" class="absolute opacity-0 w-full h-full cursor-pointer" />
+                  </div>
+                  <span class="text-xs font-bold transition-colors" :class="isNewKegiatan ? 'text-indigo-700' : 'text-slate-500'">Buat Kegiatan Baru (Mandiri)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Input Kegiatan Baru -->
+            <div v-if="isNewKegiatan" class="md:col-span-2 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+              <label for="newKegiatanText" class="block text-sm font-bold text-indigo-700 ml-1">Nama Detail Kegiatan Baru</label>
+              <textarea 
+                id="newKegiatanText" 
+                v-model="form.newTujuanText" 
+                required 
+                class="field-input min-h-[100px] border-indigo-200 bg-indigo-50/30 focus:bg-white" 
+                placeholder="Masukkan deskripsi kegiatan baru sesuai spreadsheet..."
+              ></textarea>
+              <p class="text-[10px] text-indigo-400 ml-1 font-medium italic">* Kegiatan ini akan disimpan secara mandiri dan tidak akan muncul di Data Master Visi-Misi.</p>
             </div>
 
             <!-- Pilih Sasaran -->
@@ -73,7 +96,7 @@
                   id="sasaranId" 
                   v-model="form.sasaranId" 
                   class="field-input shadow-sm"
-                  :disabled="isNewSasaran"
+                  :disabled="isNewSasaran || (!form.tujuanId && !isNewKegiatan)"
                   :required="!isNewSasaran"
                 >
                   <option :value="null">-- Pilih Sasaran Strategis --</option>
@@ -223,6 +246,7 @@ const years = [2025, 2026, 2027, 2028, 2029];
 const unitKerjaList = ref<any[]>([]);
 
 // State Form
+const isNewKegiatan = ref(false);
 const isNewSasaran = ref(false);
 const submitting = ref(false);
 const tujuanList = ref<any[]>([]);
@@ -231,9 +255,10 @@ const sasaranList = ref<any[]>([]);
 const form = ref({
   unitKerja: null as string | null,
   tujuanId: null as number | null,
+  newTujuanText: '',
   sasaranId: null as number | null,
-  kode: '',
   sasaranText: '',
+  kode: '',
   namaIndikator: '',
   satuan: '',
   targets: years.reduce((acc, y) => ({ ...acc, [y]: '' }), {} as Record<number, string>)
@@ -269,7 +294,9 @@ const handleSubmit = async () => {
       method: 'POST',
       body: {
         ...form.value,
-        isNewSasaran: isNewSasaran.value
+        isNewTujuan: isNewKegiatan.value,
+        isNewSasaran: isNewSasaran.value,
+        misiId: null 
       }
     });
     

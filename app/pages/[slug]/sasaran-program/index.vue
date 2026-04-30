@@ -72,7 +72,10 @@
                   <p v-if="i === 0" class="text-sm font-bold text-slate-800 leading-tight">{{ progName }}</p>
                 </td>
                 <td class="p-4">
-                  <p class="text-sm font-semibold text-slate-700 leading-snug">{{ prog.sasaranProgram }}</p>
+                  <div class="space-y-1">
+                    <p class="text-sm font-bold text-slate-800 leading-tight">{{ prog.sasaranProgram }}</p>
+                    <p class="text-[11px] font-medium text-[#2663A3] leading-snug">{{ prog.namaIndikator }}</p>
+                  </div>
                 </td>
                 <td class="p-4">
                   <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-50 text-slate-600 border border-slate-200">
@@ -168,6 +171,7 @@ interface ProgramRow {
   sasaranProgram: string
   sasaranText: string
   programName: string
+  namaIndikator: string
   satuan: string
   targetRenstra: YearMap
   targetPerjanjian: YearMap
@@ -210,10 +214,17 @@ onMounted(async () => {
     baseData.value = spRes.map((p: any) => ({
       id: p.id,
       sasaranProgram: p.sasaranText,
-      sasaranText: p.sasaranText, // For filtering
-      programName: programMap.get(p.programId) || 'Program Umum',
-      satuan: 'Layanan',
-      targetRenstra: { 2025: 0, 2026: 0, 2027: 0, 2028: 0, 2029: 0 },
+      sasaranText: p.sasaranText,
+      programName: p.programName || programMap.get(p.programId) || 'Program Umum',
+      namaIndikator: p.namaIndikator || '-',
+      satuan: p.satuan || 'Layanan',
+      targetRenstra: { 
+        2025: p.target2025 || 0, 
+        2026: p.target2026 || 0, 
+        2027: p.target2027 || 0, 
+        2028: p.target2028 || 0, 
+        2029: p.target2029 || 0 
+      },
       targetPerjanjian: { 2025: 0, 2026: 0, 2027: 0, 2028: 0, 2029: 0 },
       unitKerja: p.unitKerja || '-',
     }));
