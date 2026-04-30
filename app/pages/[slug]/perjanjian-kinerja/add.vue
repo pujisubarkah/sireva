@@ -82,7 +82,7 @@
               >
                 <option :value="null" disabled>-- Pilih Sasaran --</option>
                 <option v-for="s in uniqueSasaranList" :key="s.id" :value="s.id">
-                  [{{ s.kode || 'SS' }}] {{ s.sasaranText }}
+                  [{{ s.kode || 'SS' }}] {{ s.sasaranText }} - ({{ s.unitKerja || 'Kepala LAN RI' }})
                 </option>
               </select>
               <p class="text-[11px] text-slate-400 ml-1">Pilih sasaran yang akan menjadi acuan komitmen ini.</p>
@@ -170,18 +170,20 @@ const router = useRouter();
 const route = useRoute();
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
-// Fetch Data Referensi
-const { data: units } = useSWRV('/api/unit-kerja', fetcher);
-const { data: sasaranList } = useSWRV('/api/sasaran-strategis', fetcher);
-const { data: indikatorList } = useSWRV('/api/indikator-kinerja', fetcher);
+// Fetch Data Referensi (Force refresh for better sync)
+const { data: units } = useSWRV('/api/unit-kerja', fetcher, { revalidateOnFocus: true });
+const { data: sasaranList } = useSWRV('/api/sasaran-strategis', fetcher, { revalidateOnFocus: true });
+const { data: indikatorList } = useSWRV('/api/indikator-kinerja', fetcher, { revalidateOnFocus: true });
 
 // Deduplicated Sasaran List
 const uniqueSasaranList = computed(() => {
   if (!sasaranList.value) return [];
   const map = new Map();
   (sasaranList.value as any[]).forEach(s => {
-    if (!map.has(s.sasaranText)) {
-      map.set(s.sasaranText, s);
+    // Gunakan kombinasi teks dan unit untuk identitas unik
+    const key = `${s.sasaranText}-${s.unitKerja}`;
+    if (!map.has(key)) {
+      map.set(key, s);
     }
   });
   return Array.from(map.values());

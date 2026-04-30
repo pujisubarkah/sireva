@@ -96,7 +96,7 @@
                   id="sasaranId" 
                   v-model="form.sasaranId" 
                   class="field-input shadow-sm"
-                  :disabled="isNewSasaran || (!form.tujuanId && !isNewKegiatan)"
+                  :disabled="isNewSasaran"
                   :required="!isNewSasaran"
                 >
                   <option :value="null">-- Pilih Sasaran Strategis --</option>
@@ -266,8 +266,10 @@ const form = ref({
 
 // Filter sasaran berdasarkan tujuan yang dipilih
 const filteredSasaranList = computed(() => {
-  if (!form.value.tujuanId) return [];
-  return sasaranList.value.filter(s => s.tujuanId === form.value.tujuanId);
+  if (!form.value.tujuanId) return sasaranList.value;
+  const filtered = sasaranList.value.filter(s => s.tujuanId === form.value.tujuanId);
+  // Jika tidak ada yang cocok dengan tujuan, tampilkan semua sebagai opsi (fleksibilitas)
+  return filtered.length > 0 ? filtered : sasaranList.value;
 });
 
 // Load data on mount
