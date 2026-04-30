@@ -20,7 +20,7 @@
       </div>
     </div>
 
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
       <!-- Header Utama -->
       <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 text-center">
         <h1 class="text-lg font-semibold text-slate-800">Pemantauan Sasaran Program</h1>
@@ -28,20 +28,24 @@
       </div>
 
       <!-- Toolbar -->
-      <div class="px-5 py-3 border-b border-slate-200 bg-white flex flex-col xl:flex-row items-center justify-between gap-4">
-        <h2 class="text-sm font-semibold text-slate-700 whitespace-nowrap">Realisasi Sasaran Program</h2>
-        <div class="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-          <div class="relative flex-1 sm:flex-none sm:min-w-[200px]">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <div class="px-5 py-4 border-b border-slate-200 bg-white flex flex-wrap items-center justify-between gap-4">
+        <h2 class="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+          Realisasi Sasaran Program
+        </h2>
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="relative min-w-[240px]">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
               <IconSearch class="w-4 h-4 text-slate-400" />
             </div>
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Cari program..."
-              class="w-full pl-9 pr-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-50"
+              class="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 bg-slate-50/50 transition-all font-medium"
             />
           </div>
+          <div class="h-8 w-px bg-slate-200 mx-1"></div>
           <FilterDropdown
             v-model="selectedUnitKerja"
             :options="unitKerjaOptions"
@@ -52,7 +56,7 @@
             :options="yearOptions"
             :icon="IconCalendarEvent"
           />
-          <button class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
+          <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
             <IconDownload class="w-4 h-4" />
             <span>Export</span>
           </button>
@@ -118,15 +122,21 @@ import { useRouter } from 'vue-router';
 import { IconCalendarEvent, IconBuilding, IconSearch, IconDownload, IconEye } from '@tabler/icons-vue';
 import Table from '@/components/UI/Table.vue';
 import FilterDropdown from '@/components/FilterDropdown.vue';
+import useSWRV from 'swrv';
 
 const router = useRouter();
 
 const selectedYear = ref(String(new Date().getFullYear()));
-const yearOptions = ['2025', '2026', '2027', '2028', '2029'];
-
-const dummyUnitKerja = ['Pusbangkom ASN', 'Puslatbang KDOD', 'Pusdatin LAN', 'Biro SDM dan Umum'];
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+const { data: unitData } = useSWRV('/api/unit-kerja', fetcher);
 const selectedUnitKerja = ref('Semua Unit Kerja');
-const unitKerjaOptions = ['Semua Unit Kerja', ...dummyUnitKerja];
+const unitKerjaOptions = computed(() => {
+  const units = unitData.value?.map((u: any) => u.nama) || [];
+  return ['Semua Unit Kerja', ...units];
+});
+
+const yearOptions = ['2025', '2026', '2027', '2028', '2029'];
+const { data: monitoringData, isValidating: loading } = useSWRV('/api/sasaran-program', fetcher);
 
 const searchQuery = ref('');
 
@@ -141,82 +151,31 @@ const columns = computed(() => [
   { key: 'aksi', label: '', className: 'w-14 text-center' }
 ]);
 
-// Dummy Data State (for simulation)
-const dummyRealisasi = ref<Record<string, string>>({
-  '1-2026': '850',
-  '2-2026': '11',
-  '3-2026': '5',
-});
-
-type YearMap = Record<number, number>
-
-interface ProgramRow {
-  id: number
-  sasaranProgram: string
-  satuan: string
-  targetRenstra: YearMap
-  unitKerja: string
-}
-
-const baseData: ProgramRow[] = [
-  {
-    id: 1,
-    sasaranProgram: 'Program Pelatihan ASN',
-    satuan: 'Orang',
-    targetRenstra: { 2025: 800, 2026: 900, 2027: 1000, 2028: 1100, 2029: 1200 },
-    unitKerja: 'Pusbangkom ASN',
-  },
-  {
-    id: 2,
-    sasaranProgram: 'Program Penguatan Inovasi Kelembagaan',
-    satuan: 'Inovasi',
-    targetRenstra: { 2025: 8, 2026: 10, 2027: 12, 2028: 14, 2029: 16 },
-    unitKerja: 'Puslatbang KDOD',
-  },
-  {
-    id: 3,
-    sasaranProgram: 'Program Digitalisasi Layanan Pembelajaran',
-    satuan: 'Layanan',
-    targetRenstra: { 2025: 5, 2026: 7, 2027: 9, 2028: 11, 2029: 13 },
-    unitKerja: 'Pusdatin LAN',
-  },
-]
-
 const tableRows = computed(() => {
-  let filteredData = baseData.map((item, index) => {
-    const targetVal = item.targetRenstra[Number(selectedYear.value)] || 0;
-    const realisasiStr = dummyRealisasi.value[`${item.id}-${selectedYear.value}`];
-    const realisasiVal = realisasiStr ? parseFloat(realisasiStr) : 0;
-    
-    let capaian = 0;
-    if (targetVal > 0 && realisasiStr) {
-      capaian = (realisasiVal / targetVal) * 100;
-    }
-
-    return {
-      id: item.id,
-      sasaranProgram: item.sasaranProgram,
-      satuan: item.satuan,
-      target: targetVal,
-      realisasi: realisasiStr || '-',
-      capaian: realisasiStr ? capaian.toFixed(1) : '-',
-      unitKerja: item.unitKerja
-    };
-  });
+  if (!monitoringData.value) return [];
+  
+  let data = (monitoringData.value || []).map((item: any) => ({
+    id: item.id,
+    sasaranProgram: item.sasaranText,
+    satuan: 'Layanan',
+    target: 0,
+    realisasi: '-',
+    capaian: '-',
+    unitKerja: item.unitKerja || '-'
+  }));
 
   if (selectedUnitKerja.value !== 'Semua Unit Kerja') {
-    filteredData = filteredData.filter(d => d.unitKerja === selectedUnitKerja.value);
+    data = data.filter((d: any) => d.unitKerja === selectedUnitKerja.value);
   }
 
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase();
-    filteredData = filteredData.filter(d => 
+    data = data.filter((d: any) => 
       d.sasaranProgram.toLowerCase().includes(q)
     );
   }
 
-  // Recalculate 'no'
-  return filteredData.map((d, index) => ({ ...d, no: index + 1 }));
+  return data.map((d: any, index: number) => ({ ...d, no: index + 1 }));
 });
 
 const summary = computed(() => {
@@ -228,7 +187,7 @@ const summary = computed(() => {
   let tercapai = 0;
   let perluPerhatian = 0;
 
-  rows.forEach(r => {
+  rows.forEach((r: any) => {
     if (r.capaian !== '-') {
       const val = parseFloat(r.capaian);
       validCapaianCount++;

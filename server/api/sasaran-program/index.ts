@@ -10,7 +10,19 @@ export default defineEventHandler(async (event) => {
     if (query.id) {
       return await db.select().from(sasaranProgram).where(eq(sasaranProgram.id, Number(query.id)));
     }
-    return await db.select().from(sasaranProgram);
+    
+    const { program } = await import('../../db/schema/program');
+    
+    return await db.select({
+      id: sasaranProgram.id,
+      programId: sasaranProgram.programId,
+      kode: sasaranProgram.kode,
+      sasaranText: sasaranProgram.sasaranText,
+      unitKerja: sasaranProgram.unitKerja,
+      programName: program.namaProgram
+    })
+    .from(sasaranProgram)
+    .leftJoin(program, eq(sasaranProgram.programId, program.id));
   }
   if (method === 'POST') {
     const body = await readBody(event);

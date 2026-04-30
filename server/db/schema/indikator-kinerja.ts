@@ -10,6 +10,7 @@ export const indikatorKinerja = appSchema.table("indikator_kinerja", {
   satuan: varchar("satuan", { length: 50 }),
   jenis: varchar("jenis", { length: 50 }),
   baseline: numeric("baseline"),
+  unitKerja: varchar("unit_kerja", { length: 255 }),
 }, (table) => [
   foreignKey({
     columns: [table.sasaranId],

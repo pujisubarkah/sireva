@@ -10,7 +10,19 @@ export default defineEventHandler(async (event) => {
     if (query.id) {
       return await db.select().from(sasaranKegiatan).where(eq(sasaranKegiatan.id, Number(query.id)));
     }
-    return await db.select().from(sasaranKegiatan);
+    
+    const { kegiatan } = await import('../../db/schema/kegiatan');
+    
+    return await db.select({
+      id: sasaranKegiatan.id,
+      kegiatanId: sasaranKegiatan.kegiatanId,
+      kode: sasaranKegiatan.kode,
+      sasaranText: sasaranKegiatan.sasaranText,
+      unitKerja: sasaranKegiatan.unitKerja,
+      kegiatanName: kegiatan.namaKegiatan
+    })
+    .from(sasaranKegiatan)
+    .leftJoin(kegiatan, eq(sasaranKegiatan.kegiatanId, kegiatan.id));
   }
   if (method === 'POST') {
     const body = await readBody(event);

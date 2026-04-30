@@ -160,7 +160,7 @@ const viewData = ref({
   sasaranText: '',
   namaIndikator: '',
   satuan: '',
-  unitKerja: 'Pusbangkom ASN', // Dummy default for aesthetic
+  unitKerja: '',
   targets: years.reduce((acc, y) => ({ ...acc, [y]: '' }), {} as Record<number, string>)
 });
 
@@ -192,6 +192,7 @@ onMounted(async () => {
     viewData.value.satuan = indicator.satuan;
     viewData.value.sasaranText = sasaran?.sasaranText || '';
     viewData.value.tujuanText = tujuan?.tujuanText || '';
+    viewData.value.unitKerja = indicator.unitKerja || '-';
 
     // Map targets
     const tahunMap: Record<number, number> = thnRes.reduce((acc: any, t: any) => {

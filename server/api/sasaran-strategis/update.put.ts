@@ -12,7 +12,7 @@ import { defineEventHandler, readBody } from 'h3';
  */
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
-  const { id, sasaranId, namaIndikator, satuan, targets } = body;
+  const { id, sasaranId, namaIndikator, satuan, targets, unitKerja, kode } = body;
 
   if (!id) {
     throw new Error('Indikator ID is required for update.');
@@ -25,7 +25,9 @@ export default defineEventHandler(async (event) => {
         .set({
           sasaranId: sasaranId,
           namaIndikator: namaIndikator,
-          satuan: satuan
+          satuan: satuan,
+          unitKerja: unitKerja,
+          kode: kode
         })
         .where(eq(indikatorKinerja.id, id));
 

@@ -46,20 +46,47 @@
           </div>
           
           <div class="grid grid-cols-1 gap-6">
-            <div class="space-y-2">
-              <label for="sasaranId" class="block text-sm font-bold text-slate-700 ml-1">Sasaran Strategis</label>
-              <select 
-                id="sasaranId" 
-                v-model="form.sasaranId" 
-                class="field-input"
-                required
-              >
-                <option :value="null">-- Pilih Sasaran Strategis --</option>
-                <option v-for="s in sasaranList" :key="s.id" :value="s.id">{{ s.sasaranText }}</option>
-              </select>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Pilih Unit Kerja -->
+              <div class="space-y-2">
+                <label for="unitKerja" class="block text-sm font-bold text-slate-700 ml-1">Unit Kerja</label>
+                <select 
+                  id="unitKerja" 
+                  v-model="form.unitKerja" 
+                  class="field-input"
+                  required
+                >
+                  <option :value="null">-- Pilih Unit Kerja --</option>
+                  <option v-for="unit in unitKerjaList" :key="unit.id" :value="unit.nama">{{ unit.nama }}</option>
+                </select>
+              </div>
+
+              <div class="space-y-2">
+                <label for="sasaranId" class="block text-sm font-bold text-slate-700 ml-1">Sasaran Strategis</label>
+                <select 
+                  id="sasaranId" 
+                  v-model="form.sasaranId" 
+                  class="field-input"
+                  required
+                >
+                  <option :value="null">-- Pilih Sasaran Strategis --</option>
+                  <option v-for="s in sasaranList" :key="s.id" :value="s.id">{{ s.sasaranText }}</option>
+                </select>
+              </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div class="space-y-2">
+                <label for="kode" class="block text-sm font-bold text-slate-700 ml-1">Kode IKU</label>
+                <input 
+                  id="kode" 
+                  v-model="form.kode" 
+                  type="text" 
+                  required 
+                  placeholder="Contoh: IKU-1"
+                  class="field-input" 
+                />
+              </div>
               <div class="md:col-span-2 space-y-2">
                 <label for="namaIndikator" class="block text-sm font-bold text-slate-700 ml-1">Nama Indikator Kinerja</label>
                 <input 
@@ -168,6 +195,7 @@ import { IconArrowLeft, IconPencil, IconCheck, IconTrash } from '@tabler/icons-v
 const route = useRoute();
 const router = useRouter();
 const years = [2025, 2026, 2027, 2028, 2029];
+const unitKerjaList = ref<any[]>([]);
 
 // State
 const indicatorId = Number(route.query.id);
@@ -177,7 +205,9 @@ const sasaranList = ref<{ id: number, sasaranText: string }[]>([]);
 
 const form = ref({
   id: indicatorId,
+  unitKerja: null as string | null,
   sasaranId: null as number | null,
+  kode: '',
   namaIndikator: '',
   satuan: '',
   targets: years.reduce((acc, y) => ({ ...acc, [y]: '' }), {} as Record<number, string>)
@@ -194,19 +224,23 @@ onMounted(async () => {
   try {
     fetching.value = true;
     
-    const [sasRes, indRes, tarRes, thnRes] = await Promise.all([
+    const [sasRes, indRes, tarRes, thnRes, unitRes] = await Promise.all([
       $fetch<any[]>('/api/sasaran-strategis'),
       $fetch<any[]>(`/api/indikator-kinerja?id=${indicatorId}`),
       $fetch<any[]>('/api/target-indikator'),
-      $fetch<any[]>('/api/tahun')
+      $fetch<any[]>('/api/tahun'),
+      $fetch<any[]>('/api/unit-kerja')
     ]);
 
     sasaranList.value = sasRes;
+    unitKerjaList.value = unitRes;
     
     const indicator = indRes[0];
     if (!indicator) throw new Error('Data indikator tidak ditemukan.');
 
     form.value.sasaranId = indicator.sasaranId;
+    form.value.unitKerja = indicator.unitKerja;
+    form.value.kode = indicator.kode;
     form.value.namaIndikator = indicator.namaIndikator;
     form.value.satuan = indicator.satuan;
 

@@ -62,90 +62,68 @@
       <p class="mt-6 text-slate-500 font-black uppercase tracking-widest text-xs">Menyinkronkan Data...</p>
     </div>
 
-    <div v-else-if="groupedData.length > 0" class="space-y-12">
-      <div v-for="group in groupedData" :key="group.sasaran" class="space-y-6">
-        <!-- Group Header -->
-        <div class="flex items-center gap-4 px-2">
-          <div class="p-2.5 bg-white border border-slate-200 rounded-xl shadow-sm text-blue-600">
-            <IconTarget :size="20" />
-          </div>
-          <div>
-            <h2 class="text-sm font-black text-slate-400 uppercase tracking-[0.15em] leading-none">Sasaran Strategis</h2>
-            <p class="text-lg font-black text-slate-800 mt-1">{{ group.sasaran }}</p>
-          </div>
-          <div class="flex-grow h-px bg-gradient-to-r from-slate-200 to-transparent ml-4"></div>
-        </div>
-
-        <!-- Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          <div 
-            v-for="item in group.items" 
-            :key="item.id"
-            class="group bg-white rounded-3xl border border-slate-200 p-1 hover:border-blue-600/30 hover:shadow-2xl hover:shadow-blue-900/5 transition-all duration-500"
-          >
-            <div class="p-6 space-y-6">
-              <!-- Card Header -->
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex items-center gap-2">
-                  <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-500">
-                    <IconChartBar :size="18" />
-                  </div>
-                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Indikator Kinerja</span>
-                </div>
-                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button @click="router.push(`/${$route.params.slug}/rencana-aksi/view?id=${item.id}`)" class="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-600 transition-colors">
-                    <IconEye :size="18" />
+    <!-- Table List Layout -->
+    <div v-else-if="tableRows.length > 0" class="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/50 border-b border-slate-200">
+              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">No</th>
+              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-1/4">Indikator Kinerja</th>
+              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400">Rencana Aksi</th>
+              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-1/5">Unit Kerja</th>
+              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-24 text-center">Target</th>
+              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-32 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr v-for="(item, index) in tableRows" :key="item.id" class="group hover:bg-slate-50/80 transition-colors">
+              <td class="p-5 text-center">
+                <span class="text-sm font-bold text-slate-400">{{ index + 1 }}</span>
+              </td>
+              <td class="p-5">
+                <p class="text-sm font-bold text-slate-800 leading-tight">{{ item.indikator }}</p>
+              </td>
+              <td class="p-5">
+                <p class="text-sm font-semibold text-[#2663A3] leading-snug">{{ item.rencanaAksi }}</p>
+              </td>
+              <td class="p-5">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-slate-50 text-slate-600 border border-slate-200">
+                  <IconBuilding :size="12" class="text-slate-400"/>
+                  {{ item.unitKerja }}
+                </span>
+              </td>
+              <td class="p-5 text-center">
+                <span class="px-3 py-1.5 rounded-xl text-xs font-black bg-blue-50 text-blue-700 border border-blue-200 inline-flex min-w-[4rem] justify-center shadow-sm">
+                  {{ item.target }}
+                </span>
+              </td>
+              <td class="p-5 text-center">
+                <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    @click="router.push(`/${$route.params.slug}/rencana-aksi/view?id=${item.id}`)" 
+                    class="p-2.5 text-blue-500 hover:bg-blue-50 rounded-xl transition-colors"
+                  >
+                    <IconEye :size="20" />
                   </button>
-                  <button @click="router.push(`/${$route.params.slug}/rencana-aksi/edit?id=${item.id}`)" class="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-emerald-600 transition-colors">
-                    <IconPencil :size="18" />
+                  <button 
+                    @click="router.push(`/${$route.params.slug}/rencana-aksi/edit?id=${item.id}`)" 
+                    class="p-2.5 text-emerald-500 hover:bg-emerald-50 rounded-xl transition-colors"
+                  >
+                    <IconPencil :size="20" />
+                  </button>
+                  <button 
+                    @click="handleDelete(item)" 
+                    class="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                  >
+                    <IconTrash :size="20" />
                   </button>
                 </div>
-              </div>
-
-              <!-- Content -->
-              <div class="space-y-2">
-                <p class="text-xs font-bold text-slate-900 leading-relaxed min-h-[40px] line-clamp-2">
-                  {{ item.indikator }}
-                </p>
-                <div class="h-px bg-slate-50 w-full"></div>
-                <div>
-                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rencana Aksi</span>
-                  <p class="text-sm font-black text-[#2663A3] mt-1 line-clamp-3">
-                    {{ item.rencanaAksi }}
-                  </p>
-                </div>
-              </div>
-
-              <!-- Footer Metrics -->
-              <div class="pt-4 flex items-center justify-between border-t border-slate-50">
-                <div class="flex items-center gap-2">
-                  <IconBuilding :size="14" class="text-slate-300" />
-                  <span class="text-[10px] font-bold text-slate-500">{{ item.unitKerja }}</span>
-                </div>
-                <div class="text-right">
-                  <p class="text-[9px] font-black text-slate-400 uppercase">Target {{ selectedYear }}</p>
-                  <p class="text-lg font-black text-slate-900 leading-none mt-1">{{ item.target }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </div>
-
-    <!-- Empty State -->
-    <div v-else class="flex flex-col items-center justify-center py-32 px-4 bg-white rounded-3xl border border-dashed border-slate-300">
-      <div class="p-6 bg-slate-50 rounded-full mb-6">
-        <IconSearch :size="48" class="text-slate-300" />
-      </div>
-      <h3 class="text-xl font-black text-slate-900">Rencana Aksi Tidak Ditemukan</h3>
-      <p class="text-slate-500 mt-2 max-w-sm text-center font-medium">Gunakan kata kunci lain atau periksa filter unit kerja dan tahun.</p>
-      <button 
-        @click="searchQuery = ''; selectedUnitKerja = 'Semua Unit Kerja'"
-        class="mt-8 px-6 py-2 rounded-xl text-blue-600 font-bold text-sm hover:bg-blue-50 transition-colors"
-      >
-        Reset Pencarian
-      </button>
     </div>
   </div>
 </template>
@@ -161,34 +139,33 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   IconEye, IconPencil, IconPlus, IconBuilding, IconCalendarEvent, 
-  IconTarget, IconChartBar, IconSearch 
+  IconTarget, IconChartBar, IconSearch, IconTrash
 } from '@tabler/icons-vue'
 import FilterDropdown from '@/components/FilterDropdown.vue'
 import useSWRV from 'swrv'
 
 const router = useRouter()
+const fetcher = (url: string) => fetch(url).then(r => r.json())
+const { data: unitData } = useSWRV('/api/unit-kerja', fetcher)
 const searchQuery = ref('')
 const selectedYear = ref(String(new Date().getFullYear()))
 const yearOptions = ['2025', '2026', '2027', '2028', '2029']
 
-const dummyUnitKerja = ['Pusbangkom ASN', 'Puslatbang KDOD', 'Pusdatin LAN', 'Biro SDM dan Umum']
 const selectedUnitKerja = ref('Semua Unit Kerja')
-const unitKerjaOptions = ['Semua Unit Kerja', ...dummyUnitKerja]
+const unitKerjaOptions = computed(() => {
+  const units = unitData.value?.map((u: any) => u.nama) || []
+  return ['Semua Unit Kerja', ...units]
+})
 
 // Fetchers
-const fetcher = (url: string) => fetch(url).then(r => r.json())
+
 const { data: rencanaData, isValidating: loading } = useSWRV('/api/rencana-aksi', fetcher)
 
 // Computeds
 const tableRows = computed(() => {
   if (!rencanaData.value) return []
   
-  let data = (rencanaData.value || []).map((row: any) => {
-    return {
-      ...row,
-      unitKerja: dummyUnitKerja[row.id % dummyUnitKerja.length]
-    }
-  })
+  let data = (rencanaData.value || []);
 
   // Filter Unit Kerja
   if (selectedUnitKerja.value !== 'Semua Unit Kerja') {
@@ -224,6 +201,24 @@ const groupedData = computed(() => {
     items: groups[sasaran]
   }))
 })
+
+async function handleDelete(item: any) {
+  if (!confirm(`Apakah Anda yakin ingin menghapus rencana aksi "${item.rencanaAksi}"? Data yang dihapus tidak dapat dikembalikan.`)) return;
+  
+  try {
+    const result = await $fetch<any[]>('/api/rencana-aksi', {
+      method: 'DELETE',
+      body: { id: item.id }
+    });
+
+    if (result) {
+      window.location.reload();
+    }
+  } catch (error) {
+    console.error(error);
+    alert('Terjadi kesalahan saat menghapus data.');
+  }
+}
 </script>
 
 <style scoped>

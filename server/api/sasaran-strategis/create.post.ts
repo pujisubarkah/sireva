@@ -12,7 +12,7 @@ import { defineEventHandler, readBody } from 'h3';
  */
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
-  const { sasaranId, sasaranText, isNewSasaran, namaIndikator, satuan, targets, tujuanId } = body;
+  const { sasaranId, sasaranText, isNewSasaran, namaIndikator, satuan, targets, tujuanId, unitKerja, kode } = body;
 
   try {
     return await db.transaction(async (tx) => {
@@ -41,6 +41,8 @@ export default defineEventHandler(async (event) => {
         sasaranId: finalSasaranId,
         namaIndikator: namaIndikator,
         satuan: satuan,
+        unitKerja: unitKerja,
+        kode: kode,
         // jenis: 'Strategis' // Default jika diperlukan
       }).returning();
 

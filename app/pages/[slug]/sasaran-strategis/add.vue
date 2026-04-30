@@ -37,7 +37,20 @@
             <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Konteks Strategis</h2>
           </div>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Pilih Unit Kerja -->
+            <div class="space-y-2">
+              <label for="unitKerja" class="block text-sm font-bold text-slate-700 ml-1">Unit Kerja</label>
+              <select 
+                id="unitKerja" 
+                v-model="form.unitKerja" 
+                class="field-input"
+                required
+              >
+                <option :value="null">-- Pilih Unit Kerja --</option>
+                <option v-for="unit in unitKerjaList" :key="unit.id" :value="unit.nama">{{ unit.nama }}</option>
+              </select>
+            </div>
             <!-- Pilih Tujuan -->
             <div class="space-y-2">
               <label for="tujuanId" class="block text-sm font-bold text-slate-700 ml-1">Tujuan Strategis</label>
@@ -102,7 +115,18 @@
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="md:col-span-2 space-y-2">
+            <div class="space-y-2">
+              <label for="kode" class="block text-sm font-bold text-slate-700 ml-1">Kode IKU</label>
+              <input 
+                id="kode" 
+                v-model="form.kode" 
+                type="text" 
+                required 
+                class="field-input" 
+                placeholder="Contoh: IKU-1" 
+              />
+            </div>
+            <div class="space-y-2">
               <label for="namaIndikator" class="block text-sm font-bold text-slate-700 ml-1">Nama Indikator</label>
               <input 
                 id="namaIndikator" 
@@ -196,6 +220,7 @@ import { IconArrowLeft, IconPlus, IconCheck } from '@tabler/icons-vue';
 const router = useRouter();
 const route = useRoute();
 const years = [2025, 2026, 2027, 2028, 2029];
+const unitKerjaList = ref<any[]>([]);
 
 // State Form
 const isNewSasaran = ref(false);
@@ -204,8 +229,10 @@ const tujuanList = ref<any[]>([]);
 const sasaranList = ref<any[]>([]);
 
 const form = ref({
+  unitKerja: null as string | null,
   tujuanId: null as number | null,
   sasaranId: null as number | null,
+  kode: '',
   sasaranText: '',
   namaIndikator: '',
   satuan: '',
@@ -221,12 +248,14 @@ const filteredSasaranList = computed(() => {
 // Load data on mount
 onMounted(async () => {
   try {
-    const [tujuanData, sasaranData] = await Promise.all([
+    const [tujuanData, sasaranData, unitData] = await Promise.all([
       $fetch<any[]>('/api/tujuan'),
-      $fetch<any[]>('/api/sasaran-strategis')
+      $fetch<any[]>('/api/sasaran-strategis'),
+      $fetch<any[]>('/api/unit-kerja')
     ]);
     tujuanList.value = tujuanData;
     sasaranList.value = sasaranData;
+    unitKerjaList.value = unitData;
   } catch (error) {
     console.error('Gagal mengambil data referensi:', error);
   }

@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6 max-w-6xl mx-auto pb-10">
     <!-- Header Utama -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm mb-6">
       <div class="px-6 py-5 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 class="text-xl font-bold text-slate-800">Sasaran Strategis</h1>
@@ -76,78 +76,74 @@
       </div>
     </div>
 
-    <!-- Grouped Cards Layout -->
-    <div v-else class="space-y-6">
-      <div v-for="(group, gIndex) in groupedData" :key="group.sasaranId" class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden transition-all hover:shadow-md">
-        
-        <!-- Card Header (Sasaran Strategis) -->
-        <div class="bg-gradient-to-r from-slate-50 to-white px-6 py-5 border-b border-slate-200 flex items-start gap-4">
-          <div class="mt-0.5 bg-blue-100 text-[#2663A3] w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0 shadow-sm border border-blue-200">
-            {{ gIndex + 1 }}
-          </div>
-          <div class="flex-1">
-            <h3 class="text-xs font-black text-[#2663A3] uppercase tracking-widest mb-1">Sasaran Strategis</h3>
-            <p class="text-lg font-bold text-slate-800 leading-snug">{{ group.sasaranText }}</p>
-          </div>
-        </div>
-
-        <!-- Tabel Indikator -->
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-white border-b border-slate-100 text-[11px] uppercase tracking-wider text-slate-500 font-bold">
-                <th class="p-4 pl-6 w-16 text-center">No</th>
-                <th class="p-4 min-w-[250px]">Indikator Kinerja</th>
-                <th class="p-4 min-w-[200px]">Unit Kerja</th>
-                <th class="p-4 w-32 text-center">Target {{ selectedYear }}</th>
-                <th class="p-4 text-center w-36">Aksi</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-50 text-sm text-slate-700 bg-slate-50/30">
-              <tr v-for="(ind, i) in group.indikators" :key="ind.id" class="hover:bg-slate-50 transition-colors">
-                <td class="p-4 pl-6 text-center font-medium text-slate-400">{{ i + 1 }}</td>
-                <td class="p-4 font-semibold text-slate-800">{{ ind.indikatorKinerja }}</td>
+    <!-- Table List Layout -->
+    <div v-else class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/50 border-b border-slate-200">
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">No</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-[25%]">Sasaran Strategis</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400">Indikator Kinerja</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-1/4">Unit Kerja</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-32 text-center">Target {{ selectedYear }}</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-36 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <template v-for="(group, gIndex) in groupedData" :key="group.sasaranId">
+              <tr v-for="(ind, i) in group.indikators" :key="ind.id" class="group hover:bg-slate-50/80 transition-colors">
+                <td class="p-4 text-center">
+                  <span class="text-sm font-bold text-slate-400">{{ i === 0 ? gIndex + 1 : '' }}</span>
+                </td>
                 <td class="p-4">
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-white text-slate-600 border border-slate-200 shadow-sm whitespace-nowrap">
-                    <IconBuilding :size="14" class="text-slate-400"/>
+                  <div v-if="i === 0" class="space-y-1">
+                    <p class="text-sm font-bold text-slate-800 leading-tight">{{ group.sasaranText }}</p>
+                  </div>
+                </td>
+                <td class="p-4">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[10px] font-black text-blue-600 uppercase tracking-tighter">{{ ind.kode || 'Tanpa Kode' }}</span>
+                    <span class="text-sm font-semibold text-slate-700 leading-snug">{{ ind.indikatorKinerja }}</span>
+                  </div>
+                </td>
+                <td class="p-4">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-50 text-slate-600 border border-slate-200">
+                    <IconBuilding :size="12" class="text-slate-400"/>
                     {{ ind.unitKerja }}
                   </span>
                 </td>
                 <td class="p-4 text-center">
-                  <span class="px-3 py-1 rounded-lg text-sm font-bold bg-blue-50 text-blue-700 border border-blue-200 inline-flex min-w-[4rem] justify-center items-center shadow-sm">
+                  <span class="px-3 py-1 rounded-lg text-xs font-black bg-blue-50 text-blue-700 border border-blue-200 inline-flex min-w-[3.5rem] justify-center shadow-sm">
                     {{ ind.targetRenstra[selectedYear] || '-' }}
                   </span>
                 </td>
                 <td class="p-4 text-center">
-                  <div class="flex items-center justify-center gap-1">
+                  <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button 
                       @click="router.push(`/${$route.params.slug}/sasaran-strategis/view?id=${ind.id}`)" 
-                      class="text-blue-500 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-100 transition-colors" 
-                      title="Lihat Detail"
+                      class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
                     >
-                      <IconEye :size="18" stroke="2" />
+                      <IconEye :size="18" />
                     </button>
                     <button 
                       @click="router.push(`/${$route.params.slug}/sasaran-strategis/edit?id=${ind.id}`)" 
-                      class="text-emerald-500 hover:text-emerald-700 p-2 rounded-lg hover:bg-emerald-100 transition-colors" 
-                      title="Edit Indikator"
+                      class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
                     >
-                      <IconPencil :size="18" stroke="2" />
+                      <IconPencil :size="18" />
                     </button>
                     <button 
                       @click="handleDelete(ind)" 
-                      class="text-red-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-100 transition-colors" 
-                      title="Hapus"
+                      class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
                     >
-                      <IconTrash :size="18" stroke="2" />
+                      <IconTrash :size="18" />
                     </button>
                   </div>
                 </td>
               </tr>
-            </tbody>
-          </table>
-        </div>
-
+            </template>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -167,9 +163,13 @@ import useSWRV from 'swrv';
 import { IconEye, IconPencil, IconPlus, IconTrash, IconCalendarEvent, IconBuilding, IconSearch } from '@tabler/icons-vue';
 import FilterDropdown from '@/components/FilterDropdown.vue';
 
-const dummyUnitKerja = ['Pusbangkom ASN', 'Puslatbang KDOD', 'Pusdatin LAN', 'Biro SDM dan Umum'];
+const fetcher = (url: string) => fetch(url).then(r => r.json());
 const selectedUnitKerja = ref('Semua Unit Kerja');
-const unitKerjaOptions = ['Semua Unit Kerja', ...dummyUnitKerja];
+const { data: unitData } = useSWRV('/api/unit-kerja', fetcher);
+const unitKerjaOptions = computed(() => {
+  const units = unitData.value?.map((u: any) => u.nama) || [];
+  return ['Semua Unit Kerja', ...units];
+});
 
 const router = useRouter();
 const route = useRoute();
@@ -181,7 +181,6 @@ const searchQuery = ref('');
 const selectedYear = ref(String(new Date().getFullYear()));
 const yearOptions = ['2025', '2026', '2027', '2028', '2029'];
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 // Mengambil data dari berbagai API
 const { data: sasaranRes, isValidating: sasLoading } = useSWRV('/api/sasaran-strategis', fetcher);
@@ -200,7 +199,7 @@ const groupedData = computed(() => {
   if (!sasaranRes.value || !indikatorRes.value || !targetRes.value || !tahunRes.value) return [];
 
   type Sasaran = { id: number; sasaranText: string };
-  type Indikator = { id: number; sasaranId: number; namaIndikator: string };
+  type Indikator = { id: number; sasaranId: number; namaIndikator: string; unitKerja: string; kode: string };
   type Target = { indikatorId: number; tahunId: number | null; target: string | number | null };
   type Tahun = { id: number; tahun: number };
 
@@ -230,8 +229,6 @@ const groupedData = computed(() => {
     const sasaran = sasaranMap[indikator.sasaranId];
     if (!sasaran) return null;
 
-    const unitKerja = dummyUnitKerja[indikator.id % dummyUnitKerja.length];
-    
     // Ambil target untuk tahun yang dipilih
     const targetObj: Record<string, string> = {};
     targetObj[selectedYear.value] = targetMap[`${indikator.id}-${selectedYear.value}`] || '-';
@@ -241,7 +238,8 @@ const groupedData = computed(() => {
       sasaranId: sasaran.id,
       sasaranText: sasaran.sasaranText,
       indikatorKinerja: indikator.namaIndikator,
-      unitKerja,
+      unitKerja: indikator.unitKerja || '-',
+      kode: indikator.kode,
       targetRenstra: targetObj
     };
   }).filter(Boolean) as any[];

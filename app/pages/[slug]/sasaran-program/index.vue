@@ -1,19 +1,19 @@
 <template>
   <div class="space-y-6 pb-10">
     <!-- Header Section -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-8 py-8 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+      <div class="px-6 py-5 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-widest mb-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-widest mb-1">
             Perencanaan Taktis
           </div>
-          <h1 class="text-3xl font-black text-slate-800 tracking-tight">Sasaran Program (SP)</h1>
+          <h1 class="text-xl font-bold text-slate-800 tracking-tight">Sasaran Program (SP)</h1>
           <p class="text-slate-500 mt-1 text-sm font-medium">Penjabaran strategis ke tingkat program kerja pada Level JPT Pratama.</p>
         </div>
         <div class="flex items-center gap-3">
            <button
             @click="router.push(`/${$route.params.slug}/sasaran-program/add`)"
-            class="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#2663A3] text-white font-bold text-sm shadow-xl shadow-blue-700/20 hover:bg-blue-800 hover:scale-[1.02] transition-all"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2663A3] text-white font-bold text-sm shadow-lg shadow-blue-700/20 hover:bg-blue-800 transition-all"
           >
             <IconPlus :size="18" :stroke-width="3" />
             Tambah Program
@@ -22,14 +22,14 @@
       </div>
 
       <!-- Filter & Search Bar -->
-      <div class="px-8 py-4 bg-white flex flex-col lg:flex-row lg:items-center gap-4">
+      <div class="px-6 py-4 bg-white flex flex-col lg:flex-row lg:items-center gap-4">
         <div class="relative flex-1">
           <IconSearch class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" :size="20" />
           <input 
             v-model="searchQuery"
             type="text" 
-            placeholder="Cari nama program atau sasaran strategis..."
-            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-[#2663A3] transition-all"
+            placeholder="Cari nama program..."
+            class="w-full pl-12 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#2663A3] transition-all"
           />
         </div>
         <div class="flex flex-wrap items-center gap-3">
@@ -48,81 +48,77 @@
       </div>
     </div>
 
-    <!-- Grouped Cards State -->
-    <div v-if="Object.keys(groupedData).length > 0" class="space-y-8">
-      <div v-for="(programs, sasaranText) in groupedData" :key="sasaranText" class="space-y-4">
-        <!-- Sasaran Strategis Group Header -->
-        <div class="flex items-center gap-3 px-2">
-          <div class="h-8 w-1.5 bg-indigo-600 rounded-full"></div>
-          <h2 class="text-sm font-black text-slate-500 uppercase tracking-[0.2em]">{{ sasaranText }}</h2>
-          <div class="h-px flex-1 bg-slate-100 ml-2"></div>
-          <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">{{ programs.length }} PROGRAM</span>
-        </div>
-
-        <!-- Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          <div 
-            v-for="prog in programs" 
-            :key="prog.id"
-            class="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all duration-300 flex flex-col overflow-hidden"
-          >
-            <!-- Card Body -->
-            <div class="p-6 flex-1 space-y-4">
-              <div class="flex justify-between items-start gap-3">
-                <p class="text-sm font-bold text-slate-800 leading-snug group-hover:text-indigo-600 transition-colors">
-                  {{ prog.sasaranProgram }}
-                </p>
-                <div class="p-2 rounded-lg bg-slate-50 text-slate-400 opacity-0 group-hover:opacity-100 transition-all">
-                  <IconLayout :size="18" />
-                </div>
-              </div>
-
-              <!-- Targets Preview -->
-              <div class="bg-slate-50 rounded-xl p-3 grid grid-cols-2 gap-2">
-                <div class="space-y-1">
-                  <p class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Target Renstra</p>
-                  <p class="text-xs font-bold text-blue-700">{{ prog.targetRenstra[Number(selectedYear)] || '-' }} {{ prog.satuan }}</p>
-                </div>
-                <div class="space-y-1">
-                  <p class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Target PK</p>
-                  <p class="text-xs font-bold text-emerald-700">{{ prog.targetPerjanjian[Number(selectedYear)] || '-' }} {{ prog.satuan }}</p>
-                </div>
-              </div>
-
-              <!-- Metadata -->
-              <div class="flex items-center gap-2 text-[11px] text-slate-500 font-medium pt-2">
-                <IconBuilding :size="14" class="text-slate-400" />
-                <span>{{ prog.unitKerja }}</span>
-              </div>
-            </div>
-
-            <!-- Card Actions -->
-            <div class="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between group-hover:bg-indigo-50/50 transition-colors">
-              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider italic">ID: SP-{{ prog.id.toString().padStart(3, '0') }}</span>
-              <div class="flex items-center gap-2">
-                <button
-                  @click="router.push(`/${$route.params.slug}/sasaran-program/view?id=${prog.id}`)"
-                  class="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-200 shadow-sm transition-all"
-                  title="Lihat Detail"
-                >
-                  <IconEye :size="16" />
-                </button>
-                <button
-                  @click="router.push(`/${$route.params.slug}/sasaran-program/edit?id=${prog.id}`)"
-                  class="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-emerald-600 hover:border-emerald-200 shadow-sm transition-all"
-                  title="Edit Program"
-                >
-                  <IconPencil :size="16" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+    <!-- Table List Layout -->
+    <div v-if="Object.keys(groupedData).length > 0" class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/50 border-b border-slate-200">
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">No</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-[20%]">Program</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400">Sasaran Program</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-1/5">Unit Kerja</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-28 text-center">Target</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-32 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <template v-for="(programs, progName, gIndex) in groupedData" :key="progName">
+              <tr v-for="(prog, i) in programs" :key="prog.id" class="group hover:bg-slate-50/80 transition-colors">
+                <td class="p-4 text-center">
+                  <span class="text-sm font-bold text-slate-400">{{ i === 0 ? Number(gIndex) + 1 : '' }}</span>
+                </td>
+                <td class="p-4">
+                  <p v-if="i === 0" class="text-sm font-bold text-slate-800 leading-tight">{{ progName }}</p>
+                </td>
+                <td class="p-4">
+                  <p class="text-sm font-semibold text-slate-700 leading-snug">{{ prog.sasaranProgram }}</p>
+                </td>
+                <td class="p-4">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-50 text-slate-600 border border-slate-200">
+                    <IconBuilding :size="12" class="text-slate-400"/>
+                    {{ prog.unitKerja }}
+                  </span>
+                </td>
+                <td class="p-4 text-center">
+                  <div class="flex flex-col items-center gap-1">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-100 min-w-[3rem]">
+                      {{ prog.targetRenstra[Number(selectedYear)] || '0' }}
+                    </span>
+                    <span class="text-[9px] text-slate-400 font-bold uppercase">{{ prog.satuan }}</span>
+                  </div>
+                </td>
+                <td class="p-4 text-center">
+                  <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button 
+                      @click="router.push(`/${$route.params.slug}/sasaran-program/view?id=${prog.id}`)" 
+                      class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                    >
+                      <IconEye :size="18" />
+                    </button>
+                    <button 
+                      @click="router.push(`/${$route.params.slug}/sasaran-program/edit?id=${prog.id}`)" 
+                      class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
+                    >
+                      <IconPencil :size="18" />
+                    </button>
+                    <button 
+                      @click="handleDelete(prog)" 
+                      class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <IconTrash :size="18" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
       </div>
     </div>
 
     <!-- Empty State -->
-    <div v-else class="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-20 text-center">
+    <div v-else class="bg-white rounded-2xl border border-slate-200 p-20 text-center shadow-sm">
       <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
         <IconSearch :size="40" class="text-slate-300" />
       </div>
@@ -142,34 +138,40 @@ definePageMeta({ layout: 'dashboard' })
 
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import useSWRV from 'swrv'
 import { 
   IconPlus, IconSearch, IconBuilding, IconCalendarEvent, 
-  IconEye, IconPencil, IconLayout 
+  IconEye, IconPencil, IconLayout, IconTrash
 } from '@tabler/icons-vue'
 import FilterDropdown from '@/components/FilterDropdown.vue'
 
 const router = useRouter()
 const route = useRoute()
+const fetcher = (url: string) => fetch(url).then(r => r.json())
+const { data: unitData } = useSWRV('/api/unit-kerja', fetcher)
 
 // State Filters
 const searchQuery = ref('')
 const selectedYear = ref(String(new Date().getFullYear()))
 const yearOptions = ['2025', '2026', '2027', '2028', '2029']
 
-const dummyUnitKerja = ['Pusbangkom ASN', 'Puslatbang KDOD', 'Pusdatin LAN', 'Biro SDM dan Umum']
 const selectedUnitKerja = ref('Semua Unit Kerja')
-const unitKerjaOptions = ['Semua Unit Kerja', ...dummyUnitKerja]
+const unitKerjaOptions = computed(() => {
+  const units = unitData.value?.map((u: any) => u.nama) || []
+  return ['Semua Unit Kerja', ...units]
+})
 
 type YearMap = Record<number, number>
 
 interface ProgramRow {
   id: number
   sasaranProgram: string
+  sasaranText: string
+  programName: string
   satuan: string
   targetRenstra: YearMap
   targetPerjanjian: YearMap
   unitKerja: string
-  sasaranStrategis: string
 }
 
 const baseData = ref<ProgramRow[]>([])
@@ -177,15 +179,15 @@ const baseData = ref<ProgramRow[]>([])
 // Logic Pengelompokan Data (Group by Sasaran Strategis)
 const groupedData = computed(() => {
   let filtered = baseData.value.filter(item => {
-    const matchesSearch = item.sasaranProgram.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
-                         item.sasaranStrategis.toLowerCase().includes(searchQuery.value.toLowerCase());
+    const matchesSearch = item.sasaranText.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
+                         (item.programName || '').toLowerCase().includes(searchQuery.value.toLowerCase());
     const matchesUnit = selectedUnitKerja.value === 'Semua Unit Kerja' || item.unitKerja === selectedUnitKerja.value;
     return matchesSearch && matchesUnit;
   });
 
   const groups: Record<string, ProgramRow[]> = {};
   filtered.forEach(item => {
-    const key = item.sasaranStrategis || 'Tanpa Sasaran Strategis';
+    const key = item.programName || 'Tanpa Program';
     if (!groups[key]) {
       groups[key] = [];
     }
@@ -197,28 +199,47 @@ const groupedData = computed(() => {
 
 onMounted(async () => {
   try {
-    // In a real app, fetch from real APIs
-    const [progRes, sasRes] = await Promise.all([
-      $fetch<any[]>('/api/master-program'),
-      $fetch<any[]>('/api/sasaran-strategis')
+    // Fetch real data from Sasaran Program API
+    const [spRes, progRes] = await Promise.all([
+      $fetch<any[]>('/api/sasaran-program'),
+      $fetch<any[]>('/api/master-program')
     ]);
 
-    const sasaranMap = new Map(sasRes.map((s: any) => [s.id, s.sasaranText]));
+    const programMap = new Map(progRes.map((p: any) => [p.id, p.namaProgram]));
 
-    // Mapping dummy/real data
-    baseData.value = progRes.map((p: any) => ({
+    baseData.value = spRes.map((p: any) => ({
       id: p.id,
-      sasaranProgram: p.namaProgram,
+      sasaranProgram: p.sasaranText,
+      sasaranText: p.sasaranText, // For filtering
+      programName: programMap.get(p.programId) || 'Program Umum',
       satuan: 'Layanan',
-      targetRenstra: { 2025: 800, 2026: 900, 2027: 1000, 2028: 1100, 2029: 1200 },
-      targetPerjanjian: { 2025: 780, 2026: 880, 2027: 980, 2028: 1050, 2029: 1150 },
-      unitKerja: dummyUnitKerja[p.id % dummyUnitKerja.length] || 'Pusbangkom ASN',
-      sasaranStrategis: sasaranMap.get(p.sasaranId) || 'Sasaran Strategis Umum'
+      targetRenstra: { 2025: 0, 2026: 0, 2027: 0, 2028: 0, 2029: 0 },
+      targetPerjanjian: { 2025: 0, 2026: 0, 2027: 0, 2028: 0, 2029: 0 },
+      unitKerja: p.unitKerja || '-',
     }));
   } catch (error) {
     console.error('Error fetching data:', error)
   }
 })
+
+async function handleDelete(item: any) {
+  if (!confirm(`Apakah Anda yakin ingin menghapus "${item.sasaranProgram}"? Data yang dihapus tidak dapat dikembalikan.`)) return;
+  
+  try {
+    const result = await $fetch<any[]>('/api/sasaran-program', {
+      method: 'DELETE',
+      body: { id: item.id }
+    });
+
+    if (result) {
+      // Reload page or re-fetch
+      window.location.reload();
+    }
+  } catch (error) {
+    console.error(error);
+    alert('Terjadi kesalahan saat menghapus data.');
+  }
+}
 </script>
 
 <style scoped>

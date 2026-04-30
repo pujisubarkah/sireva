@@ -25,7 +25,8 @@ export default defineEventHandler(async (event) => {
         rencanaAksi: rencanaAksi.namaRencanaAksi,
         target: rencanaAksi.target,
         indikator: indikatorKinerja.namaIndikator,
-        sasaran: sasaranStrategis.sasaranText
+        sasaran: sasaranStrategis.sasaranText,
+        unitKerja: indikatorKinerja.unitKerja
       })
       .from(rencanaAksi)
       .leftJoin(indikatorKinerja, eq(rencanaAksi.indikatorId, indikatorKinerja.id))
