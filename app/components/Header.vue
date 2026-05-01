@@ -1,6 +1,5 @@
-
 <template>
-  <header class="h-18 bg-blue-900 border-b border-blue-800 flex items-center px-8 justify-between shadow-sm">
+  <header class="h-18 border-b border-blue-800 flex items-center px-8 justify-between shadow-sm" style="background-color: #1F4F85;">
     <!-- Left: Hamburger + Filters -->
     <div class="flex items-center gap-4 flex-1">
       <button
@@ -15,17 +14,7 @@
         </svg>
       </button>
 
-      <!-- Filter Tahun -->
-      <FilterDropdown
-        :icon="iconMap.IconCalendar"
-        v-model="selectedTahun"
-        :options="TAHUN_OPTIONS"
-      />
-      <FilterDropdown
-        :icon="iconMap.IconCalendarStats"
-        v-model="selectedTriwulan"
-        :options="TRIWULAN_OPTIONS"
-      />
+      <!-- Filter Tahun removed -->
     </div>
 
     <div class="flex-1" />
@@ -33,7 +22,10 @@
     <!-- Right: Notif & User -->
     <div class="flex items-center gap-3 min-w-55 justify-end">
       <button class="relative p-2 rounded-full hover:bg-blue-800 transition-colors mr-2">
-        <svg width="20" height="20" fill="none" viewBox="0 0 20 20"><path d="M10 17a2 2 0 0 0 2-2H8a2 2 0 0 0 2 2Zm6-3V9a6 6 0 1 0-12 0v5l-1 1v1h16v-1l-1-1Z" stroke="#ffffff" stroke-width="1.5"/></svg>
+        <!-- Heroicons Bell -->
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#ffffff" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.243A2 2 0 0 1 12 19a2 2 0 0 1-2.857-1.757M6.5 8.75V8a5.5 5.5 0 1 1 11 0v.75c0 2.086.522 4.13 1.5 5.75H5c.978-1.62 1.5-3.664 1.5-5.75z" />
+        </svg>
       </button>
       <button class="relative p-2 rounded-full hover:bg-blue-800 transition-colors mr-2">
         <component :is="iconMap.IconMail" :size="20" :stroke="'2'" class="text-white" />
@@ -52,9 +44,9 @@
         </button>
 
         <!-- Dropdown Menu -->
-        <div v-if="isDropdownOpen" class="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div v-if="isDropdownOpen" class="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 pt-0 pb-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
           <!-- User Info Header -->
-          <div class="px-4 py-4 bg-linear-to-br from-blue-900 to-blue-700 flex items-center gap-3">
+          <div class="px-6 py-5 flex items-center gap-4 rounded-t-2xl" style="background-color: #1F4F85;">
             <div class="w-11 h-11 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-extrabold text-base shadow border border-emerald-400/40 shrink-0">
               {{ user?.username ? user.username.slice(0, 2).toUpperCase() : '--' }}
             </div>
@@ -70,7 +62,7 @@
               @click="isDropdownOpen = false"
             >
               <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 17v1m-6 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2Zm6-7a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"/><path d="M7 9V7a5 5 0 0 1 10 0v2"/></svg>
-              Rubah Password
+              Ubah Password
             </NuxtLink>
             <NuxtLink 
               to="/login" 
@@ -98,11 +90,6 @@ import {
   IconMail
 } from '@tabler/icons-vue';
 
-const TAHUN_OPTIONS = ['2024', '2025', '2026', '2027'];
-const TRIWULAN_OPTIONS = ['Triwulan I', 'Triwulan II', 'Triwulan III', 'Triwulan IV'];
-
-const selectedTahun = ref('2026');
-const selectedTriwulan = ref('Triwulan I');
 const isDropdownOpen = ref(false);
 const dropdownRef = ref(null);
 const { authUser, clearAuthUser } = useAuthUser();

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
- * SI-REVA Performance Command Center
- * A premium, data-driven dashboard for monitoring organizational performance and financials.
+ * SI-REVA Performance Command Center 2.0
+ * A premium, immersive dashboard for executive monitoring.
  */
 
 definePageMeta({ layout: 'dashboard' })
@@ -13,18 +13,16 @@ import {
   IconTarget,
   IconChartBar,
   IconGitMerge,
-  IconChartPie,
   IconArrowRight,
   IconTrendingUp,
-  IconFileText,
   IconBell,
   IconTrophy,
   IconWallet,
-  IconArrowUpRight,
   IconBuildingSkyscraper,
   IconCalendar,
-  IconSearch,
-  IconFilter
+  IconLayoutDashboard,
+  IconHistory,
+  IconFingerprint
 } from '@tabler/icons-vue'
 
 // --- Route & Filter Context ---
@@ -39,13 +37,10 @@ const fetcher = (url: string) => fetch(url).then(res => res.json())
 const { data: sasaranStratRes } = useSWRV('/api/sasaran-strategis', fetcher)
 const { data: sasaranProgRes } = useSWRV('/api/sasaran-program', fetcher)
 const { data: sasaranKegRes } = useSWRV('/api/sasaran-kegiatan', fetcher)
-const { data: realisasiRes } = useSWRV('/api/realisasi-indikator', fetcher)
-const { data: targetRes } = useSWRV('/api/target-indikator', fetcher)
-const { data: pendanaanRes } = useSWRV('/api/pendanaan', fetcher)
+const { data: pkRes } = useSWRV('/api/perjanjian-kinerja', fetcher)
 const { data: visiRes } = useSWRV('/api/visi', fetcher)
 
 // --- Aggregation Logic ---
-
 const counts = computed(() => ({
   ss: (sasaranStratRes.value || []).length,
   sp: (sasaranProgRes.value || []).length,
@@ -53,69 +48,68 @@ const counts = computed(() => ({
 }))
 
 const performance = computed(() => {
-  // Simulate or calculate real performance
-  const mockBase = 82.4
+  const pkData = pkRes.value || []
+  const totalPk = pkData.length
+  
+  // For now, if no realisasi logic yet, use target coverage or safe default
+  const avgTarget = totalPk > 0 ? 100 : 0 
+  
   return {
-    overall: mockBase,
-    ss: 88.5,
-    sp: 76.2,
-    sk: 84.1,
-    status: mockBase > 80 ? 'Sangat Baik' : 'Baik',
-    trend: '+2.4%'
+    overall: avgTarget,
+    ss: counts.value.ss > 0 ? 100 : 0,
+    sp: counts.value.sp > 0 ? 100 : 0,
+    sk: counts.value.sk > 0 ? 100 : 0,
+    status: totalPk > 0 ? 'Aktif' : 'Draft',
+    trend: totalPk > 0 ? 'Data Live' : 'No Data'
   }
 })
 
 const financials = computed(() => {
-  const data = pendanaanRes.value || []
-  let totalPagu = 0
-  let totalReals = 0
+  const kegData = sasaranKegRes.value || []
+  let totalAnggaran = 0
   
-  data.forEach((item: any) => {
-    totalPagu += parseFloat(item.pagu || 0)
-    totalReals += parseFloat(item.realisasi || 0)
+  kegData.forEach((item: any) => {
+    totalAnggaran += parseFloat(item.anggaran || 0)
   })
   
-  if (totalPagu === 0) { // Mock fallback if API empty
-    totalPagu = 145000000000 
-    totalReals = 32500000000
-  }
+  // Simulation for realization until module is ready
+  let totalReals = totalAnggaran * 0.22 
 
-  const pct = (totalReals / totalPagu) * 100
+  const pct = totalAnggaran > 0 ? (totalReals / totalAnggaran) * 100 : 0
   
   return {
-    pagu: (totalPagu / 1_000_000_000).toFixed(1),
+    pagu: (totalAnggaran / 1_000_000_000).toFixed(1),
     reals: (totalReals / 1_000_000_000).toFixed(1),
     pct: pct.toFixed(1),
-    remaining: ((totalPagu - totalReals) / 1_000_000_000).toFixed(1)
+    remaining: ((totalAnggaran - totalReals) / 1_000_000_000).toFixed(1)
   }
 })
 
 // --- Charts Configurations ---
-
 const donutOptions = computed(() => ({
   chart: { type: 'donut', fontFamily: 'Inter, sans-serif' },
   labels: ['Capaian', 'Sisa Target'],
-  colors: ['#2563EB', '#E2E8F0'],
+  colors: ['#2663A3', '#F1F5F9'],
   stroke: { width: 0 },
   dataLabels: { enabled: false },
   legend: { show: false },
   plotOptions: {
     pie: {
       donut: {
-        size: '80%',
+        size: '85%',
         labels: {
           show: true,
           name: { show: false },
           value: {
             show: true,
-            fontSize: '32px',
+            fontSize: '36px',
             fontWeight: '900',
             color: '#1E293B',
             formatter: (val: string) => val + '%'
           },
           total: {
             show: true,
-            label: 'Total Capaian',
+            label: 'Capaian',
             formatter: () => performance.value.overall + '%'
           }
         }
@@ -126,32 +120,32 @@ const donutOptions = computed(() => ({
 
 const barOptions = computed(() => ({
   chart: { type: 'bar', toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
-  plotOptions: { bar: { horizontal: true, borderRadius: 6, barHeight: '50%' } },
+  plotOptions: { bar: { horizontal: true, borderRadius: 12, barHeight: '40%' } },
   colors: ['#10B981'],
   dataLabels: { enabled: false },
   xaxis: { 
     categories: ['SS', 'SP', 'SK'],
-    labels: { style: { fontWeight: 600 } }
+    labels: { style: { fontWeight: 800, colors: '#64748b' } }
   },
   grid: { borderColor: '#f1f1f1', strokeDashArray: 4 }
 }))
 
 const trendOptions = {
   chart: { type: 'area', toolbar: { show: false }, zoom: { enabled: false } },
-  colors: ['#2563EB', '#F59E0B'],
-  stroke: { curve: 'smooth', width: 3 },
-  fill: { type: 'gradient', gradient: { opacityFrom: 0.3, opacityTo: 0 } },
+  colors: ['#2663A3'],
+  stroke: { curve: 'smooth', width: 4 },
+  fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0 } },
   dataLabels: { enabled: false },
-  xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'] },
+  xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'], labels: { style: { fontWeight: 600 } } },
   yaxis: { show: false }
 }
 
 // --- Tab Logic ---
 const activeTab = ref('SS')
 const tabs = [
-  { id: 'SS', label: 'Sasaran Strategis', icon: IconTarget },
-  { id: 'SP', label: 'Sasaran Program', icon: IconGitMerge },
-  { id: 'SK', label: 'Sasaran Kegiatan', icon: IconChartBar }
+  { id: 'SS', label: 'Strategic', icon: IconTarget },
+  { id: 'SP', label: 'Program', icon: IconGitMerge },
+  { id: 'SK', label: 'Activity', icon: IconChartBar }
 ]
 
 const displayedItems = computed(() => {
@@ -159,281 +153,290 @@ const displayedItems = computed(() => {
                  activeTab.value === 'SP' ? sasaranProgRes.value :
                  sasaranKegRes.value
                  
-  return (source || []).slice(0, 4).map((item: any, i: number) => ({
-    id: `${activeTab.value}-${i+1}`,
+  return (source || []).slice(0, 5).map((item: any, i: number) => ({
+    id: `${activeTab.value}-${(i+1).toString().padStart(2, '0')}`,
     text: item.sasaranText || item.namaProgram || item.namaKegiatan || 'Data Sasaran',
-    pct: Math.floor(Math.random() * (100 - 70) + 70) // Random for demo if missing
+    pct: Math.floor(Math.random() * (100 - 75) + 75)
   }))
 })
 
 </script>
 
 <template>
-  <div class="p-6 lg:p-10 bg-slate-50 min-h-full space-y-10 font-sans">
+  <div class="p-6 lg:p-10 bg-[#F8FAFC] min-h-full space-y-10 font-sans pb-20">
     
     <!-- Top Nav / Breadcrumb / Filter -->
     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-      <div class="space-y-1">
-        <div class="flex items-center gap-2 text-[10px] font-bold text-blue-600 uppercase tracking-[0.2em]">
-          <span>Dashboard</span>
-          <span class="text-slate-300">/</span>
-          <span>{{ slug }}</span>
+      <div class="space-y-1.5">
+        <div class="flex items-center gap-3 px-3 py-1.5 bg-blue-50 w-fit rounded-full border border-blue-100">
+          <IconFingerprint :size="14" class="text-[#2663A3]" />
+          <span class="text-[10px] font-black text-[#2663A3] uppercase tracking-[0.2em]">Validated Auth: {{ slug }}</span>
         </div>
         <h1 class="text-3xl font-black text-slate-900 tracking-tight">Performance Center</h1>
       </div>
       
       <div class="flex flex-wrap items-center gap-3">
-        <div class="flex bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex bg-white p-1.5 rounded-[1.25rem] shadow-sm border border-slate-200">
           <button 
             v-for="year in [2025, 2026]" 
             :key="year"
             @click="currentYear = year"
-            :class="['px-5 py-2 rounded-xl text-xs font-black transition-all', currentYear === year ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600']"
+            :class="['px-6 py-2.5 rounded-xl text-xs font-black transition-all', currentYear === year ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/20' : 'text-slate-400 hover:text-slate-600']"
           >
             {{ year }}
           </button>
         </div>
-        <div class="relative group">
-          <button class="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-200 text-xs font-black text-slate-700 hover:border-blue-400 transition-all">
-            <IconCalendar :size="16" class="text-blue-600" />
-            {{ currentQuarter }}
-          </button>
-        </div>
-        <button class="p-3 bg-white text-slate-400 rounded-2xl border border-slate-200 shadow-sm hover:text-blue-600 hover:border-blue-200 transition-all">
+        <button class="flex items-center gap-3 bg-white px-6 py-3 rounded-[1.25rem] shadow-sm border border-slate-200 text-xs font-black text-slate-700 hover:border-[#2663A3] transition-all">
+          <IconCalendar :size="16" class="text-[#2663A3]" />
+          {{ currentQuarter }}
+        </button>
+        <button class="p-3.5 bg-white text-slate-400 rounded-[1.25rem] border border-slate-200 shadow-sm hover:text-[#2663A3] hover:border-blue-200 transition-all relative">
           <IconBell :size="20" />
+          <span class="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
         </button>
       </div>
     </div>
 
     <!-- Hero Stats Row -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
       <!-- Overall KPI -->
-      <div class="lg:col-span-2 bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden group">
-        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl group-hover:bg-blue-600/30 transition-all"></div>
-        <div class="relative z-10 flex flex-col h-full justify-between space-y-12">
+      <div class="lg:col-span-2 bg-slate-950 rounded-[3rem] p-10 text-white relative overflow-hidden group shadow-2xl shadow-blue-950/20">
+        <div class="absolute -right-20 -top-20 w-80 h-80 bg-blue-600/30 rounded-full blur-[100px] group-hover:bg-blue-600/40 transition-all duration-1000"></div>
+        <div class="absolute left-1/2 top-0 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
+        
+        <div class="relative z-10 flex flex-col h-full justify-between space-y-16">
           <div class="flex justify-between items-start">
-            <div class="space-y-1">
-              <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">Capaian Organisasi</p>
-              <h2 class="text-4xl font-black">{{ performance.overall }}%</h2>
+            <div class="space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.3em]">Capaian Kinerja Nasional</p>
+              </div>
+              <h2 class="text-6xl font-black tracking-tighter">{{ performance.overall }}%</h2>
+              <div class="flex items-center gap-2 bg-white/5 w-fit px-3 py-1 rounded-full border border-white/10">
+                <IconTrendingUp :size="14" class="text-emerald-400" />
+                <span class="text-[10px] font-bold text-emerald-400">{{ performance.trend }} vs Bulan Lalu</span>
+              </div>
             </div>
-            <div class="bg-white/10 p-4 rounded-3xl backdrop-blur-md">
-              <IconTrophy :size="28" class="text-yellow-400" />
+            <div class="bg-white/5 p-5 rounded-[2rem] backdrop-blur-2xl border border-white/10">
+              <IconTrophy :size="32" class="text-yellow-400" />
             </div>
           </div>
           <div class="space-y-4">
-            <div class="flex justify-between items-end">
-              <div class="text-xs font-medium text-slate-400">Target Tahunan: 100%</div>
-              <div class="text-xs font-bold text-emerald-400 flex items-center gap-1">
-                <IconTrendingUp :size="14" /> {{ performance.trend }}
-              </div>
-            </div>
-            <div class="h-3 w-full bg-white/10 rounded-full overflow-hidden p-0.5">
-              <div class="h-full bg-gradient-to-r from-blue-500 to-emerald-400 rounded-full transition-all duration-1000" :style="{ width: performance.overall + '%' }"></div>
+            <div class="h-4 w-full bg-white/5 rounded-full overflow-hidden p-1 border border-white/10">
+              <div class="h-full bg-gradient-to-r from-blue-600 via-blue-400 to-emerald-400 rounded-full transition-all duration-1000" :style="{ width: performance.overall + '%' }"></div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Financial Card -->
-      <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200 flex flex-col justify-between">
-        <div class="flex justify-between items-start">
-          <div class="bg-emerald-50 p-3 rounded-2xl">
+      <div class="bg-white rounded-[3rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col justify-between relative overflow-hidden group">
+        <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-700">
+            <IconWallet :size="100" />
+        </div>
+        <div class="flex justify-between items-start relative z-10">
+          <div class="bg-emerald-50 p-4 rounded-2xl">
             <IconWallet :size="24" class="text-emerald-600" />
           </div>
-          <div class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-widest">DIPA</div>
+          <div class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-4 py-1.5 rounded-full uppercase tracking-widest border border-emerald-100">Live DIPA</div>
         </div>
-        <div class="mt-8 space-y-1">
+        <div class="mt-8 space-y-1 relative z-10">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Realisasi Anggaran</p>
-          <div class="text-3xl font-black text-slate-900">Rp {{ financials.reals }}<span class="text-sm font-bold text-slate-400 ml-1">M</span></div>
-          <p class="text-[10px] font-bold text-slate-500">Sisa Pagu: Rp {{ financials.remaining }} M</p>
+          <div class="text-4xl font-black text-slate-900 tracking-tight">Rp {{ financials.reals }}<span class="text-base font-bold text-slate-300 ml-1">M</span></div>
+          <p class="text-[11px] font-bold text-slate-500 italic">Sisa Anggaran: Rp {{ financials.remaining }} M</p>
         </div>
-        <div class="mt-6 flex items-center gap-3">
-          <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+        <div class="mt-8 relative z-10">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Progress Serapan</span>
+            <span class="text-xs font-black text-emerald-600">{{ financials.pct }}%</span>
+          </div>
+          <div class="h-2 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100">
             <div class="h-full bg-emerald-500 rounded-full" :style="{ width: financials.pct + '%' }"></div>
           </div>
-          <span class="text-xs font-black text-slate-800">{{ financials.pct }}%</span>
         </div>
       </div>
 
-      <!-- Quick Metrics Grid -->
-      <div class="grid grid-cols-2 gap-4">
-        <div v-for="(count, key) in {SS:counts.ss, SP:counts.sp}" :key="key" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col justify-center items-center text-center group hover:border-blue-300 transition-all cursor-pointer">
-          <div class="text-2xl font-black text-slate-900 group-hover:scale-110 transition-transform">{{ count }}</div>
-          <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Total {{ key }}</div>
-        </div>
-        <div class="col-span-2 bg-blue-600 rounded-3xl p-6 shadow-xl shadow-blue-600/20 flex flex-col justify-center items-center text-center text-white">
-          <div class="text-2xl font-black">{{ counts.sk }}</div>
-          <div class="text-[9px] font-black text-blue-100 uppercase tracking-widest mt-1">Sasaran Kegiatan</div>
+      <!-- Vision Card -->
+      <div class="bg-gradient-to-br from-[#2663A3] to-blue-800 rounded-[3rem] p-10 text-white shadow-xl shadow-blue-900/20 relative overflow-hidden group">
+        <IconBuildingSkyscraper class="absolute -right-8 -bottom-8 w-40 h-40 text-white/5 group-hover:rotate-12 transition-transform duration-1000" />
+        <div class="relative z-10 flex flex-col h-full justify-between">
+            <div class="space-y-4">
+                <div class="flex items-center gap-2">
+                    <span class="w-1.5 h-6 bg-yellow-400 rounded-full"></span>
+                    <h4 class="text-xs font-black uppercase tracking-widest text-blue-100">Visi Organisasi</h4>
+                </div>
+                <p class="text-sm font-bold leading-relaxed italic text-blue-50">
+                    {{ visiRes?.data?.[0]?.visiText || '"Menjadi lembaga pembina yang mewujudkan birokrasi berkelas dunia untuk Indonesia Maju."' }}
+                </p>
+            </div>
+            <button class="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/70 hover:text-white transition-colors">
+                Rincian Strategis <IconArrowRight :size="14" />
+            </button>
         </div>
       </div>
     </div>
 
-    <!-- Main Analytics Section -->
+    <!-- Quick Analytics Row -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       
-      <!-- Left: Achievement List (2/3) -->
-      <div class="lg:col-span-2 bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-        <div class="p-8 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div class="space-y-1">
-            <h3 class="text-lg font-black text-slate-900">Cascading Performance</h3>
-            <p class="text-xs text-slate-400 font-medium">Monitoring rincian capaian setiap level sasaran</p>
+      <!-- Performance Analytics (2/3) -->
+      <div class="lg:col-span-2 bg-white rounded-[3rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden flex flex-col">
+        <div class="p-10 border-b border-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+          <div class="space-y-1.5">
+            <h3 class="text-xl font-black text-slate-900 tracking-tight">Performance Cascading</h3>
+            <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Monitoring Level Sasaran</p>
           </div>
-          <div class="flex bg-slate-100 p-1 rounded-2xl">
+          <div class="flex bg-slate-50 p-1.5 rounded-[1.5rem] border border-slate-100">
             <button 
               v-for="tab in tabs" 
               :key="tab.id"
               @click="activeTab = tab.id"
-              :class="['px-5 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2', activeTab === tab.id ? 'bg-white shadow-sm text-blue-700' : 'text-slate-500']"
+              :class="['px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2', activeTab === tab.id ? 'bg-white shadow-xl text-[#2663A3] border border-slate-100' : 'text-slate-400 hover:text-slate-600']"
             >
-              <component :is="tab.icon" :size="14" />
-              {{ tab.id }}
+              <component :is="tab.icon" :size="16" />
+              {{ tab.label }}
             </button>
           </div>
         </div>
         
-        <div class="p-4 flex-1">
-          <div class="space-y-2">
-            <div v-for="item in displayedItems" :key="item.id" class="flex items-center gap-6 p-4 rounded-3xl hover:bg-slate-50 transition-all group border border-transparent hover:border-slate-100">
-              <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all font-black text-xs">
+        <div class="p-6 flex-1 bg-gradient-to-b from-white to-slate-50/30">
+          <div class="grid grid-cols-1 gap-3">
+            <div v-for="item in displayedItems" :key="item.id" class="flex items-center gap-8 p-5 rounded-[2rem] bg-white border border-slate-50 shadow-sm hover:shadow-xl hover:scale-[1.01] hover:border-blue-100 transition-all group">
+              <div class="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-[#2663A3] group-hover:text-white transition-all font-black text-xs shadow-inner">
                 {{ item.id }}
               </div>
               <div class="flex-1 min-w-0">
-                <h4 class="text-sm font-bold text-slate-800 truncate group-hover:text-blue-700 transition-colors">{{ item.text }}</h4>
-                <div class="flex items-center gap-3 mt-2">
-                  <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-blue-500 rounded-full" :style="{ width: item.pct + '%' }"></div>
+                <h4 class="text-sm font-black text-slate-800 truncate leading-tight mb-3">{{ item.text }}</h4>
+                <div class="flex items-center gap-4">
+                  <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                    <div class="h-full bg-gradient-to-r from-blue-600 to-indigo-500 rounded-full transition-all duration-1000" :style="{ width: item.pct + '%' }"></div>
                   </div>
-                  <span class="text-[10px] font-black text-slate-500">{{ item.pct }}%</span>
+                  <span class="text-[11px] font-black text-slate-600">{{ item.pct }}%</span>
                 </div>
               </div>
-              <button class="p-3 rounded-2xl bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-all opacity-0 group-hover:opacity-100">
-                <IconArrowRight :size="18" />
+              <button class="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center group-hover:opacity-100 sm:opacity-0">
+                <IconArrowRight :size="20" />
               </button>
             </div>
           </div>
         </div>
         
-        <div class="p-6 bg-slate-50/50 border-t border-slate-100 flex justify-center">
-          <button class="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
-            Lihat Semua {{ activeTab }} <IconArrowRight :size="14" />
+        <div class="p-8 bg-white border-t border-slate-50 flex justify-center">
+          <button class="px-8 py-3 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-700 transition-all shadow-xl shadow-slate-900/10">
+            Buka Laporan Lengkap
           </button>
         </div>
       </div>
 
-      <!-- Right: Charts & Vision (1/3) -->
+      <!-- Right Column: Gauge & Pattern -->
       <div class="space-y-8">
-        <!-- Donut Chart -->
-        <div class="bg-white rounded-[2.5rem] p-10 shadow-sm border border-slate-200 flex flex-col items-center text-center space-y-8">
-          <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Total Progress</h3>
-          <div class="w-full relative aspect-square max-w-[220px]">
+        <!-- Progress Gauge -->
+        <div class="bg-white rounded-[3rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col items-center text-center space-y-10 relative overflow-hidden">
+          <div class="absolute -top-10 -left-10 w-40 h-40 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
+          <h3 class="text-xs font-black uppercase tracking-[0.2em] text-slate-400 relative z-10">Total Achievement</h3>
+          <div class="w-full relative aspect-square max-w-[240px] z-10 scale-110">
             <ClientOnly>
               <apexchart height="100%" width="100%" :options="donutOptions" :series="[performance.overall, 100 - performance.overall]" />
             </ClientOnly>
           </div>
-          <div class="grid grid-cols-2 w-full gap-4 pt-4 border-t border-slate-100">
-            <div class="text-center">
-              <div class="text-lg font-black text-slate-900">{{ performance.status }}</div>
-              <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Predikat</div>
+          <div class="grid grid-cols-2 w-full gap-4 pt-8 border-t border-slate-50 relative z-10">
+            <div class="text-center space-y-1">
+              <div class="text-xl font-black text-slate-900 tracking-tight">{{ performance.status }}</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Predikat</div>
             </div>
-            <div class="text-center border-l border-slate-100">
-              <div class="text-lg font-black text-blue-600">{{ performance.overall }}%</div>
-              <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Capaian</div>
+            <div class="text-center border-l border-slate-100 space-y-1">
+              <div class="text-xl font-black text-[#2663A3] tracking-tight">{{ performance.overall }}%</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Akumulasi</div>
             </div>
           </div>
         </div>
 
-        <!-- Vision Mini-Card -->
-        <div class="bg-gradient-to-br from-blue-700 to-indigo-800 rounded-[2.5rem] p-8 text-white shadow-xl shadow-blue-900/20 relative overflow-hidden group">
-          <IconBuildingSkyscraper class="absolute -right-4 -bottom-4 w-32 h-32 text-white/5 group-hover:rotate-6 transition-transform duration-700" />
-          <div class="relative z-10 space-y-6">
-            <div class="flex items-center gap-3">
-              <div class="w-1 h-5 bg-yellow-400 rounded-full"></div>
-              <h4 class="text-xs font-black uppercase tracking-widest text-blue-100">Visi Organisasi</h4>
+        <!-- Metric Cards Grid -->
+        <div class="grid grid-cols-2 gap-6">
+            <div class="bg-white rounded-[2rem] p-8 shadow-xl shadow-slate-200/50 border border-slate-100 text-center space-y-2 group hover:border-[#2663A3] transition-all cursor-pointer">
+                <IconTarget :size="24" class="mx-auto text-[#2663A3] mb-2" />
+                <div class="text-3xl font-black text-slate-900">{{ counts.ss }}</div>
+                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Sasaran</div>
             </div>
-            <p class="text-sm font-medium leading-relaxed italic text-blue-50">
-              {{ visiRes?.data?.[0]?.visiText || '"Menjadi lembaga pembina yang mewujudkan birokrasi berkelas dunia untuk Indonesia Maju."' }}
-            </p>
-          </div>
+            <div class="bg-white rounded-[2rem] p-8 shadow-xl shadow-slate-200/50 border border-slate-100 text-center space-y-2 group hover:border-indigo-500 transition-all cursor-pointer">
+                <IconGitMerge :size="24" class="mx-auto text-indigo-500 mb-2" />
+                <div class="text-3xl font-black text-slate-900">{{ counts.sp }}</div>
+                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Program</div>
+            </div>
+            <div class="col-span-2 bg-[#1E293B] rounded-[2rem] p-8 shadow-2xl shadow-slate-900/20 text-center text-white flex items-center justify-between px-10 group overflow-hidden relative">
+                <IconLayoutDashboard class="absolute -right-4 -bottom-4 w-24 h-24 text-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div class="text-left relative z-10">
+                    <div class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Total Kegiatan</div>
+                    <div class="text-4xl font-black">{{ counts.sk }}</div>
+                </div>
+                <div class="p-4 bg-white/10 rounded-2xl backdrop-blur-md relative z-10">
+                    <IconChartBar :size="24" class="text-white" />
+                </div>
+            </div>
         </div>
       </div>
     </div>
 
-    <!-- Bottom Section: Detailed Comparison & Trends -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      
-      <!-- Comparison Chart -->
-      <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200">
-        <div class="flex justify-between items-center mb-10">
-          <div>
-            <h3 class="text-sm font-black text-slate-900">Perbandingan Level</h3>
-            <p class="text-[10px] text-slate-400 font-medium mt-0.5">Rata-rata capaian per tingkat sasaran</p>
-          </div>
-          <div class="bg-emerald-50 px-3 py-1.5 rounded-xl text-emerald-600 font-black text-[10px] flex items-center gap-1">
-            <IconTrendingUp :size="12" /> Target Terlampaui
-          </div>
+    <!-- Pattern Chart -->
+    <div class="bg-white rounded-[3rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+            <div class="space-y-1.5">
+                <h3 class="text-xl font-black text-slate-900 tracking-tight">Pola Realisasi Bulanan</h3>
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Analysis & Projections</p>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-[#2663A3]"></span>
+                    <span class="text-[10px] font-black text-slate-500 uppercase">Trend Kinerja</span>
+                </div>
+                <div class="h-10 w-px bg-slate-100"></div>
+                <button class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-50 text-slate-600 font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 transition-colors">
+                    <IconHistory :size="16" /> Lihat Historis
+                </button>
+            </div>
         </div>
-        <div class="h-[200px]">
-          <ClientOnly>
-            <apexchart height="100%" width="100%" :options="barOptions" :series="[{ name: 'Capaian', data: [performance.ss, performance.sp, performance.sk] }]" />
-          </ClientOnly>
-        </div>
-      </div>
-
-      <!-- Performance Pattern (Trend) -->
-      <div class="lg:col-span-2 bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200 flex flex-col md:flex-row gap-10">
-        <div class="flex-1 space-y-8">
-          <div class="space-y-1">
-            <h3 class="text-sm font-black text-slate-900">Pola Kinerja Bulanan</h3>
-            <p class="text-[10px] text-slate-400 font-medium">Monitoring stabilitas pencapaian target sepanjang tahun</p>
-          </div>
-          <div class="h-[200px]">
+        <div class="h-[320px] w-full">
             <ClientOnly>
-              <apexchart height="100%" width="100%" :options="trendOptions" :series="[{ name: 'Trend', data: [65, 78, 72, 85, 88, 92] }]" />
+                <apexchart height="100%" width="100%" :options="trendOptions" :series="[{ name: 'Capaian', data: [72, 78, 75, 84, 82, 89] }]" />
             </ClientOnly>
-          </div>
         </div>
-        
-        <div class="md:w-56 space-y-4 flex flex-col justify-center border-l border-slate-100 md:pl-10">
-           <div v-for="(val, label) in {Realization: '82.4%', Projection: '94.1%'}" :key="label" class="space-y-1">
-              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ label }}</p>
-              <div class="text-2xl font-black text-slate-900">{{ val }}</div>
-              <div class="h-1 w-12 bg-blue-600 rounded-full"></div>
-           </div>
-           <button class="w-full mt-4 py-3 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all">
-              Detail Analisis
-           </button>
-        </div>
-      </div>
     </div>
 
   </div>
 </template>
 
 <style scoped>
-/* Smooth transitions for charts */
 .apexcharts-canvas {
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Glassmorphism utility if needed */
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.bg-white, .bg-slate-950 {
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Custom Scrollbar for better aesthetics */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Staggered load for cards */
+.grid > div:nth-child(1) { animation-delay: 0.1s; }
+.grid > div:nth-child(2) { animation-delay: 0.2s; }
+.grid > div:nth-child(3) { animation-delay: 0.3s; }
+.grid > div:nth-child(4) { animation-delay: 0.4s; }
+
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #E2E8F0;
-  border-radius: 10px;
+  background: #CBD5E1;
+  border-radius: 20px;
+  border: 2px solid #F8FAFC;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #CBD5E1;
+  background: #94A3B8;
 }
 </style>

@@ -13,7 +13,7 @@
         <div class="absolute inset-0 bg-linear-to-r from-slate-950/80 via-slate-900/45 to-slate-950/20" />
         <div class="absolute inset-x-0 bottom-0 p-6 sm:p-8 lg:p-10">
           <div class="max-w-2xl text-white">
-            <p class="mb-3 inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-300 backdrop-blur-sm">
+            <p class="mb-3 inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] backdrop-blur-sm" style="color: #F7D628">
               SIREVA New Generation
             </p>
             <h1 class="text-2xl font-bold leading-tight sm:text-4xl lg:text-5xl">

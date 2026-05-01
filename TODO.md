@@ -1,10 +1,8 @@
-# Fix TypeScript TSX Parsing Errors
+# Navbar Header Restructuring Task
 
 ## Steps:
-- [x] 1. Clear TypeScript/Next.js cache ✅
-- [ ] 2. Restart VS Code TS Server  
-- [ ] 3. Reload VS Code Window
-- [ ] 4. Verify `npx next build` succeeds
-- [ ] 5. Check Problems panel is clear
+- [x] Step 1: Edit app/layouts/default.vue - Remove Topbar import and component.
+- [x] Step 2: Edit app/components/Navbar.vue - Adjust main row padding, add ID/EN sub-row below menu (right-aligned), add sticky positioning.
+- [x] Step 3: Test changes - Run dev server, verify at localhost:3000.
+- [x] Step 4: Complete task.
 
-**Next:** Please run Cmd/Ctrl+Shift+P → "TypeScript: Restart TS Server" then "Developer: Reload Window", then check if errors are gone.

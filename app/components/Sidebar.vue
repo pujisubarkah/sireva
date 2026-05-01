@@ -2,10 +2,10 @@
   <transition name="fade">
     <aside
       v-show="open"
-      class="h-full shrink-0 overflow-x-hidden transition-all duration-300 ease-in-out bg-blue-900 border-r border-blue-900/50 custom-scrollbar w-64 z-40"
+      class="shrink-0 border-r-2 border-white/50" style="background-color: #1F4F85; backdrop-filter: blur(12px); transition: all 0.3s; z-index: 50;"
       aria-hidden="false"
     >
-      <div class="w-64 min-h-full flex flex-col py-6 px-4">
+      <div class="w-64 h-full flex flex-col py-6 px-4">
       <!-- Branding -->
       <div class="flex flex-col items-center mb-8 shrink-0">
         <img src="/logolanwhite.png" alt="Logo LAN RI" width="120" height="120" class="object-contain mb-3" />
@@ -13,9 +13,9 @@
       </div>
 
       <!-- Navigation -->
-      <div class="flex-1 flex flex-col">
-        <div class="text-[10px] text-blue-300/60 font-bold mb-3 px-2 tracking-widest uppercase">{{ menuTitle }}</div>
-        <nav class="flex flex-col gap-1.5">
+      <div class="flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar pr-2 -mr-2">
+        <div class="text-[10px] text-blue-300/60 font-bold mb-3 px-2 tracking-widest uppercase shrink-0">{{ menuTitle }}</div>
+        <nav class="flex flex-col gap-1.5 pb-4">
           <template v-for="item in menuItems" :key="item.label">
             <SidebarMenuItem :item="item" :iconMap="iconMap" :activePath="activePath" />
           </template>
@@ -96,3 +96,14 @@ function handleLogout() {
   clearAuthUser();
 }
 </script>
+
+<style scoped>
+/* Hide scrollbar but keep scroll functionality */
+.custom-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+.custom-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+</style>

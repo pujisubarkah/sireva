@@ -24,7 +24,7 @@
           </button>
 
           <!-- Blue header banner -->
-          <div class="bg-blue-600 px-8 pt-8 pb-6">
+          <div class="bg-[#1F4F85] px-8 pt-8 pb-6">
             <h1 class="text-2xl font-bold text-white">Login</h1>
             <p class="text-sm text-blue-100 mt-1">Masuk ke akun Sireva kamu</p>
           </div>
@@ -34,7 +34,7 @@
             <form @submit.prevent="handleLogin" class="flex flex-col gap-4 w-full">
               <div class="flex flex-col gap-2">
                 <div class="relative">
-                  <label class="text-sm font-semibold text-blue-700 mb-1 ml-1 flex items-center gap-1" for="login-username">
+                  <label class="text-sm font-semibold text-black mb-1 ml-1 flex items-center gap-1" for="login-username">
                     <IconMail size="18" class="inline-block" />
                     Username
                   </label>
@@ -43,17 +43,14 @@
                     v-model="usernameOrEmail"
                     type="text"
                     placeholder="username"
-                    :class="['transition-all duration-200 w-full py-2 pl-10 pr-3 rounded-lg border focus:outline-none', errors.usernameOrEmail ? 'border-red-400 focus:border-red-500' : 'border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100']"
+                    :class="['transition-all duration-200 w-full py-2 pl-4 pr-3 rounded-lg border focus:outline-none', errors.usernameOrEmail ? 'border-red-400 focus:border-red-500' : 'border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100']"
                   />
-                  <span class="absolute left-3 top-9 text-blue-500 pointer-events-none">
-                    <IconMail size="20" />
-                  </span>
-                  <span v-if="errors.usernameOrEmail" class="text-xs text-red-500 mt-1 block">{{ errors.usernameOrEmail }}</span>
+
                 </div>
               </div>
               <div class="flex flex-col gap-2">
                 <div class="relative">
-                  <label class="text-sm font-semibold text-blue-700 mb-1 ml-1 flex items-center gap-1" for="login-password">
+                  <label class="text-sm font-semibold text-black mb-1 ml-1 flex items-center gap-1" for="login-password">
                     <IconLock size="18" class="inline-block" />
                     Password
                   </label>
@@ -62,12 +59,9 @@
                     v-model="password"
                     type="password"
                     placeholder="Kata sandi"
-                    :class="['transition-all duration-200 w-full py-2 pl-10 pr-3 rounded-lg border focus:outline-none', errors.password ? 'border-red-400 focus:border-red-500' : 'border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100']"
+                    :class="['transition-all duration-200 w-full py-2 pl-4 pr-3 rounded-lg border focus:outline-none', errors.password ? 'border-red-400 focus:border-red-500' : 'border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100']"
                   />
-                  <span class="absolute left-3 top-9 text-blue-500 pointer-events-none">
-                    <IconLock size="20" />
-                  </span>
-                  <span v-if="errors.password" class="text-xs text-red-500 mt-1 block">{{ errors.password }}</span>
+
                 </div>
                 <Button hierarchy="link" class="self-start text-xs text-indigo-500 hover:text-indigo-700">Lupa Password?</Button>
                               <span class="text-xs text-gray-400 mt-1 block ml-1">Jika Anda lupa kata sandi, silakan hubungi admin sireva.</span>
@@ -79,7 +73,7 @@
                   type="submit"
                   :loading="loading"
                   :disabled="!isValid"
-                  class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-colors"
+                  class="w-full bg-[#2663A3] hover:bg-[#1F4F85] text-white font-semibold py-2 rounded-lg transition-colors"
                 >
                   Masuk
                 </Button>
@@ -146,15 +140,13 @@ const handleLogin = async () => {
   serverError.value = ''
 
   try {
-    const res = await fetch('/api/auth/login', {
+    const data = await $fetch<any>('/api/auth/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+      body: {
         usernameOrEmail: usernameOrEmail.value,
         password: password.value,
-      }),
+      },
     })
-    const data = await res.json()
     if (data.success) {
       toast.success('Login berhasil!')
       setAuthUser(data.user ?? null)

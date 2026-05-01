@@ -23,11 +23,12 @@
 
     <div v-else-if="item.children" class="rounded-xl overflow-hidden border border-white/5 bg-white/2">
       <div
+        @click="isOpen = !isOpen"
         :class="[
-          'flex items-center justify-between gap-3 px-3 py-2.5 text-base font-medium',
+          'flex items-center justify-between gap-3 px-3 py-2.5 text-base font-medium cursor-pointer select-none transition-colors duration-200',
           isParentActive(item)
             ? 'text-white bg-blue-700/50'
-            : 'text-blue-100/80'
+            : 'text-blue-100/80 hover:bg-white/5 hover:text-white'
         ]"
       >
         <div class="flex items-center gap-3 min-w-0">
@@ -36,9 +37,18 @@
           </span>
           <span class="truncate">{{ item.label }}</span>
         </div>
-        <component :is="iconMap['IconChevronDown']" :size="16" :stroke="2" :class="isParentActive(item) ? 'text-blue-100' : 'text-blue-300/70'" />
+        <component 
+          :is="iconMap['IconChevronDown']" 
+          :size="16" 
+          :stroke="2" 
+          :class="[
+            'transition-transform duration-200',
+            isOpen ? 'rotate-180' : '',
+            isParentActive(item) ? 'text-blue-100' : 'text-blue-300/70'
+          ]" 
+        />
       </div>
-      <div class="pb-2 px-2">
+      <div v-show="isOpen" class="pb-2 px-2">
         <NuxtLink
           v-for="child in item.children"
           :key="child.href"
@@ -67,6 +77,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
+import { ref, watch, onMounted } from 'vue';
 import type { PropType } from 'vue';
 
 interface SidebarMenuChildItem {
@@ -108,4 +119,18 @@ function isParentActive(item: SidebarMenuItem) {
   if (item.children) return item.children.some(child => isActive(child.href));
   return false;
 }
+
+const isOpen = ref(false);
+
+onMounted(() => {
+  if (isParentActive(props.item)) {
+    isOpen.value = true;
+  }
+});
+
+watch(() => props.activePath, () => {
+  if (isParentActive(props.item)) {
+    isOpen.value = true;
+  }
+});
 </script>

@@ -1,146 +1,227 @@
 <template>
-  <div class="space-y-4">
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 text-center">
-        <h1 class="text-lg font-semibold text-slate-800">Perjanjian Kinerja</h1>
-        <p class="text-sm text-slate-500 mt-1">Daftar sasaran, indikator, dan target perjanjian kinerja.</p>
+  <div class="space-y-8 pb-10">
+    <!-- Header Section -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm mb-6">
+      <div class="px-6 py-5 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-bold text-slate-800">Perjanjian Kinerja</h1>
+          <p class="text-sm text-slate-500 mt-1">Dokumentasi komitmen kinerja tahunan antara atasan dan bawahan.</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button
+            @click="router.push(`/${$route.params.slug}/perjanjian-kinerja/add`)"
+            class="w-full sm:w-auto px-5 py-2.5 bg-[#2663A3] text-white rounded-xl text-sm font-semibold hover:bg-blue-800 shadow-lg shadow-blue-700/20 flex items-center justify-center gap-2 transition-all"
+          >
+            <IconPlus :size="18" :stroke-width="3" />
+            Tambah PK
+          </button>
+        </div>
       </div>
 
-      <div class="px-5 py-3 border-b border-slate-200 bg-white flex items-center justify-between gap-3">
-        <h2 class="text-sm font-semibold text-slate-700">Daftar Perjanjian Kinerja</h2>
-        <button
-          type="button"
-          @click="router.push(`/${$route.params.slug}/perjanjian-kinerja/add`)"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold shadow text-sm transition-colors cursor-pointer"
-        >
-          <IconPlus :size="16" :stroke="'2'" />
-          Tambah Perjanjian Kinerja
-        </button>
+      <!-- Filter & Search Bar -->
+      <div class="px-6 py-4 bg-white flex flex-col md:flex-row items-center gap-4">
+        <div class="relative w-full md:w-80">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+            <IconSearch :size="18" />
+          </div>
+          <input 
+            v-model="searchQuery"
+            type="text" 
+            placeholder="Cari sasaran atau indikator PK..." 
+            class="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-50 font-medium"
+          />
+        </div>
+        
+        <div class="flex-1 flex flex-col sm:flex-row items-center justify-end gap-3 w-full md:w-auto">
+          <div class="w-full sm:w-64">
+            <FilterDropdown
+              v-model="selectedUnitKerja"
+              :options="unitKerjaOptions"
+              :icon="IconBuilding"
+            />
+          </div>
+          <div class="w-full sm:w-40">
+            <FilterDropdown
+              v-model="selectedYear"
+              :options="yearOptions"
+              :icon="IconCalendarEvent"
+            />
+          </div>
+        </div>
       </div>
+    </div>
 
-      <div class="p-5">
-        <Table
-          :columns="columns"
-          :data="tableRows"
-          rowKey="id"
-          :showSearch="true"
-          :showPagination="false"
-        >
-          <template #cell-aksi="{ row }">
-            <div class="flex items-center justify-center gap-2">
-              <button
-                type="button"
-                @click="router.push(`/${$route.params.slug}/perjanjian-kinerja/edit?id=${row.id}`)"
-                :aria-label="`Edit ${row.sasaran}`"
-                title="Edit"
-                class="action-btn action-btn-edit"
-              >
-                <IconPencil :size="16" :stroke="'2'" />
-              </button>
-              <button
-                type="button"
-                @click="router.push(`/${$route.params.slug}/perjanjian-kinerja/view?id=${row.id}`)"
-                :aria-label="`Lihat ${row.sasaran}`"
-                title="Lihat"
-                class="action-btn action-btn-view"
-              >
-                <IconEye :size="16" :stroke="'2'" />
-              </button>
-            </div>
-          </template>
-        </Table>
+    <!-- Table List Layout -->
+    <div v-if="tableRows.length > 0" class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/50 border-b border-slate-200">
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">No</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-1/4">Sasaran Strategis / Program</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400">Indikator Kinerja</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-1/4">Unit Kerja</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-24 text-center">Target</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-32 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr v-for="(item, index) in tableRows" :key="item.id" class="group hover:bg-slate-50/80 transition-colors">
+              <td class="p-4 text-center">
+                  <span class="text-sm font-bold text-slate-400">{{ Number(index) + 1 }}</span>
+              </td>
+              <td class="p-4">
+                <p class="text-sm font-bold text-slate-800 leading-tight">{{ item.sasaran }}</p>
+              </td>
+              <td class="p-4">
+                <p class="text-sm font-semibold text-slate-700 leading-snug">{{ item.indikator }}</p>
+              </td>
+              <td class="p-4">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-50 text-slate-600 border border-slate-200">
+                  <IconBuilding :size="12" class="text-slate-400"/>
+                  {{ item.unitKerja }}
+                </span>
+              </td>
+              <td class="p-4 text-center">
+                <span class="px-3 py-1 rounded-lg text-xs font-black bg-blue-50 text-blue-700 border border-blue-200 inline-flex min-w-[3.5rem] justify-center shadow-sm">
+                  {{ item.target }}
+                </span>
+              </td>
+              <td class="p-4 text-center">
+                <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    @click="router.push(`/${$route.params.slug}/perjanjian-kinerja/view?id=${item.id}`)" 
+                    class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                  >
+                    <IconEye :size="18" />
+                  </button>
+                  <button 
+                    @click="router.push(`/${$route.params.slug}/perjanjian-kinerja/edit?id=${item.id}`)" 
+                    class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
+                  >
+                    <IconPencil :size="18" />
+                  </button>
+                  <button 
+                    @click="handleDelete(item)" 
+                    class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <IconTrash :size="18" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else class="flex flex-col items-center justify-center py-32 px-4 bg-white rounded-[3rem] border border-dashed border-slate-200 shadow-inner">
+      <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+        <IconFileCheck :size="48" class="text-slate-200" />
+      </div>
+      <h3 class="text-2xl font-black text-slate-900">Belum Ada Perjanjian Kinerja</h3>
+      <p class="text-slate-500 mt-2 max-w-sm text-center font-medium">Data PK untuk tahun {{ selectedYear }} belum tersedia atau tidak sesuai dengan filter pencarian Anda.</p>
+      <button 
+        @click="searchQuery = ''; selectedUnitKerja = 'Semua Unit Kerja'"
+        class="mt-8 px-8 py-3 rounded-2xl bg-slate-900 text-white font-bold text-sm hover:scale-105 active:scale-95 transition-all"
+      >
+        Tampilkan Semua
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+/**
+ * Komponen Perjanjian Kinerja Modern
+ */
+
 definePageMeta({ layout: 'dashboard' })
 
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { IconEye, IconPencil, IconPlus } from '@tabler/icons-vue'
-import Table from '@/components/UI/Table.vue'
+import useSWRV from 'swrv'
+import { 
+  IconEye, IconPencil, IconPlus, IconBuilding, IconCalendarEvent, 
+  IconTarget, IconFileCheck, IconSearch, IconTrash
+} from '@tabler/icons-vue'
+import FilterDropdown from '@/components/FilterDropdown.vue'
 
 const router = useRouter()
+const fetcher = (url: string) => fetch(url).then(r => r.json())
+const { data: unitData } = useSWRV('/api/unit-kerja', fetcher)
+const searchQuery = ref('')
+const selectedYear = ref(String(new Date().getFullYear()));
+const yearOptions = ['2025', '2026', '2027', '2028', '2029'];
 
-interface PerjanjianKinerjaRow {
-  id: number
-  no: number
-  sasaran: string
-  indikator: string
-  target: string
-  aksi: string
+const selectedUnitKerja = ref('Semua Unit Kerja')
+const unitKerjaOptions = computed(() => {
+  const units = unitData.value?.map((u: any) => u.nama) || []
+  return ['Semua Unit Kerja', ...units]
+});
+
+const { data: committedPK } = useSWRV(() => `/api/perjanjian-kinerja?tahun=${selectedYear.value}&unitKerja=${selectedUnitKerja.value}`, fetcher)
+const { data: allIndikators } = useSWRV('/api/indikator-kinerja', fetcher)
+const { data: allSasaran } = useSWRV('/api/sasaran-strategis', fetcher)
+
+const tableRows = computed(() => {
+  if (!committedPK.value || !allIndikators.value || !allSasaran.value) return [];
+  
+  const indicatorMap = new Map((allIndikators.value as any[]).map(i => [i.id, i]));
+  const sasaranMap = new Map((allSasaran.value as any[]).map(s => [s.id, s]));
+
+  return (committedPK.value as any[]).map((pk: any) => {
+    const indicator = indicatorMap.get(pk.indikatorId);
+    const sasaran = sasaranMap.get(pk.sasaranId);
+    
+    return {
+      id: pk.id,
+      sasaran: sasaran?.sasaranText || 'Sasaran Umum',
+      indikator: indicator?.namaIndikator || 'Indikator Tidak Ditemukan',
+      target: pk.target || '-',
+      unitKerja: pk.unitKerja || '-',
+    };
+  });
+})
+
+const groupedData = computed(() => {
+  const groups: Record<string, any[]> = {}
+  
+  tableRows.value.forEach((item: any) => {
+    const key = item.sasaran || 'Tanpa Sasaran'
+    if (!groups[key]) {
+      groups[key] = []
+    }
+    groups[key].push(item)
+  })
+
+  return Object.keys(groups).map(sasaran => ({
+    sasaran,
+    items: groups[sasaran]
+  }))
+})
+
+async function handleDelete(item: any) {
+  if (!confirm(`Apakah Anda yakin ingin membatalkan komitmen PK untuk indikator "${item.indikator}"?`)) return;
+  
+  try {
+    const result = await $fetch<any[]>('/api/perjanjian-kinerja', {
+      method: 'DELETE',
+      body: { id: item.id }
+    });
+
+    if (result) {
+      window.location.reload();
+    }
+  } catch (error) {
+    console.error(error);
+    alert('Terjadi kesalahan saat menghapus data.');
+  }
 }
-
-const columns = [
-  { key: 'no', label: 'No', className: 'text-center w-16' },
-  { key: 'sasaran', label: 'Sasaran' },
-  { key: 'indikator', label: 'Indikator' },
-  { key: 'target', label: 'Target', className: 'text-center w-32' },
-  { key: 'aksi', label: 'Aksi', className: 'text-center w-24' },
-]
-
-const tableRows: PerjanjianKinerjaRow[] = [
-  {
-    id: 1,
-    no: 1,
-    sasaran: 'Terwujudnya ASN yang Profesional dan Kompeten',
-    indikator: 'Indeks Kepuasan Peserta Pelatihan',
-    target: '85.0',
-    aksi: '',
-  },
-  {
-    id: 2,
-    no: 2,
-    sasaran: 'Meningkatnya Kualitas Kurikulum Kediklatan ASN',
-    indikator: 'Jumlah Modul Pelatihan Kepemimpinan Tersusun',
-    target: '4 Modul',
-    aksi: '',
-  },
-  {
-    id: 3,
-    no: 3,
-    sasaran: 'Terintegrasinya Sistem Pembelajaran Digital LAN',
-    indikator: 'Jumlah Fitur Platform Pembelajaran Aktif',
-    target: '3 Fitur',
-    aksi: '',
-  },
-]
 </script>
 
 <style scoped>
-.action-btn {
-  height: 1.9rem;
-  width: 1.9rem;
-  border-radius: 0.5rem;
-  border: 1px solid;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-}
-
-.action-btn-edit {
-  color: rgb(22 101 52);
-  border-color: rgb(167 243 208);
-  background-color: rgb(236 253 245);
-}
-
-.action-btn-edit:hover {
-  color: rgb(255 255 255);
-  border-color: rgb(22 163 74);
-  background-color: rgb(22 163 74);
-}
-
-.action-btn-view {
-  color: rgb(30 64 175);
-  border-color: rgb(191 219 254);
-  background-color: rgb(239 246 255);
-}
-
-.action-btn-view:hover {
-  color: rgb(255 255 255);
-  border-color: rgb(37 99 235);
-  background-color: rgb(37 99 235);
-}
+/* Scoped styles */
 </style>

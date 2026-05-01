@@ -1,62 +1,68 @@
 <template>
-  <div class="relative" ref="refDropdown">
+  <div class="relative inline-block" ref="refDropdown">
+    <!-- Main Toggle Button -->
     <button
       type="button"
       @click="open = !open"
-      class="flex items-center gap-2 bg-blue-800 hover:bg-blue-700 border border-blue-600 text-white text-sm font-semibold rounded-lg px-3 py-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 min-w-30 justify-between"
+      class="flex items-center justify-between gap-3 px-4 py-2 bg-white border border-slate-200 hover:border-blue-400 text-slate-700 text-sm font-bold rounded-xl transition-all shadow-sm focus:ring-4 focus:ring-blue-100 focus:outline-none z-10 min-w-[160px]"
     >
-      <span class="flex items-center gap-1.5">
-        <component :is="icon" :size="14" :stroke="'2'" />
-        {{ modelValue }}
-      </span>
-      <component :is="iconMap.IconChevronDown" :size="14" :stroke="'2.5'" :class="['transition-transform duration-200', open ? 'rotate-180' : '']" />
+      <div class="flex items-center gap-2.5 overflow-hidden">
+        <component :is="icon" :size="18" class="flex-shrink-0 text-slate-400" />
+        <span class="truncate">{{ modelValue }}</span>
+      </div>
+      <IconChevronDown :size="16" :class="['transition-transform shrink-0 text-slate-400', open ? 'rotate-180' : '']" />
     </button>
-    <div v-if="open" class="absolute left-0 mt-2 w-full min-w-32.5 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+
+    <!-- Dropdown List -->
+    <div 
+      v-if="open" 
+      class="absolute left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-slate-200 py-1.5 z-[999] max-h-72 overflow-y-auto"
+    >
       <button
         v-for="opt in options"
         :key="opt"
         type="button"
         @click="select(opt)"
-        :class="[
-          'w-full text-left px-4 py-2 text-sm transition-colors rounded-lg',
-          opt === modelValue
-            ? 'bg-blue-50 text-blue-900 font-bold'
-            : 'text-gray-700 hover:bg-gray-50'
-        ]"
+        class="w-full text-left px-4 py-2.5 text-[13px] hover:bg-slate-50 flex items-center justify-between transition-colors"
+        :class="opt === modelValue ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-slate-700 font-medium'"
       >
-        {{ opt }}
+        <span class="truncate">{{ opt }}</span>
+        <IconCheck v-if="opt === modelValue" :size="14" stroke-width="3" />
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
-import { IconChevronDown } from '@tabler/icons-vue';
+import { ref, onMounted, onUnmounted } from 'vue';
+import { IconChevronDown, IconCheck } from '@tabler/icons-vue';
 
 const props = defineProps({
-  icon: { type: [Object, Function], required: true },
+  icon: { type: Object, required: true },
   modelValue: { type: String, required: true },
   options: { type: Array as () => string[], required: true }
 });
+
 const emit = defineEmits(['update:modelValue']);
 
 const open = ref(false);
-const refDropdown = ref<HTMLElement|null>(null);
-const iconMap = computed(() => ({ IconChevronDown }));
+const refDropdown = ref<HTMLElement | null>(null);
 
-function handleClickOutside(event: MouseEvent) {
+const select = (opt: string) => {
+  emit('update:modelValue', opt);
+  open.value = false;
+};
+
+const handleClickOutside = (event: MouseEvent) => {
   if (refDropdown.value && !refDropdown.value.contains(event.target as Node)) {
     open.value = false;
   }
-}
-function select(opt: string) {
-  emit('update:modelValue', opt);
-  open.value = false;
-}
+};
+
 onMounted(() => {
   document.addEventListener('mousedown', handleClickOutside);
 });
+
 onUnmounted(() => {
   document.removeEventListener('mousedown', handleClickOutside);
 });

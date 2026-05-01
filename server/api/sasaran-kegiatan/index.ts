@@ -4,13 +4,29 @@ import { eq } from 'drizzle-orm';
 import { defineEventHandler, readBody, getQuery } from 'h3';
 
 export default defineEventHandler(async (event) => {
-  const method = event.node.req.method;
+  const method = event.method;
   const query = getQuery(event);
   if (method === 'GET') {
     if (query.id) {
       return await db.select().from(sasaranKegiatan).where(eq(sasaranKegiatan.id, Number(query.id)));
     }
-    return await db.select().from(sasaranKegiatan);
+    
+    const { kegiatan } = await import('../../db/schema/kegiatan');
+    
+    return await db.select({
+      id: sasaranKegiatan.id,
+      kegiatanId: sasaranKegiatan.kegiatanId,
+      kode: sasaranKegiatan.kode,
+      sasaranText: sasaranKegiatan.sasaranText,
+      namaIndikator: sasaranKegiatan.namaIndikator,
+      satuan: sasaranKegiatan.satuan,
+      target: sasaranKegiatan.target,
+      unitKerja: sasaranKegiatan.unitKerja,
+      anggaran: sasaranKegiatan.anggaran,
+      kegiatanName: kegiatan.namaKegiatan
+    })
+    .from(sasaranKegiatan)
+    .leftJoin(kegiatan, eq(sasaranKegiatan.kegiatanId, kegiatan.id));
   }
   if (method === 'POST') {
     const body = await readBody(event);

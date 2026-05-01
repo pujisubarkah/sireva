@@ -12,7 +12,7 @@ import { defineEventHandler, readBody } from 'h3';
  */
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
-  const { id, sasaranId, namaIndikator, satuan, targets } = body;
+  const { id, sasaranId, namaIndikator, satuan, targets, unitKerja, kode } = body;
 
   if (!id) {
     throw new Error('Indikator ID is required for update.');
@@ -25,9 +25,18 @@ export default defineEventHandler(async (event) => {
         .set({
           sasaranId: sasaranId,
           namaIndikator: namaIndikator,
-          satuan: satuan
+          satuan: satuan,
+          unitKerja: unitKerja,
+          kode: kode
         })
         .where(eq(indikatorKinerja.id, id));
+
+      // 1b. Sync Unit Kerja to Sasaran Strategis
+      if (sasaranId && unitKerja) {
+        await tx.update(sasaranStrategis)
+          .set({ unitKerja: unitKerja })
+          .where(eq(sasaranStrategis.id, sasaranId));
+      }
 
       // 2. Update Target Indikator
       // Untuk mempermudah, kita bisa menghapus target lama dan memasukkan yang baru
@@ -48,7 +57,7 @@ export default defineEventHandler(async (event) => {
             const val = targets[yearStr] || '0';
             
             // Cek apakah target sudah ada
-            const existing = await tx.select()
+            const [existingRecord] = await tx.select()
               .from(targetIndikator)
               .where(and(
                 eq(targetIndikator.indikatorId, id),
@@ -56,11 +65,11 @@ export default defineEventHandler(async (event) => {
               ))
               .limit(1);
 
-            if (existing.length > 0) {
+            if (existingRecord) {
               // Update
               await tx.update(targetIndikator)
                 .set({ target: val })
-                .where(eq(targetIndikator.id, existing[0].id));
+                .where(eq(targetIndikator.id, existingRecord.id));
             } else {
               // Insert
               await tx.insert(targetIndikator)

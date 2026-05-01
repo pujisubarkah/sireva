@@ -1,421 +1,232 @@
 <template>
-  <div class="space-y-4">
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <!-- Header Utama -->
-      <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 text-center">
-        <h1 class="text-lg font-semibold text-slate-800">Rencana Aksi</h1>
-        <p class="text-sm text-slate-500 mt-1">Rincian rencana aksi dan target capaian per triwulan.</p>
+  <div class="space-y-8 pb-10">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
+      <div>
+        <h1 class="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+          Rencana Aksi
+          <span class="px-3 py-1 rounded-full bg-blue-100 text-[#2663A3] text-xs font-black uppercase tracking-widest">
+            {{ tableRows.length }} Data
+          </span>
+        </h1>
+        <p class="text-slate-500 mt-2 font-medium">Pengelolaan rincian rencana aksi dan target capaian operasional.</p>
       </div>
 
-      <!-- Toolbar -->
-      <div class="px-5 py-3 border-b border-slate-200 bg-white flex items-center justify-between gap-3">
-        <h2 class="text-sm font-semibold text-slate-700">Daftar Rencana Aksi</h2>
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 p-1 bg-white border border-slate-200 rounded-2xl shadow-sm">
+          <FilterDropdown
+            v-model="selectedUnitKerja"
+            :options="unitKerjaOptions"
+            :icon="IconBuilding"
+            class="!border-0 shadow-none hover:bg-slate-50"
+          />
+          <div class="w-px h-6 bg-slate-200"></div>
+          <FilterDropdown
+            v-model="selectedYear"
+            :options="yearOptions"
+            :icon="IconCalendarEvent"
+            class="!border-0 shadow-none hover:bg-slate-50"
+          />
+        </div>
         <button
-          type="button"
-          @click="openCreateModal"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold shadow text-sm transition-colors cursor-pointer"
+          @click="router.push(`/${$route.params.slug}/rencana-aksi/add`)"
+          class="flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#2663A3] text-white font-bold text-sm shadow-xl shadow-blue-700/20 hover:bg-blue-800 hover:scale-[1.02] active:scale-[0.98] transition-all"
         >
-          <IconPlus :size="16" />
-          Tambah Rencana Aksi
+          <IconPlus :size="20" :stroke-width="3" />
+          Tambah Baru
         </button>
       </div>
+    </div>
 
-      <!-- Loading State -->
-      <div v-if="loading" class="p-12 text-center text-slate-500">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-700/30 border-t-blue-700 mb-4"></div>
-        <p>Memuat data rencana aksi...</p>
-      </div>
-
-      <!-- Tabel -->
-      <div v-else class="p-5">
-        <Table :columns="columns" :data="tableRows" rowKey="id" :showPagination="false">
-          <template #cell-aksi="{ row }">
-            <div class="flex items-center justify-center gap-1">
-              <button
-                type="button"
-                class="action-btn action-btn-view"
-                title="Detail"
-                @click="openDetailModal(row)"
-              >
-                <IconEye :size="16" :stroke="'2'" />
-              </button>
-              <button
-                type="button"
-                class="action-btn action-btn-edit"
-                title="Edit"
-                @click="openEditModal(row)"
-              >
-                <IconPencil :size="16" :stroke="'2'" />
-              </button>
-              <button
-                type="button"
-                class="action-btn action-btn-delete"
-                title="Hapus"
-                @click="handleDelete(row)"
-              >
-                <IconTrash :size="16" :stroke="'2'" />
-              </button>
-            </div>
-          </template>
-        </Table>
+    <!-- Search Bar -->
+    <div class="px-2">
+      <div class="relative group max-w-xl">
+        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <IconSearch :size="20" class="text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+        </div>
+        <input 
+          v-model="searchQuery"
+          type="text" 
+          placeholder="Cari rencana aksi atau indikator..." 
+          class="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 transition-all text-sm font-medium"
+        />
       </div>
     </div>
 
-    <!-- Modal: Tambah/Edit Rencana Aksi -->
-    <div v-if="showFormModal" class="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <div class="absolute inset-0 bg-slate-900/45" @click="closeFormModal"></div>
-
-      <div class="relative w-full max-w-xl rounded-xl border border-slate-200 bg-white shadow-2xl overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-          <h3 class="text-base font-bold text-slate-800">{{ isEditing ? 'Edit Rencana Aksi' : 'Tambah Rencana Aksi' }}</h3>
-          <button type="button" class="text-slate-400 hover:text-slate-600 text-xl cursor-pointer" @click="closeFormModal">&times;</button>
-        </div>
-
-        <form class="p-6 space-y-5" @submit.prevent="handleSubmit">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Sasaran -->
-            <div class="space-y-1">
-              <label class="block text-sm font-semibold text-slate-700">Pilih Sasaran</label>
-              <select v-model="form.sasaranId" class="field-input" required :disabled="isEditing">
-                <option :value="null">-- Pilih Sasaran --</option>
-                <option v-for="s in sasaranList" :key="s.id" :value="s.id">{{ s.sasaranText }}</option>
-              </select>
-            </div>
-
-            <!-- Indikator -->
-            <div class="space-y-1">
-              <label class="block text-sm font-semibold text-slate-700">Pilih Indikator</label>
-              <select v-model="form.indikatorId" class="field-input" required :disabled="isEditing || !form.sasaranId">
-                <option :value="null">-- Pilih Indikator --</option>
-                <option v-for="i in filteredIndikatorList" :key="i.id" :value="i.id">{{ i.namaIndikator }}</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Rencana Aksi -->
-          <div class="space-y-1">
-            <label class="block text-sm font-semibold text-slate-700">Rencana Aksi</label>
-            <textarea
-              v-model="form.rencanaAksi"
-              class="field-input min-h-24"
-              placeholder="Jelaskan rencana aksi yang akan dilakukan..."
-              required
-            ></textarea>
-          </div>
-
-          <!-- Target & TW -->
-          <div class="space-y-3">
-            <label class="block text-sm font-bold text-slate-700 uppercase tracking-wider">Target & Triwulan</label>
-            <div class="grid grid-cols-5 gap-3">
-              <div v-for="field in targetFields" :key="field.key" class="space-y-1">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase text-center">{{ field.label }}</label>
-                <input 
-                  v-model.number="form[field.key]" 
-                  type="number" 
-                  step="0.01" 
-                  class="field-input !p-2 text-center font-bold text-blue-700" 
-                  placeholder="0"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-            <button type="button" class="px-5 py-2 rounded-lg border border-slate-300 text-slate-600 text-sm font-semibold hover:bg-slate-50 cursor-pointer" @click="closeFormModal">
-              Batal
-            </button>
-            <button 
-              type="submit" 
-              class="px-6 py-2 rounded-lg bg-blue-700 text-white text-sm font-bold shadow-lg shadow-blue-700/20 hover:bg-blue-800 transition-all flex items-center gap-2 cursor-pointer"
-              :disabled="submitting"
-            >
-              <span v-if="submitting" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-              {{ isEditing ? 'Simpan Perubahan' : 'Simpan Data' }}
-            </button>
-          </div>
-        </form>
+    <!-- Grouped Content -->
+    <div v-if="loading" class="flex flex-col items-center justify-center py-24 text-center">
+      <div class="relative w-20 h-20">
+        <div class="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
+        <div class="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
       </div>
+      <p class="mt-6 text-slate-500 font-black uppercase tracking-widest text-xs">Menyinkronkan Data...</p>
     </div>
 
-    <!-- Modal: Detail View -->
-    <div v-if="showDetailModal && activeRow" class="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <div class="absolute inset-0 bg-slate-900/45" @click="closeDetailModal"></div>
-
-      <div class="relative w-full max-w-lg rounded-xl border border-slate-200 bg-white shadow-2xl overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-          <h3 class="text-base font-bold text-slate-800">Detail Rencana Aksi</h3>
-          <button type="button" class="text-slate-400 hover:text-slate-600 text-xl cursor-pointer" @click="closeDetailModal">&times;</button>
-        </div>
-
-        <div class="p-6 space-y-5">
-          <div class="space-y-3">
-            <div>
-              <span class="text-[10px] font-bold text-slate-400 uppercase block tracking-widest">Sasaran</span>
-              <p class="text-sm font-medium text-slate-700 leading-relaxed">{{ activeRow.sasaran }}</p>
-            </div>
-            <div>
-              <span class="text-[10px] font-bold text-slate-400 uppercase block tracking-widest">Indikator</span>
-              <p class="text-sm font-bold text-slate-900 leading-relaxed">{{ activeRow.indikator }}</p>
-            </div>
-            <div>
-              <span class="text-[10px] font-bold text-slate-400 uppercase block tracking-widest">Rencana Aksi</span>
-              <div class="mt-1 p-3 bg-slate-50 border border-slate-100 rounded-lg text-sm text-slate-600">
-                {{ activeRow.rencanaAksi }}
-              </div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-5 gap-2 pt-2">
-            <div v-for="field in targetFields" :key="field.key" class="detail-metric">
-              <div class="detail-metric-label">{{ field.label }}</div>
-              <div class="detail-metric-value">{{ activeRow[field.key] || 0 }}</div>
-            </div>
-          </div>
-        </div>
+    <!-- Table List Layout -->
+    <div v-else-if="tableRows.length > 0" class="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/50 border-b border-slate-200">
+              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">No</th>
+              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-1/4">Indikator Kinerja</th>
+              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400">Rencana Aksi</th>
+              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-1/5">Unit Kerja</th>
+              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-24 text-center">Target</th>
+              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-32 text-center">Anggaran</th>
+              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-32 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr v-for="(item, index) in tableRows" :key="item.id" class="group hover:bg-slate-50/80 transition-colors">
+              <td class="p-5 text-center">
+                <span class="text-sm font-bold text-slate-400">{{ Number(index) + 1 }}</span>
+              </td>
+              <td class="p-5">
+                <p class="text-sm font-bold text-slate-800 leading-tight">{{ item.indikator }}</p>
+              </td>
+              <td class="p-5">
+                <p class="text-sm font-semibold text-[#2663A3] leading-snug">{{ item.rencanaAksi }}</p>
+              </td>
+              <td class="p-5">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-slate-50 text-slate-600 border border-slate-200">
+                  <IconBuilding :size="12" class="text-slate-400"/>
+                  {{ item.unitKerja }}
+                </span>
+              </td>
+              <td class="p-5 text-center">
+                <span class="px-3 py-1.5 rounded-xl text-xs font-black bg-blue-50 text-blue-700 border border-blue-200 inline-flex min-w-[4rem] justify-center shadow-sm">
+                  {{ item.target }}
+                </span>
+              </td>
+              <td class="p-5 text-center">
+                <span class="text-xs font-black text-emerald-600">
+                  Rp {{ Number(item.anggaran || 0).toLocaleString('id-ID') }}
+                </span>
+              </td>
+              <td class="p-5 text-center">
+                <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    @click="router.push(`/${$route.params.slug}/rencana-aksi/view?id=${item.id}`)" 
+                    class="p-2.5 text-blue-500 hover:bg-blue-50 rounded-xl transition-colors"
+                  >
+                    <IconEye :size="20" />
+                  </button>
+                  <button 
+                    @click="router.push(`/${$route.params.slug}/rencana-aksi/edit?id=${item.id}`)" 
+                    class="p-2.5 text-emerald-500 hover:bg-emerald-50 rounded-xl transition-colors"
+                  >
+                    <IconPencil :size="20" />
+                  </button>
+                  <button 
+                    @click="handleDelete(item)" 
+                    class="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                  >
+                    <IconTrash :size="20" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+/**
+ * Komponen Rencana Aksi Modern (Standardized)
+ */
+
 definePageMeta({ layout: 'dashboard' })
 
-import { computed, ref, onMounted } from 'vue'
-import { IconEye, IconPencil, IconTrash, IconPlus } from '@tabler/icons-vue'
-import Table from '@/components/UI/Table.vue'
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { 
+  IconEye, IconPencil, IconPlus, IconBuilding, IconCalendarEvent, 
+  IconTarget, IconChartBar, IconSearch, IconTrash
+} from '@tabler/icons-vue'
+import FilterDropdown from '@/components/FilterDropdown.vue'
 import useSWRV from 'swrv'
 
-// Fetchers & Data
-const fetcher = (url: string) => fetch(url).then(r => r.json());
-const { data: rencanaData, mutate: refreshRencana, isValidating: loading } = useSWRV('/api/rencana-aksi', fetcher);
-const { data: sasaranList } = useSWRV('/api/sasaran-strategis', fetcher);
-const { data: indikatorList } = useSWRV('/api/indikator-kinerja', fetcher);
+const router = useRouter()
+const fetcher = (url: string) => fetch(url).then(r => r.json())
+const { data: unitData } = useSWRV('/api/unit-kerja', fetcher)
+const searchQuery = ref('')
+const selectedYear = ref(String(new Date().getFullYear()))
+const yearOptions = ['2025', '2026', '2027', '2028', '2029']
 
-const columns = [
-  { key: 'no', label: 'No', className: 'text-center w-14' },
-  { key: 'sasaran', label: 'Sasaran' },
-  { key: 'indikator', label: 'Indikator' },
-  { key: 'rencanaAksi', label: 'Rencana Aksi' },
-  { key: 'target', label: 'Target', className: 'text-center w-24' },
-  { key: 'tw1', label: 'TW1', className: 'text-center w-20' },
-  { key: 'tw2', label: 'TW2', className: 'text-center w-20' },
-  { key: 'tw3', label: 'TW3', className: 'text-center w-20' },
-  { key: 'tw4', label: 'TW4', className: 'text-center w-20' },
-  { key: 'aksi', label: 'Aksi', className: 'text-center w-28' },
-]
-
-const tableRows = computed(() => {
-  return (rencanaData.value || []).map((row: any, index: number) => ({
-    ...row,
-    no: index + 1
-  }));
-});
-
-const targetFields = [
-  { key: 'target', label: 'Total' },
-  { key: 'tw1', label: 'TW I' },
-  { key: 'tw2', label: 'TW II' },
-  { key: 'tw3', label: 'TW III' },
-  { key: 'tw4', label: 'TW IV' },
-] as const;
-
-// Logic Status
-const showFormModal = ref(false)
-const showDetailModal = ref(false)
-const isEditing = ref(false)
-const submitting = ref(false)
-const activeRow = ref<any>(null)
-
-const form = ref<any>({
-  id: null,
-  sasaranId: null,
-  indikatorId: null,
-  rencanaAksi: '',
-  target: 0,
-  tw1: 0,
-  tw2: 0,
-  tw3: 0,
-  tw4: 0,
+const selectedUnitKerja = ref('Semua Unit Kerja')
+const unitKerjaOptions = computed(() => {
+  const units = unitData.value?.map((u: any) => u.nama) || []
+  return ['Semua Unit Kerja', ...units]
 })
 
-// Cascading Select
-const filteredIndikatorList = computed(() => {
-  if (!form.value.sasaranId || !indikatorList.value) return [];
-  return (indikatorList.value as any[]).filter(i => i.sasaranId === form.value.sasaranId);
-});
+// Fetchers
 
-// Modal Actions
-function openCreateModal() {
-  isEditing.value = false
-  form.value = {
-    id: null,
-    sasaranId: null,
-    indikatorId: null,
-    rencanaAksi: '',
-    target: 0,
-    tw1: 0,
-    tw2: 0,
-    tw3: 0,
-    tw4: 0,
+const { data: rencanaData, isValidating: loading } = useSWRV('/api/rencana-aksi', fetcher)
+
+// Computeds
+const tableRows = computed(() => {
+  if (!rencanaData.value) return []
+  
+  let data = (rencanaData.value || []);
+
+  // Filter Unit Kerja
+  if (selectedUnitKerja.value !== 'Semua Unit Kerja') {
+    data = data.filter((d: any) => d.unitKerja === selectedUnitKerja.value)
   }
-  showFormModal.value = true
-}
 
-function openEditModal(row: any) {
-  isEditing.value = true
-  form.value = { ...row }
-  showFormModal.value = true
-}
+  // Search filter
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase()
+    data = data.filter((d: any) => 
+      d.rencanaAksi.toLowerCase().includes(q) || 
+      d.indikator.toLowerCase().includes(q) ||
+      d.sasaran.toLowerCase().includes(q)
+    )
+  }
 
-function closeFormModal() {
-  showFormModal.value = false
-}
+  return data
+})
 
-function openDetailModal(row: any) {
-  activeRow.value = row
-  showDetailModal.value = true
-}
-
-function closeDetailModal() {
-  showDetailModal.value = false
-}
-
-// Form Handlers
-async function handleSubmit() {
-  submitting.value = true
-  try {
-    const method = isEditing.value ? 'PUT' : 'POST'
-    const result = await $fetch<any>('/api/rencana-aksi', {
-      method,
-      body: form.value
-    });
-
-    if (result.success) {
-      refreshRencana();
-      closeFormModal();
-    } else {
-      alert('Error: ' + result.message);
+const groupedData = computed(() => {
+  const groups: Record<string, any[]> = {}
+  
+  tableRows.value.forEach((item: any) => {
+    const key = item.sasaran || 'Tanpa Sasaran'
+    if (!groups[key]) {
+      groups[key] = []
     }
-  } catch (e) {
-    console.error(e);
-    alert('Terjadi kesalahan saat menyimpan data.');
-  } finally {
-    submitting.value = false
-  }
-}
+    groups[key].push(item)
+  })
 
-async function handleDelete(row: any) {
-  if (!confirm(`Hapus rencana aksi \"${row.rencanaAksi}\"?`)) return;
+  return Object.keys(groups).map(sasaran => ({
+    sasaran,
+    items: groups[sasaran]
+  }))
+})
+
+async function handleDelete(item: any) {
+  if (!confirm(`Apakah Anda yakin ingin menghapus rencana aksi "${item.rencanaAksi}"? Data yang dihapus tidak dapat dikembalikan.`)) return;
   
   try {
-    const result = await $fetch<any>('/api/rencana-aksi', {
+    const result = await $fetch<any[]>('/api/rencana-aksi', {
       method: 'DELETE',
-      body: { id: row.id }
+      body: { id: item.id }
     });
 
-    if (result.success) {
-      refreshRencana();
-    } else {
-      alert('Gagal menghapus: ' + result.message);
+    if (result) {
+      window.location.reload();
     }
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    console.error(error);
     alert('Terjadi kesalahan saat menghapus data.');
   }
 }
 </script>
 
 <style scoped>
-.field-input {
-  width: 100%;
-  border: 1px solid rgb(214 211 209);
-  border-radius: 0.6rem;
-  padding: 0.55rem 0.85rem;
-  font-size: 0.875rem;
-  color: rgb(30 41 59);
-  background: white;
-  transition: all 0.15s ease;
-}
-
-.field-input:focus {
-  outline: none;
-  border-color: rgb(59 130 246);
-  box-shadow: 0 0 0 3px rgb(191 219 254 / 0.5);
-}
-
-.field-input:disabled {
-  background-color: rgb(248 250 252);
-  color: rgb(148 163 184);
-  cursor: not-allowed;
-}
-
-.detail-metric {
-  border: 1px solid rgb(191 219 254);
-  background: rgb(239 246 255 / 0.6);
-  border-radius: 0.5rem;
-  padding: 0.4rem;
-  text-align: center;
-}
-
-.detail-metric-label {
-  font-size: 0.65rem;
-  font-weight: 800;
-  color: rgb(30 64 175);
-  text-transform: uppercase;
-}
-
-.detail-metric-value {
-  margin-top: 0.1rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: rgb(30 58 138);
-}
-
-.action-btn {
-  height: 1.8rem;
-  width: 1.8rem;
-  border-radius: 0.5rem;
-  border: 1px solid;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.1s ease;
-  cursor: pointer;
-}
-
-.action-btn-view {
-  color: rgb(30 64 175);
-  border-color: rgb(191 219 254);
-  background-color: rgb(239 246 255);
-}
-
-.action-btn-view:hover {
-  color: white;
-  border-color: rgb(37 99 235);
-  background-color: rgb(37 99 235);
-}
-
-.action-btn-edit {
-  color: rgb(22 101 52);
-  border-color: rgb(167 243 208);
-  background-color: rgb(236 253 245);
-}
-
-.action-btn-edit:hover {
-  color: white;
-  border-color: rgb(22 163 74);
-  background-color: rgb(22 163 74);
-}
-
-.action-btn-delete {
-  color: rgb(220 38 38);
-  border-color: rgb(254 202 202);
-  background-color: rgb(254 242 242);
-}
-
-.action-btn-delete:hover {
-  color: white;
-  border-color: rgb(220 38 38);
-  background-color: rgb(220 38 38);
-}
+/* Scoped custom animations and styles */
 </style>
