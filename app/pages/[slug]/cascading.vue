@@ -26,7 +26,7 @@
       </div>
 
       <!-- Tree Container -->
-      <div v-else class="p-8 overflow-x-auto min-h-[600px] bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:20px_20px]">
+      <div v-else class="p-8 overflow-x-auto min-h-150 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] bg-size-[20px_20px]">
         <div class="flex flex-col items-center gap-12 min-w-max pb-10">
           
           <!-- LEVEL 1: SASARAN STRATEGIS -->
@@ -37,14 +37,14 @@
               class="relative flex flex-col items-center"
             >
               <!-- Card Strategis -->
-              <div class="w-[340px] bg-blue-800 text-white rounded-2xl p-6 shadow-2xl shadow-blue-900/20 border border-blue-700 relative z-10 hover:scale-[1.02] transition-transform duration-300">
+              <div class="w-85 bg-blue-800 text-white rounded-2xl p-6 shadow-2xl shadow-blue-900/20 border border-blue-700 relative z-10 hover:scale-102 transition-transform duration-300">
                 <div class="flex items-center justify-between mb-4">
                   <span class="px-3 py-1 bg-yellow-400 text-blue-900 text-[10px] font-black rounded-lg uppercase tracking-tighter">Level 1: Strategis</span>
                   <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
                     <IconStar :size="16" class="text-yellow-300" />
                   </div>
                 </div>
-                <h3 class="font-bold text-base leading-tight mb-4 min-h-[3rem]">{{ ss.sasaranText }}</h3>
+                <h3 class="font-bold text-base leading-tight mb-4 min-h-12">{{ ss.sasaranText }}</h3>
                 <div class="pt-4 border-t border-white/10 flex items-center justify-between">
                   <div class="text-[10px] font-medium text-blue-100 flex items-center gap-1">
                     <IconBuilding :size="12" />
@@ -67,7 +67,7 @@
                   class="flex flex-col items-center"
                 >
                   <!-- Card Program -->
-                  <div class="w-[300px] bg-white border-2 border-indigo-100 rounded-2xl p-5 shadow-xl shadow-indigo-100/50 hover:border-indigo-400 transition-all duration-300 relative z-10 group">
+                  <div class="w-75 bg-white border-2 border-indigo-100 rounded-2xl p-5 shadow-xl shadow-indigo-100/50 hover:border-indigo-400 transition-all duration-300 relative z-10 group">
                     <div class="flex items-center gap-2 mb-3">
                       <div class="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-[10px] font-bold">SP</div>
                       <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Level 2: Program</span>
@@ -89,7 +89,7 @@
                     <div 
                       v-for="sk in getChildrenKegiatan(sp.id)" 
                       :key="sk.id"
-                      class="w-[280px] bg-slate-50 border border-slate-200 rounded-xl p-4 hover:bg-emerald-50 hover:border-emerald-200 transition-all cursor-default group/keg"
+                      class="w-70 bg-slate-50 border border-slate-200 rounded-xl p-4 hover:bg-emerald-50 hover:border-emerald-200 transition-all cursor-default group/keg"
                     >
                       <div class="flex items-start gap-3">
                         <div class="mt-1 w-2 h-2 rounded-full bg-emerald-500" />

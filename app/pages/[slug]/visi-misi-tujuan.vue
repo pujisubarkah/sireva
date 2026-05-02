@@ -2,7 +2,7 @@
   <div class="space-y-8 pb-10">
     <!-- Header Section -->
     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-8 py-10 bg-gradient-to-br from-slate-900 via-[#1F4F85] to-blue-900 text-center relative overflow-hidden">
+      <div class="px-8 py-10 bg-linear-to-br from-slate-900 via-[#1F4F85] to-blue-900 text-center relative overflow-hidden">
         <!-- Abstract Decoration -->
         <div class="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
         <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl"></div>
@@ -57,7 +57,7 @@
           <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-[5rem] -mr-10 -mt-10 group-hover:scale-110 transition-transform duration-500 opacity-50"></div>
           
           <div class="relative z-10 flex flex-col md:flex-row gap-8 items-start">
-            <div class="flex-shrink-0 w-16 h-16 rounded-3xl bg-blue-600 text-white flex items-center justify-center shadow-xl shadow-blue-600/20">
+            <div class="shrink-0 w-16 h-16 rounded-3xl bg-blue-600 text-white flex items-center justify-center shadow-xl shadow-blue-600/20">
               <IconRocket :size="32" stroke-width="2.5" />
             </div>
             <div class="flex-1">
@@ -77,10 +77,10 @@
             >
               <div class="flex items-start gap-4 mb-6">
                 <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-400 group-hover/misi:text-blue-600 group-hover/misi:border-blue-100 flex items-center justify-center text-sm font-black transition-colors">
-                  {{ mIdx + 1 }}
+                  {{ Number(mIdx) + 1 }}
                 </div>
                 <div>
-                  <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1 block">Misi {{ mIdx + 1 }}</span>
+                  <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1 block">Misi {{ Number(mIdx) + 1 }}</span>
                   <h3 class="text-base font-bold text-slate-800 leading-snug">{{ misi.misiText }}</h3>
                 </div>
               </div>

@@ -1,6 +1,8 @@
 import { db } from '../../db';
 import { sasaranKegiatan } from '../../db/schema/sasaran-kegiatan';
-import { eq } from 'drizzle-orm';
+import { unitKerja } from '../../db/schema/unit-kerja';
+import { indikatorKinerja } from '../../db/schema/indikator-kinerja';
+import { eq, sql } from 'drizzle-orm';
 import { defineEventHandler, readBody, getQuery } from 'h3';
 
 export default defineEventHandler(async (event) => {
@@ -8,25 +10,49 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   if (method === 'GET') {
     if (query.id) {
-      return await db.select().from(sasaranKegiatan).where(eq(sasaranKegiatan.id, Number(query.id)));
+      return await db.select({
+        id: sasaranKegiatan.id,
+        idSp: sasaranKegiatan.idSp,
+        kode: sasaranKegiatan.kode,
+        sasaranText: sasaranKegiatan.sasaranText,
+        unitKerjaId: sasaranKegiatan.unitKerjaId,
+        unitKerjaNama: unitKerja.nama,
+        namaIku: sql<string | null>`max(${indikatorKinerja.namaIku})`,
+      })
+      .from(sasaranKegiatan)
+      .leftJoin(unitKerja, eq(sasaranKegiatan.unitKerjaId, unitKerja.id))
+      .leftJoin(indikatorKinerja, eq(sasaranKegiatan.id, indikatorKinerja.idSk))
+      .where(eq(sasaranKegiatan.id, Number(query.id)))
+      .groupBy(
+        sasaranKegiatan.id,
+        sasaranKegiatan.idSp,
+        sasaranKegiatan.kode,
+        sasaranKegiatan.sasaranText,
+        sasaranKegiatan.unitKerjaId,
+        unitKerja.nama,
+      );
     }
-    
-    const { kegiatan } = await import('../../db/schema/kegiatan');
-    
+
     return await db.select({
       id: sasaranKegiatan.id,
-      kegiatanId: sasaranKegiatan.kegiatanId,
+      idSp: sasaranKegiatan.idSp,
       kode: sasaranKegiatan.kode,
       sasaranText: sasaranKegiatan.sasaranText,
-      namaIndikator: sasaranKegiatan.namaIndikator,
-      satuan: sasaranKegiatan.satuan,
-      target: sasaranKegiatan.target,
-      unitKerja: sasaranKegiatan.unitKerja,
-      anggaran: sasaranKegiatan.anggaran,
-      kegiatanName: kegiatan.namaKegiatan
+      unitKerjaId: sasaranKegiatan.unitKerjaId,
+      unitKerjaNama: unitKerja.nama,
+      namaIku: sql<string | null>`max(${indikatorKinerja.namaIku})`,
     })
     .from(sasaranKegiatan)
-    .leftJoin(kegiatan, eq(sasaranKegiatan.kegiatanId, kegiatan.id));
+    .leftJoin(unitKerja, eq(sasaranKegiatan.unitKerjaId, unitKerja.id))
+    .leftJoin(indikatorKinerja, eq(sasaranKegiatan.id, indikatorKinerja.idSk))
+    .groupBy(
+      sasaranKegiatan.id,
+      sasaranKegiatan.idSp,
+      sasaranKegiatan.kode,
+      sasaranKegiatan.sasaranText,
+      sasaranKegiatan.unitKerjaId,
+      unitKerja.nama,
+    );
   }
   if (method === 'POST') {
     const body = await readBody(event);

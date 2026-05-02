@@ -13,7 +13,7 @@
 
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <!-- Header -->
-      <div class="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center justify-between">
+      <div class="px-8 py-6 border-b border-slate-100 bg-linear-to-r from-slate-50 to-white flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold text-slate-800">Edit Sasaran Strategis</h1>
           <p class="text-sm text-slate-500 mt-1">Perbarui detail indikator dan target rencana strategis Anda.</p>
@@ -34,7 +34,7 @@
       </div>
 
       <!-- Form -->
-      <form v-else @submit.prevent="handleSubmit" class="p-8 space-y-8">
+      <form v-else @submit.prevent="handleSubmit" class="p-6 space-y-8">
         
         <!-- Section: Identitas Indikator -->
         <div class="space-y-6">
@@ -45,68 +45,58 @@
             <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Identitas Indikator</h2>
           </div>
           
-          <div class="grid grid-cols-1 gap-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Pilih Unit Kerja -->
-              <div class="space-y-2">
-                <label for="unitKerja" class="block text-sm font-bold text-slate-700 ml-1">Unit Kerja</label>
-                <select 
-                  id="unitKerja" 
-                  v-model="form.unitKerja" 
-                  class="field-input"
+          <div class="space-y-4">
+            <div class="space-y-2 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+              <label for="sasaranText" class="block text-sm font-bold text-slate-700 sm:w-44 sm:shrink-0 sm:pt-3">Sasaran Strategis</label>
+              <div class="sm:flex-1">
+                <textarea
+                  id="sasaranText"
+                  v-model="form.sasaranText"
                   required
-                >
-                  <option :value="null">-- Pilih Unit Kerja --</option>
-                  <option v-for="unit in unitKerjaList" :key="unit.id" :value="unit.nama">{{ unit.nama }}</option>
-                </select>
-              </div>
-
-              <div class="space-y-2">
-                <label for="sasaranId" class="block text-sm font-bold text-slate-700 ml-1">Sasaran Strategis</label>
-                <select 
-                  id="sasaranId" 
-                  v-model="form.sasaranId" 
-                  class="field-input"
-                  required
-                >
-                  <option :value="null">-- Pilih Sasaran Strategis --</option>
-                  <option v-for="s in sasaranList" :key="s.id" :value="s.id">{{ s.sasaranText }}</option>
-                </select>
+                  class="field-input min-h-24"
+                  placeholder="Masukkan sasaran strategis..."
+                ></textarea>
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div class="space-y-2">
-                <label for="kode" class="block text-sm font-bold text-slate-700 ml-1">Kode IKU</label>
-                <input 
-                  id="kode" 
-                  v-model="form.kode" 
-                  type="text" 
-                  required 
+            <div class="space-y-2 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+              <label for="kode" class="block text-sm font-bold text-slate-700 sm:w-44 sm:shrink-0">Kode IKU</label>
+              <div class="sm:flex-1">
+                <input
+                  id="kode"
+                  v-model="form.kode"
+                  type="text"
+                  required
                   placeholder="Contoh: IKU-1"
-                  class="field-input" 
+                  class="field-input"
                 />
               </div>
-              <div class="md:col-span-2 space-y-2">
-                <label for="namaIndikator" class="block text-sm font-bold text-slate-700 ml-1">Nama Indikator Kinerja</label>
-                <input 
-                  id="namaIndikator" 
-                  v-model="form.namaIndikator" 
-                  type="text" 
-                  required 
+            </div>
+
+            <div class="space-y-2 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+              <label for="namaIndikator" class="block text-sm font-bold text-slate-700 sm:w-44 sm:shrink-0">Nama Indikator Kinerja</label>
+              <div class="sm:flex-1">
+                <input
+                  id="namaIndikator"
+                  v-model="form.namaIndikator"
+                  type="text"
+                  required
                   placeholder="Masukkan nama indikator..."
-                  class="field-input" 
+                  class="field-input"
                 />
               </div>
-              <div class="space-y-2">
-                <label for="satuan" class="block text-sm font-bold text-slate-700 ml-1">Satuan</label>
-                <input 
-                  id="satuan" 
-                  v-model="form.satuan" 
-                  type="text" 
-                  required 
+            </div>
+
+            <div class="space-y-2 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+              <label for="satuan" class="block text-sm font-bold text-slate-700 sm:w-44 sm:shrink-0">Satuan</label>
+              <div class="sm:flex-1">
+                <input
+                  id="satuan"
+                  v-model="form.satuan"
+                  type="text"
+                  required
                   placeholder="Contoh: %, Dokumen, Orang"
-                  class="field-input" 
+                  class="field-input"
                 />
               </div>
             </div>
@@ -124,18 +114,23 @@
             <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Target Rencana Strategis (Renstra)</h2>
           </div>
 
-          <div class="bg-slate-50 rounded-2xl border border-slate-200 p-6">
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-              <div v-for="year in years" :key="year" class="space-y-2 group">
-                <label :for="`target-${year}`" class="block text-[10px] font-black text-slate-400 uppercase tracking-widest text-center group-focus-within:text-blue-600 transition-colors">TAHUN {{ year }}</label>
-                <div class="relative">
-                  <input 
-                    :id="`target-${year}`" 
-                    v-model="form.targets[year]" 
-                    type="text" 
-                    class="field-input text-center font-bold text-blue-700 focus:scale-105 transition-transform" 
-                  />
-                  <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-blue-600 rounded-full opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
+          <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 sm:p-6">
+            <div class="space-y-2 sm:space-y-0 sm:flex sm:items-start sm:gap-4">
+              <label class="block text-sm font-bold text-slate-700 sm:w-44 sm:shrink-0 sm:pt-2">Target per Tahun</label>
+              <div class="sm:flex-1">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                  <div v-for="year in years" :key="year" class="space-y-2 group">
+                    <label :for="`target-${year}`" class="block text-[10px] font-black text-slate-400 uppercase tracking-widest text-center group-focus-within:text-blue-600 transition-colors">TAHUN {{ year }}</label>
+                    <div class="relative">
+                      <input
+                        :id="`target-${year}`"
+                        v-model="form.targets[year]"
+                        type="text"
+                        class="field-input text-center font-bold text-blue-700 focus:scale-105 transition-transform"
+                      />
+                      <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-blue-600 rounded-full opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -195,18 +190,15 @@ import { IconArrowLeft, IconPencil, IconCheck, IconTrash } from '@tabler/icons-v
 const route = useRoute();
 const router = useRouter();
 const years = [2025, 2026, 2027, 2028, 2029];
-const unitKerjaList = ref<any[]>([]);
 
 // State
-const indicatorId = Number(route.query.id);
+const sasaranId = Number(route.query.id);
 const fetching = ref(true);
 const submitting = ref(false);
-const sasaranList = ref<{ id: number, sasaranText: string }[]>([]);
 
 const form = ref({
-  id: indicatorId,
-  unitKerja: null as string | null,
-  sasaranId: null as number | null,
+  id: sasaranId,
+  sasaranText: '',
   kode: '',
   namaIndikator: '',
   satuan: '',
@@ -215,45 +207,29 @@ const form = ref({
 
 // Load data on mount
 onMounted(async () => {
-  if (!indicatorId) {
-    alert('ID Indikator tidak ditemukan.');
+  if (!sasaranId) {
+    alert('ID Sasaran Strategis tidak ditemukan.');
     router.push(`/${route.params.slug}/sasaran-strategis`);
     return;
   }
 
   try {
     fetching.value = true;
-    
-    const [sasRes, indRes, tarRes, thnRes, unitRes] = await Promise.all([
-      $fetch<any[]>('/api/sasaran-strategis'),
-      $fetch<any[]>(`/api/indikator-kinerja?id=${indicatorId}`),
-      $fetch<any[]>('/api/target-indikator'),
-      $fetch<any[]>('/api/tahun'),
-      $fetch<any[]>('/api/unit-kerja')
-    ]);
 
-    sasaranList.value = sasRes;
-    unitKerjaList.value = unitRes;
-    
-    const indicator = indRes[0];
-    if (!indicator) throw new Error('Data indikator tidak ditemukan.');
+    const detail = await $fetch<any>(`/api/sasaran-strategis/${sasaranId}`);
+    if (!detail) throw new Error('Data sasaran strategis tidak ditemukan.');
 
-    form.value.sasaranId = indicator.sasaranId;
-    form.value.unitKerja = indicator.unitKerja;
-    form.value.kode = indicator.kode;
-    form.value.namaIndikator = indicator.namaIndikator;
-    form.value.satuan = indicator.satuan;
+    form.value.kode = detail.kode ?? '';
+    form.value.sasaranText = detail.sasaranText ?? '';
 
-    const tahunMap: Record<number, number> = thnRes.reduce((acc: any, t: any) => {
-      acc[t.id] = t.tahun;
-      return acc;
-    }, {});
+    const indikator = detail.indikatorStrategis?.[0] ?? null;
+    form.value.namaIndikator = indikator?.nama ?? '';
+    form.value.satuan = indikator?.satuan ?? '';
 
-    const indicatorTargets = tarRes.filter((t: any) => t.indikatorId === indicatorId);
-    indicatorTargets.forEach((t: any) => {
-      const year = tahunMap[t.tahunId];
-      if (year && years.includes(year)) {
-        form.value.targets[year] = t.target || '';
+    form.value.targets = years.reduce((acc, y) => ({ ...acc, [y]: '' }), {} as Record<number, string>);
+    (indikator?.targets ?? []).forEach((t: { tahun: number; target: string | number | null }) => {
+      if (years.includes(t.tahun)) {
+        form.value.targets[t.tahun] = t.target?.toString?.() ?? '';
       }
     });
 
@@ -266,18 +242,26 @@ onMounted(async () => {
 });
 
 const handleSubmit = async () => {
+  if (!form.value.sasaranText.trim()) {
+    alert('Sasaran Strategis wajib diisi.');
+    return;
+  }
+
   submitting.value = true;
   
   try {
-    const result = await $fetch<any>('/api/sasaran-strategis/update', {
+    const result = await $fetch<any>(`/api/sasaran-strategis/${sasaranId}`, {
       method: 'PUT',
-      body: form.value
+      body: {
+        kode: form.value.kode || null,
+        sasaranText: form.value.sasaranText,
+      }
     });
     
-    if (result.success) {
+    if (result) {
       router.push(`/${route.params.slug}/sasaran-strategis`);
     } else {
-      alert('Gagal: ' + result.message);
+      alert('Gagal menyimpan perubahan.');
     }
   } catch (error) {
     console.error('Error updating data:', error);
@@ -288,12 +272,11 @@ const handleSubmit = async () => {
 };
 
 const handleDelete = async () => {
-  if (!confirm('Apakah Anda yakin ingin menghapus indikator ini?')) return;
+  if (!confirm('Apakah Anda yakin ingin menghapus sasaran strategis ini?')) return;
   
   try {
-    await $fetch('/api/indikator-kinerja', {
+    await $fetch(`/api/sasaran-strategis/${sasaranId}`, {
       method: 'DELETE',
-      body: { id: indicatorId }
     });
     router.push(`/${route.params.slug}/sasaran-strategis`);
   } catch (error) {

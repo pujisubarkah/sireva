@@ -1,5 +1,6 @@
 import { db } from '../../db';
 import { sasaranProgram } from '../../db/schema/sasaran-program';
+import { unitKerja } from '../../db/schema/unit-kerja';
 import { eq } from 'drizzle-orm';
 import { defineEventHandler, readBody, getQuery, createError } from 'h3';
 
@@ -10,28 +11,29 @@ export default defineEventHandler(async (event) => {
   try {
     if (method === 'GET') {
       if (query.id) {
-        return await db.select().from(sasaranProgram).where(eq(sasaranProgram.id, Number(query.id)));
+        return await db.select({
+          id: sasaranProgram.id,
+          idSs: sasaranProgram.idSs,
+          kode: sasaranProgram.kode,
+          sasaranText: sasaranProgram.sasaranText,
+          unitKerjaId: sasaranProgram.unitKerjaId,
+          unitKerjaNama: unitKerja.nama,
+        })
+        .from(sasaranProgram)
+        .leftJoin(unitKerja, eq(sasaranProgram.unitKerjaId, unitKerja.id))
+        .where(eq(sasaranProgram.id, Number(query.id)));
       }
-      
-      const { program } = await import('../../db/schema/program');
-      
+
       return await db.select({
         id: sasaranProgram.id,
-        programId: sasaranProgram.programId,
+        idSs: sasaranProgram.idSs,
         kode: sasaranProgram.kode,
         sasaranText: sasaranProgram.sasaranText,
-        namaIndikator: sasaranProgram.namaIndikator,
-        satuan: sasaranProgram.satuan,
-        target2025: sasaranProgram.target2025,
-        target2026: sasaranProgram.target2026,
-        target2027: sasaranProgram.target2027,
-        target2028: sasaranProgram.target2028,
-        target2029: sasaranProgram.target2029,
-        unitKerja: sasaranProgram.unitKerja,
-        programName: program.namaProgram
+        unitKerjaId: sasaranProgram.unitKerjaId,
+        unitKerjaNama: unitKerja.nama,
       })
       .from(sasaranProgram)
-      .leftJoin(program, eq(sasaranProgram.programId, program.id));
+      .leftJoin(unitKerja, eq(sasaranProgram.unitKerjaId, unitKerja.id));
     }
     if (method === 'POST') {
       const body = await readBody(event);

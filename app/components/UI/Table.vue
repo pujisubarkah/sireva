@@ -1,14 +1,9 @@
 <template>
-  <div :class="['space-y-4', className]">
+  <div :class="className">
     <slot />
-    <div v-if="!pagedData.length" class="border-2 border-dashed border-gray-200 rounded-lg p-12 text-center text-gray-500">
-      <div class="text-2xl mb-2">📊</div>
-      <h3 class="text-lg font-semibold mb-1">No data found</h3>
-      <p class="text-sm">Data akan muncul setelah tersedia.</p>
-    </div>
-    <div v-else>
-      <table :class="['table-zebra-innovative', className, 'w-full']">
-        <thead>
+    <div class="rounded-xl bg-white p-4 overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 text-sm" style="table-layout: auto;">
+        <thead class="bg-blue-100 sticky top-0 z-10">
           <template v-if="hasGroupedHeaders">
             <tr>
               <th
@@ -17,7 +12,10 @@
                 :rowspan="cell.type === 'column' ? 2 : undefined"
                 :colspan="cell.type === 'group' ? cell.colspan : undefined"
                 :style="cell.type === 'column' && cell.col.width ? { width: cell.col.width + (typeof cell.col.width === 'number' ? 'px' : '') } : {}"
-                :class="cell.type === 'group' ? 'text-center' : cell.col.className"
+                :class="[
+                  'px-3 py-2 font-semibold align-middle',
+                  cell.type === 'group' ? 'text-center text-blue-700' : getHeaderClass(cell.col)
+                ]"
               >
                 {{ cell.type === 'group' ? cell.label : (cell.col.label || cell.col.header) }}
               </th>
@@ -27,38 +25,61 @@
                 v-for="col in groupedColumns"
                 :key="col.key || col.accessor"
                 :style="col.width ? { width: col.width + (typeof col.width === 'number' ? 'px' : '') } : {}"
-                :class="col.className"
+                :class="['px-3 py-2 font-semibold align-middle', getHeaderClass(col)]"
               >
                 {{ col.label || col.header }}
               </th>
             </tr>
           </template>
           <tr v-else>
-            <th v-for="col in normalizedColumns" :key="col.key || col.accessor" :style="col.width ? { width: col.width + (typeof col.width === 'number' ? 'px' : '') } : {}" :class="col.className">
+            <th
+              v-for="col in normalizedColumns"
+              :key="col.key || col.accessor"
+              :style="col.width ? { width: col.width + (typeof col.width === 'number' ? 'px' : '') } : {}"
+              :class="['px-3 py-2 font-semibold align-middle', getHeaderClass(col)]"
+            >
               {{ col.label || col.header }}
             </th>
           </tr>
         </thead>
-        <tbody>
-          <tr v-for="row in pagedData" :key="row[rowKey]">
-            <td v-for="col in normalizedColumns" :key="col.key || col.accessor">
-              <slot
-                :name="`cell-${String(col.key || col.accessor)}`"
-                :row="row"
-                :col="col"
-                :value="row[col.key || col.accessor]"
+        <tbody class="divide-y divide-gray-100">
+          <template v-if="pagedData.length">
+            <tr v-for="(row, rowIndex) in pagedData" :key="row[rowKey] ?? rowIndex" class="align-middle bg-white">
+              <td
+                v-for="col in normalizedColumns"
+                :key="col.key || col.accessor"
+                :class="['px-3 py-2 text-sm align-middle text-black!', getCellClass(col)]"
+                style="color: #000 !important;"
               >
-                <span v-if="col.render">{{ col.render(row) }}</span>
-                <span v-else>{{ row[col.key || col.accessor] }}</span>
-              </slot>
-            </td>
-          </tr>
+                <slot
+                  :name="`cell-${String(col.key || col.accessor)}`"
+                  :row="row"
+                  :col="col"
+                  :value="row[col.key || col.accessor]"
+                  :index="rowIndex"
+                >
+                  <span v-if="col.render">{{ col.render(row) }}</span>
+                  <span v-else>{{ row[col.key || col.accessor] }}</span>
+                </slot>
+              </td>
+            </tr>
+          </template>
+          <template v-else>
+            <tr>
+              <td :colspan="normalizedColumns.length" class="text-center py-8">
+                <slot name="empty">
+                  <span class="text-gray-400">Tidak ada data</span>
+                </slot>
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
+
       <div v-if="showPagination && totalPages > 1" class="flex justify-end mt-4 gap-2">
-        <button @click="prevPage" :disabled="page === 1" class="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
-        <span>Page {{ page }} / {{ totalPages }}</span>
-        <button @click="nextPage" :disabled="page === totalPages" class="px-3 py-1 border rounded disabled:opacity-50">Next</button>
+        <button @click="prevPage" :disabled="page === 1" class="px-3 py-1 border border-slate-300 rounded-md text-sm disabled:opacity-50">Prev</button>
+        <span class="text-sm text-slate-600">Page {{ page }} / {{ totalPages }}</span>
+        <button @click="nextPage" :disabled="page === totalPages" class="px-3 py-1 border border-slate-300 rounded-md text-sm disabled:opacity-50">Next</button>
       </div>
     </div>
   </div>
@@ -186,17 +207,18 @@ function nextPage() {
   if (page.value < totalPages.value) page.value++
 }
 
+function getHeaderClass(col: any) {
+  const alignment = col.center ? 'text-center' : 'text-left'
+  return [alignment, col.color || 'text-blue-700']
+}
+
+function getCellClass(col: any) {
+  if (col.center) return 'text-center'
+  if (col.right) return 'text-right'
+  return 'text-left'
+}
+
 watch([() => props.data, searchTerm], () => {
   page.value = 1
 })
 </script>
-
-<style scoped>
-.table-zebra-innovative th, .table-zebra-innovative td {
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-.table-zebra-innovative tr:nth-child(even) {
-  background: #f9fafb;
-}
-</style>

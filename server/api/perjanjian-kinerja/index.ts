@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     const { tahun, unitKerja } = query;
 
     const { indikatorKinerja } = await import('../../db/schema/indikator-kinerja');
-    const { sasaranStrategis } = await import('../../db/schema/sasaran-strategis');
+    const { sasaranKegiatan } = await import('../../db/schema/sasaran-kegiatan');
 
     let baseQuery = db.select({
       id: perjanjianKinerja.id,
@@ -18,12 +18,12 @@ export default defineEventHandler(async (event) => {
       target: perjanjianKinerja.target,
       unitKerja: perjanjianKinerja.unitKerja,
       indikatorId: perjanjianKinerja.indikatorId,
-      indikatorName: indikatorKinerja.namaIndikator,
-      sasaranText: sasaranStrategis.sasaranText
+      indikatorName: indikatorKinerja.namaIku,
+      sasaranText: sasaranKegiatan.sasaranText
     })
     .from(perjanjianKinerja)
     .leftJoin(indikatorKinerja, eq(perjanjianKinerja.indikatorId, indikatorKinerja.id))
-    .leftJoin(sasaranStrategis, eq(indikatorKinerja.sasaranId, sasaranStrategis.id));
+    .leftJoin(sasaranKegiatan, eq(indikatorKinerja.idSk, sasaranKegiatan.id));
 
     if (tahun && unitKerja && unitKerja !== 'Semua Unit Kerja') {
       return await baseQuery.where(and(

@@ -47,61 +47,58 @@
         </div>
         
         <div v-else class="overflow-x-auto border border-slate-200 rounded-xl">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold">
-                <th class="p-4 w-32">Waktu</th>
-                <th class="p-4 min-w-[200px]">Sasaran Strategis</th>
-                <th class="p-4 min-w-[250px]">Indikator</th>
-                <th class="p-4 w-28 text-center">Capaian</th>
-                <th class="p-4 text-center w-28">Aksi</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
-              <tr v-for="laporan in filteredLaporanList" :key="laporan.id" class="hover:bg-slate-50 transition-colors">
-                <td class="p-4 font-medium text-slate-900 whitespace-nowrap">
-                  {{ getRelativeTime(laporan.createdAt) }}
-                </td>
-                <td class="p-4 text-xs text-slate-600">
-                  <div class="line-clamp-2" :title="getSasaranNameByIndikator(laporan.indikatorId)">
-                    {{ getSasaranNameByIndikator(laporan.indikatorId) }}
-                  </div>
-                </td>
-                <td class="p-4 font-semibold text-slate-800">
-                  <div class="line-clamp-2" :title="getIndikatorName(laporan.indikatorId)">
-                    {{ getIndikatorName(laporan.indikatorId) }}
-                  </div>
-                </td>
-                <td class="p-4 text-center">
-                  <span :class="[
-                    'px-2.5 py-1 rounded-lg text-xs font-bold inline-flex items-center justify-center min-w-[3.5rem]',
-                    parseFloat(laporan.capaian) >= 100 ? 'bg-emerald-100 text-emerald-700' : 
-                    parseFloat(laporan.capaian) >= 80 ? 'bg-blue-100 text-blue-700' :
-                    parseFloat(laporan.capaian) >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-                  ]">
-                    {{ laporan.capaian }}%
-                  </span>
-                </td>
-                <td class="p-4 text-center">
-                  <div class="flex items-center justify-center gap-1">
-                    <button @click="viewingLaporan = laporan" class="text-blue-500 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50 transition-colors" title="Lihat Dokumen">
-                      <IconEye :size="18" />
-                    </button>
-                    <button @click="handleDelete(laporan.id)" class="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-colors" title="Hapus Laporan">
-                      <IconTrash :size="18" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <UiTable
+            :columns="tableColumns"
+            :data="filteredLaporanList"
+            :page-size="10"
+            :show-pagination="true"
+            row-key="id"
+          >
+            <template #cell-waktu="{ value }">
+              <span class="font-medium text-slate-900 whitespace-nowrap">{{ getRelativeTime(value) }}</span>
+            </template>
+
+            <template #cell-sasaranName="{ row }">
+              <div class="line-clamp-2 text-xs text-slate-600" :title="getSasaranNameByIndikator(row.indikatorId)">
+                {{ getSasaranNameByIndikator(row.indikatorId) }}
+              </div>
+            </template>
+
+            <template #cell-indikatorName="{ row }">
+              <div class="line-clamp-2 font-semibold text-slate-800" :title="getIndikatorName(row.indikatorId)">
+                {{ getIndikatorName(row.indikatorId) }}
+              </div>
+            </template>
+
+            <template #cell-capaian="{ value }">
+              <span :class="[
+                'px-2.5 py-1 rounded-lg text-xs font-bold inline-flex items-center justify-center min-w-14',
+                parseFloat(value) >= 100 ? 'bg-emerald-100 text-emerald-700' :
+                parseFloat(value) >= 80 ? 'bg-blue-100 text-blue-700' :
+                parseFloat(value) >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+              ]">
+                {{ value }}%
+              </span>
+            </template>
+
+            <template #cell-aksi="{ row }">
+              <div class="flex items-center justify-center gap-1">
+                <button @click="viewingLaporan = row" class="text-blue-500 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50 transition-colors" title="Lihat Dokumen">
+                  <IconEye :size="18" />
+                </button>
+                <button @click="handleDelete(row.id)" class="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-colors" title="Hapus Laporan">
+                  <IconTrash :size="18" />
+                </button>
+              </div>
+            </template>
+          </UiTable>
         </div>
       </div>
     </div>
 
     <!-- Side Drawer: Buat Laporan Form -->
     <Teleport to="body">
-      <div v-if="showForm" class="fixed inset-0 z-[100] flex justify-end">
+      <div v-if="showForm" class="fixed inset-0 z-100 flex justify-end">
         <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" @click="showForm = false"></div>
         
         <div class="relative w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col transform transition-transform duration-300">
@@ -256,7 +253,7 @@
 
     <!-- Document Modal: Lihat Detail -->
     <Teleport to="body">
-      <div v-if="viewingLaporan" class="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6">
+      <div v-if="viewingLaporan" class="fixed inset-0 z-110 flex items-center justify-center p-4 sm:p-6">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="viewingLaporan = null"></div>
         
         <div class="relative w-full max-w-4xl bg-slate-100 rounded-2xl shadow-2xl flex flex-col max-h-full overflow-hidden">
@@ -351,6 +348,7 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import useSWRV from 'swrv';
 import { IconChecklist, IconPlus, IconFileDescription, IconTrash, IconEye, IconX, IconSearch } from '@tabler/icons-vue';
+import UiTable from '@/components/UI/Table.vue';
 
 const router = useRouter();
 const fetcher = (url: string) => fetch(url).then(r => r.json());
@@ -364,6 +362,14 @@ const { data: sasaranList } = useSWRV('/api/sasaran-strategis', fetcher);
 const { data: indikatorList } = useSWRV('/api/indikator-kinerja', fetcher);
 
 const submitting = ref(false);
+
+const tableColumns = [
+  { key: 'waktu', label: 'Waktu', width: 140 },
+  { key: 'sasaranName', label: 'Sasaran Strategis', width: 220 },
+  { key: 'indikatorName', label: 'Indikator', width: 260 },
+  { key: 'capaian', label: 'Capaian', center: true, width: 110 },
+  { key: 'aksi', label: 'Aksi', center: true, width: 110 },
+];
 
 const form = ref({
   sasaranId: null as number | null,

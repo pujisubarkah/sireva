@@ -6,14 +6,11 @@
         class="fixed inset-0 z-50 flex items-center justify-center p-4"
         @click.self="$emit('update:modelValue', false)"
       >
-        <!-- Backdrop -->
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="$emit('update:modelValue', false)"></div>
 
-        <!-- Modal Card -->
-        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden z-10">
-          <!-- Close Button -->
+        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-xl max-h-[92vh] overflow-y-auto z-10">
           <button
-            class="absolute top-4 right-4 text-white/80 hover:text-white z-20 transition-colors"
+            class="absolute top-4 right-4 text-slate-500 hover:text-slate-700 z-20 transition-colors"
             type="button"
             @click="$emit('update:modelValue', false)"
             aria-label="Tutup"
@@ -23,62 +20,75 @@
             </svg>
           </button>
 
-          <!-- Blue header banner -->
-          <div class="bg-[#1F4F85] px-8 pt-8 pb-6">
-            <h1 class="text-2xl font-bold text-white">Login</h1>
-            <p class="text-sm text-blue-100 mt-1">Masuk ke akun Sireva kamu</p>
-          </div>
+          <div class="p-3 sm:p-4 md:p-6">
+            <div class="grid grid-cols-1 md:grid-cols-[0.9fr_1.1fr] gap-4 md:gap-6 items-center">
+              <div class="bg-slate-50 rounded-xl p-4 md:p-5 flex flex-col items-center text-center gap-3">
+                <img :src="illustrasiImage" class="max-w-45 sm:max-w-55 md:max-w-65 w-full" alt="Login illustration" />
+                <p class="text-xs text-slate-500">Sistem Informasi Rencana dan Evaluasi Kinerja</p>
+              </div>
 
-          <!-- Form -->
-          <div class="px-8 pb-8 pt-6 space-y-4">
-            <form @submit.prevent="handleLogin" class="flex flex-col gap-4 w-full">
-              <div class="flex flex-col gap-2">
-                <div class="relative">
-                  <label class="text-sm font-semibold text-black mb-1 ml-1 flex items-center gap-1" for="login-username">
-                    <IconMail size="18" class="inline-block" />
-                    Username
-                  </label>
-                  <input
-                    id="login-username"
-                    v-model="usernameOrEmail"
-                    type="text"
-                    placeholder="username"
-                    :class="['transition-all duration-200 w-full py-2 pl-4 pr-3 rounded-lg border focus:outline-none', errors.usernameOrEmail ? 'border-red-400 focus:border-red-500' : 'border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100']"
-                  />
-
+              <div class="space-y-3 md:space-y-4">
+                <div class="space-y-1.5">
+                  <h1 class="text-xl font-bold text-slate-900">Login</h1>
+                  <p class="text-sm text-slate-600">Disini kamu bisa login ke akun kamu</p>
                 </div>
-              </div>
-              <div class="flex flex-col gap-2">
-                <div class="relative">
-                  <label class="text-sm font-semibold text-black mb-1 ml-1 flex items-center gap-1" for="login-password">
-                    <IconLock size="18" class="inline-block" />
-                    Password
-                  </label>
-                  <input
-                    id="login-password"
-                    v-model="password"
-                    type="password"
-                    placeholder="Kata sandi"
-                    :class="['transition-all duration-200 w-full py-2 pl-4 pr-3 rounded-lg border focus:outline-none', errors.password ? 'border-red-400 focus:border-red-500' : 'border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100']"
-                  />
 
-                </div>
-                <Button hierarchy="link" class="self-start text-xs text-indigo-500 hover:text-indigo-700">Lupa Password?</Button>
-                              <span class="text-xs text-gray-400 mt-1 block ml-1">Jika Anda lupa kata sandi, silakan hubungi admin sireva.</span>
+                <form @submit.prevent="handleLogin" class="space-y-3 md:space-y-4">
+                  <div class="flex flex-col gap-2 md:gap-4 w-full">
+                    <div class="flex flex-col gap-1.5">
+                      <label class="text-sm font-semibold text-slate-800" for="login-username">Email / Username</label>
+                      <input
+                        id="login-username"
+                        v-model="usernameOrEmail"
+                        type="text"
+                        placeholder="Enter text..."
+                        :class="[
+                          'transition-all duration-200 w-full py-2 px-3 rounded-lg border focus:outline-none',
+                          errors.usernameOrEmail
+                            ? 'border-red-400 focus:border-red-500'
+                            : 'border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                        ]"
+                      />
+                      <span v-if="errors.usernameOrEmail" class="text-xs text-red-500">{{ errors.usernameOrEmail }}</span>
+                    </div>
+
+                    <div class="flex flex-col gap-2 w-full">
+                      <div class="flex flex-col gap-1.5">
+                        <label class="text-sm font-semibold text-slate-800" for="login-password">Password</label>
+                        <input
+                          id="login-password"
+                          v-model="password"
+                          type="password"
+                          placeholder="Enter text..."
+                          :class="[
+                            'transition-all duration-200 w-full py-2 px-3 rounded-lg border focus:outline-none',
+                            errors.password
+                              ? 'border-red-400 focus:border-red-500'
+                              : 'border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                          ]"
+                        />
+                        <span v-if="errors.password" class="text-xs text-red-500">{{ errors.password }}</span>
+                      </div>
+
+                      <Button hierarchy="link" class="self-start text-xs text-blue-600 hover:text-blue-700">Forgot Password</Button>
+                      <span class="text-xs text-slate-500">Jika Anda lupa kata sandi, silakan hubungi admin sireva.</span>
+                    </div>
+                  </div>
+
+                  <div class="flex flex-col gap-2.5 md:gap-4 w-full pt-1">
+                    <Button
+                      hierarchy="primary"
+                      type="submit"
+                      :loading="loading"
+                      :disabled="!isValid"
+                      class="w-full bg-[#1F4F85]! border-[#1F4F85]! text-white! hover:bg-[#183d68]!"
+                    >
+                      Masuk
+                    </Button>
+                  </div>
+                </form>
               </div>
-              <!-- Buttons -->
-              <div class="flex flex-col gap-3 pt-2">
-                <Button
-                  hierarchy="primary"
-                  type="submit"
-                  :loading="loading"
-                  :disabled="!isValid"
-                  class="w-full bg-[#2663A3] hover:bg-[#1F4F85] text-white font-semibold py-2 rounded-lg transition-colors"
-                >
-                  Masuk
-                </Button>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>
@@ -91,8 +101,9 @@ import { ref, computed, watch } from 'vue'
 import { navigateTo } from '#app'
 import { useToast } from '#imports'
 import { Button } from '@idds/vue'
-import { IconMail, IconLock } from '@tabler/icons-vue'
 import { useAuthUser } from '@/composables/useAuthUser'
+
+const illustrasiImage = '/LANRI-ORG.png'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
@@ -173,9 +184,6 @@ const handleLogin = async () => {
   }
 }
 
-const handleSSO = () => {
-  toast.info('SSO belum diimplementasi')
-}
 </script>
 
 <style scoped>

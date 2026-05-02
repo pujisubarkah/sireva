@@ -11,18 +11,32 @@ export default defineEventHandler(async (event) => {
       return await db.select().from(indikatorKinerja).where(eq(indikatorKinerja.id, Number(query.id)));
     }
     
-    const { sasaranStrategis } = await import('../../db/schema/sasaran-strategis');
+    const { sasaranKegiatan } = await import('../../db/schema/sasaran-kegiatan');
     
     return await db.select({
       id: indikatorKinerja.id,
-      sasaranId: indikatorKinerja.sasaranId,
-      namaIndikator: indikatorKinerja.namaIndikator,
-      unitKerja: indikatorKinerja.unitKerja,
-      kode: indikatorKinerja.kode,
-      sasaranText: sasaranStrategis.sasaranText
+      idSk: indikatorKinerja.idSk,
+      namaIku: indikatorKinerja.namaIku,
+      satuanPengukuran: indikatorKinerja.satuanPengukuran,
+      definisi: indikatorKinerja.definisi,
+      formulaPenghitungan: indikatorKinerja.formulaPenghitungan,
+      tujuan: indikatorKinerja.tujuan,
+      tingkatKendali: indikatorKinerja.tingkatKendali,
+      tingkatValiditas: indikatorKinerja.tingkatValiditas,
+      polarisasiCapaian: indikatorKinerja.polarisasiCapaian,
+      unitPenyediaData: indikatorKinerja.unitPenyediaData,
+      unitTerlibat: indikatorKinerja.unitTerlibat,
+      sumberData: indikatorKinerja.sumberData,
+      waktuKetersediaanData: indikatorKinerja.waktuKetersediaanData,
+      periodePelaporan: indikatorKinerja.periodePelaporan,
+      risiko: indikatorKinerja.risiko,
+      mitigasiRisiko: indikatorKinerja.mitigasiRisiko,
+      createdAt: indikatorKinerja.createdAt,
+      updatedAt: indikatorKinerja.updatedAt,
+      sasaranText: sasaranKegiatan.sasaranText
     })
     .from(indikatorKinerja)
-    .leftJoin(sasaranStrategis, eq(indikatorKinerja.sasaranId, sasaranStrategis.id));
+    .leftJoin(sasaranKegiatan, eq(indikatorKinerja.idSk, sasaranKegiatan.id));
   }
   if (method === 'POST') {
     const body = await readBody(event);

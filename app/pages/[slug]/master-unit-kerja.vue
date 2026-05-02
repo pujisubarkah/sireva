@@ -1,4 +1,4 @@
-gi<template>
+<template>
   <div class="space-y-4">
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 text-center">
@@ -17,8 +17,32 @@ gi<template>
         </div>
       </div>
 
-      <div class="p-5">
+      <div class="px-5 pt-4 bg-white border-b border-slate-100">
+        <div class="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
+          <button
+            type="button"
+            class="tab-btn"
+            :class="activeTab === 'table' ? 'tab-btn-active' : 'tab-btn-inactive'"
+            @click="activeTab = 'table'"
+          >
+            Tabel Unit Kerja
+          </button>
+          <button
+            type="button"
+            class="tab-btn"
+            :class="activeTab === 'chart' ? 'tab-btn-active' : 'tab-btn-inactive'"
+            @click="activeTab = 'chart'"
+          >
+            Organization Chart
+          </button>
+        </div>
+      </div>
+
+      <div v-if="loading" class="p-6 text-sm text-slate-500">Memuat data...</div>
+      <div v-else-if="errorMessage" class="p-6 text-sm text-red-600">{{ errorMessage }}</div>
+      <div v-else class="p-5">
         <Table
+          v-if="activeTab === 'table'"
           :columns="columns"
           :data="tableRows"
           rowKey="id"
@@ -34,7 +58,7 @@ gi<template>
             <div class="flex items-center justify-center gap-2">
               <button
                 type="button"
-                :aria-label="`Edit ${row.namaUnit}`"
+                :aria-label="`Edit ${row.nama}`"
                 title="Edit"
                 class="action-btn action-btn-edit"
               >
@@ -42,7 +66,7 @@ gi<template>
               </button>
               <button
                 type="button"
-                :aria-label="`Hapus ${row.namaUnit}`"
+                :aria-label="`Hapus ${row.nama}`"
                 title="Hapus"
                 class="action-btn action-btn-delete"
               >
@@ -51,6 +75,10 @@ gi<template>
             </div>
           </template>
         </Table>
+
+        <div v-else class="org-chart-wrap">
+          <UnitKerjaOrgChart />
+        </div>
       </div>
     </div>
   </div>
@@ -59,33 +87,96 @@ gi<template>
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
+import { computed, ref } from 'vue'
+import useSWRV from 'swrv'
 import { IconPencil, IconTrash, IconPlus } from '@tabler/icons-vue'
 import Table from '@/components/UI/Table.vue'
+import UnitKerjaOrgChart from '@/components/UI/UnitKerjaOrgChart.vue'
+
+interface UnitKerjaApi {
+  id: number
+  nama: string | null
+  level: number | null
+  parentId: number | null
+  createdAt: string | null
+  updatedAt: string | null
+}
 
 interface UnitKerjaRow {
   id: number
-  namaUnit: string
-  parent: string | null
+  nama: string
+  parent: string
   aksi: string
 }
 
 const columns = [
   { key: 'id', label: 'ID', className: 'text-center w-16' },
-  { key: 'namaUnit', label: 'Unit Kerja' },
+  { key: 'nama', label: 'Unit Kerja' },
   { key: 'parent', label: 'Parent Unit' },
   { key: 'aksi', label: 'Aksi', className: 'text-center w-24' },
 ]
 
-const tableRows: UnitKerjaRow[] = [
-  { id: 1, namaUnit: 'Kantor Pusat', parent: null, aksi: '' },
-  { id: 2, namaUnit: 'Divisi SDM', parent: 'Kantor Pusat', aksi: '' },
-  { id: 3, namaUnit: 'Divisi Keuangan', parent: 'Kantor Pusat', aksi: '' },
-  { id: 4, namaUnit: 'Subdivisi Rekrutmen', parent: 'Divisi SDM', aksi: '' },
-  { id: 5, namaUnit: 'Subdivisi Pelatihan', parent: 'Divisi SDM', aksi: '' },
-]
+const activeTab = ref<'table' | 'chart'>('table')
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const { data, error, isValidating } = useSWRV<UnitKerjaApi[]>('/api/unit-kerja', fetcher)
+
+const loading = computed(() => isValidating.value && !data.value)
+
+const errorMessage = computed(() => {
+  if (!error.value) return ''
+  return error.value instanceof Error ? error.value.message : 'Gagal memuat data unit kerja.'
+})
+
+const units = computed<UnitKerjaApi[]>(() => (Array.isArray(data.value) ? data.value : []))
+
+const tableRows = computed<UnitKerjaRow[]>(() => {
+  const byId = new Map<number, UnitKerjaApi>()
+  for (const item of units.value) {
+    byId.set(item.id, item)
+  }
+
+  return units.value.map((item) => ({
+    id: item.id,
+    nama: item.nama || '-',
+    parent: item.parentId ? byId.get(item.parentId)?.nama || '-' : '-',
+    aksi: '',
+  }))
+})
 </script>
 
 <style scoped>
+.tab-btn {
+  border-radius: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.45rem 0.8rem;
+  transition: all 0.15s ease;
+}
+
+.tab-btn-active {
+  background: #1d4ed8;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.2);
+}
+
+.tab-btn-inactive {
+  color: #475569;
+}
+
+.tab-btn-inactive:hover {
+  background: #e2e8f0;
+}
+
+.org-chart-wrap {
+  min-height: 25rem;
+}
+
+.org-chart-scroll {
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
 .action-btn {
   height: 1.9rem;
   width: 1.9rem;

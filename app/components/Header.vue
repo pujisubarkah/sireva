@@ -116,6 +116,7 @@ function handleClickOutside(event: MouseEvent) {
 function handleLogout() {
   clearAuthUser();
   isDropdownOpen.value = false;
+  navigateTo('/');
 }
 
 onMounted(() => {

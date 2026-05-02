@@ -2,7 +2,7 @@ import { db } from '../../db';
 import { rencanaAksi } from '../../db/schema/rencana-aksi';
 import { indikatorKinerja } from '../../db/schema/indikator-kinerja';
 import { sasaranStrategis } from '../../db/schema/sasaran-strategis';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { defineEventHandler, readBody, getQuery, createError } from 'h3';
 
 /**
@@ -27,14 +27,14 @@ export default defineEventHandler(async (event) => {
         indikatorId: rencanaAksi.indikatorId,
         rencanaAksi: rencanaAksi.namaRencanaAksi,
         target: rencanaAksi.target,
-        anggaran: sasaranKegiatan.anggaran,
+        anggaran: sql<string | null>`null`,
         indikator: sasaranKegiatan.sasaranText,
         sasaran: sasaranProgram.sasaranText,
-        unitKerja: sasaranKegiatan.unitKerja
+        unitKerja: sasaranKegiatan.unitKerjaId
       })
       .from(rencanaAksi)
       .leftJoin(sasaranKegiatan, eq(rencanaAksi.indikatorId, sasaranKegiatan.id))
-      .leftJoin(sasaranProgram, eq(sasaranKegiatan.kegiatanId, sasaranProgram.id));
+      .leftJoin(sasaranProgram, eq(sasaranKegiatan.idSp, sasaranProgram.id));
     }
 
     // POST: Create new plan

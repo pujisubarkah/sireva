@@ -54,66 +54,61 @@
 
     <!-- Table List Layout -->
     <div v-if="tableRows.length > 0" class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-slate-50/50 border-b border-slate-200">
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">No</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-1/4">Sasaran Strategis / Program</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400">Indikator Kinerja</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-1/4">Unit Kerja</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-24 text-center">Target</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-32 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr v-for="(item, index) in tableRows" :key="item.id" class="group hover:bg-slate-50/80 transition-colors">
-              <td class="p-4 text-center">
-                  <span class="text-sm font-bold text-slate-400">{{ Number(index) + 1 }}</span>
-              </td>
-              <td class="p-4">
-                <p class="text-sm font-bold text-slate-800 leading-tight">{{ item.sasaran }}</p>
-              </td>
-              <td class="p-4">
-                <p class="text-sm font-semibold text-slate-700 leading-snug">{{ item.indikator }}</p>
-              </td>
-              <td class="p-4">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-50 text-slate-600 border border-slate-200">
-                  <IconBuilding :size="12" class="text-slate-400"/>
-                  {{ item.unitKerja }}
-                </span>
-              </td>
-              <td class="p-4 text-center">
-                <span class="px-3 py-1 rounded-lg text-xs font-black bg-blue-50 text-blue-700 border border-blue-200 inline-flex min-w-[3.5rem] justify-center shadow-sm">
-                  {{ item.target }}
-                </span>
-              </td>
-              <td class="p-4 text-center">
-                <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button 
-                    @click="router.push(`/${$route.params.slug}/perjanjian-kinerja/view?id=${item.id}`)" 
-                    class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                  >
-                    <IconEye :size="18" />
-                  </button>
-                  <button 
-                    @click="router.push(`/${$route.params.slug}/perjanjian-kinerja/edit?id=${item.id}`)" 
-                    class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
-                  >
-                    <IconPencil :size="18" />
-                  </button>
-                  <button 
-                    @click="handleDelete(item)" 
-                    class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <IconTrash :size="18" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <UiTable
+        :columns="tableColumns"
+        :data="tableRows"
+        :page-size="10"
+        :show-pagination="true"
+        row-key="id"
+      >
+        <template #cell-no="{ index }">
+          <span class="text-sm font-bold text-slate-400">{{ Number(index) + 1 }}</span>
+        </template>
+
+        <template #cell-sasaran="{ value }">
+          <p class="text-sm font-bold text-slate-800 leading-tight">{{ value }}</p>
+        </template>
+
+        <template #cell-indikator="{ value }">
+          <p class="text-sm font-semibold text-slate-700 leading-snug">{{ value }}</p>
+        </template>
+
+        <template #cell-unitKerja="{ value }">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-50 text-slate-600 border border-slate-200">
+            <IconBuilding :size="12" class="text-slate-400"/>
+            {{ value }}
+          </span>
+        </template>
+
+        <template #cell-target="{ value }">
+          <span class="px-3 py-1 rounded-lg text-xs font-black bg-blue-50 text-blue-700 border border-blue-200 inline-flex min-w-14 justify-center shadow-sm">
+            {{ value }}
+          </span>
+        </template>
+
+        <template #cell-aksi="{ row }">
+          <div class="flex items-center justify-center gap-1">
+            <button
+              @click="router.push(`/${$route.params.slug}/perjanjian-kinerja/view?id=${row.id}`)"
+              class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+            >
+              <IconEye :size="18" />
+            </button>
+            <button
+              @click="router.push(`/${$route.params.slug}/perjanjian-kinerja/edit?id=${row.id}`)"
+              class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
+            >
+              <IconPencil :size="18" />
+            </button>
+            <button
+              @click="handleDelete(row)"
+              class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <IconTrash :size="18" />
+            </button>
+          </div>
+        </template>
+      </UiTable>
     </div>
 
     <!-- Empty State -->
@@ -148,6 +143,7 @@ import {
   IconTarget, IconFileCheck, IconSearch, IconTrash
 } from '@tabler/icons-vue'
 import FilterDropdown from '@/components/FilterDropdown.vue'
+import UiTable from '@/components/UI/Table.vue'
 
 const router = useRouter()
 const fetcher = (url: string) => fetch(url).then(r => r.json())
@@ -165,6 +161,15 @@ const unitKerjaOptions = computed(() => {
 const { data: committedPK } = useSWRV(() => `/api/perjanjian-kinerja?tahun=${selectedYear.value}&unitKerja=${selectedUnitKerja.value}`, fetcher)
 const { data: allIndikators } = useSWRV('/api/indikator-kinerja', fetcher)
 const { data: allSasaran } = useSWRV('/api/sasaran-strategis', fetcher)
+
+const tableColumns = [
+  { key: 'no', label: 'No', center: true, width: 70 },
+  { key: 'sasaran', label: 'Sasaran Strategis / Program', width: '25%' },
+  { key: 'indikator', label: 'Indikator Kinerja' },
+  { key: 'unitKerja', label: 'Unit Kerja', width: '25%' },
+  { key: 'target', label: 'Target', center: true, width: 100 },
+  { key: 'aksi', label: 'Aksi', center: true, width: 140 },
+]
 
 const tableRows = computed(() => {
   if (!committedPK.value || !allIndikators.value || !allSasaran.value) return [];

@@ -1,11 +1,13 @@
-import { integer, serial, varchar, foreignKey } from "drizzle-orm/pg-core";
+import { integer, serial, text, timestamp, foreignKey } from "drizzle-orm/pg-core";
 import { appSchema } from "./base";
 
 export const unitKerja = appSchema.table("unit_kerja", {
   id: serial("id").primaryKey().notNull(),
-  nama: varchar("nama", { length: 255 }),
+  nama: text("nama"),
   level: integer("level"),
   parentId: integer("parent_id"),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
 }, (table) => [
   foreignKey({
     columns: [table.parentId],

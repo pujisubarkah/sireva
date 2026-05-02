@@ -18,14 +18,14 @@
             v-model="selectedUnitKerja"
             :options="unitKerjaOptions"
             :icon="IconBuilding"
-            class="!border-0 shadow-none hover:bg-slate-50"
+            class="border-0! shadow-none hover:bg-slate-50"
           />
           <div class="w-px h-6 bg-slate-200"></div>
           <FilterDropdown
             v-model="selectedYear"
             :options="yearOptions"
             :icon="IconCalendarEvent"
-            class="!border-0 shadow-none hover:bg-slate-50"
+            class="border-0! shadow-none hover:bg-slate-50"
           />
         </div>
         <button
@@ -64,72 +64,67 @@
 
     <!-- Table List Layout -->
     <div v-else-if="tableRows.length > 0" class="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-slate-50/50 border-b border-slate-200">
-              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">No</th>
-              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-1/4">Indikator Kinerja</th>
-              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400">Rencana Aksi</th>
-              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-1/5">Unit Kerja</th>
-              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-24 text-center">Target</th>
-              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-32 text-center">Anggaran</th>
-              <th class="p-5 text-[11px] font-black uppercase tracking-widest text-slate-400 w-32 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr v-for="(item, index) in tableRows" :key="item.id" class="group hover:bg-slate-50/80 transition-colors">
-              <td class="p-5 text-center">
-                <span class="text-sm font-bold text-slate-400">{{ Number(index) + 1 }}</span>
-              </td>
-              <td class="p-5">
-                <p class="text-sm font-bold text-slate-800 leading-tight">{{ item.indikator }}</p>
-              </td>
-              <td class="p-5">
-                <p class="text-sm font-semibold text-[#2663A3] leading-snug">{{ item.rencanaAksi }}</p>
-              </td>
-              <td class="p-5">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-slate-50 text-slate-600 border border-slate-200">
-                  <IconBuilding :size="12" class="text-slate-400"/>
-                  {{ item.unitKerja }}
-                </span>
-              </td>
-              <td class="p-5 text-center">
-                <span class="px-3 py-1.5 rounded-xl text-xs font-black bg-blue-50 text-blue-700 border border-blue-200 inline-flex min-w-[4rem] justify-center shadow-sm">
-                  {{ item.target }}
-                </span>
-              </td>
-              <td class="p-5 text-center">
-                <span class="text-xs font-black text-emerald-600">
-                  Rp {{ Number(item.anggaran || 0).toLocaleString('id-ID') }}
-                </span>
-              </td>
-              <td class="p-5 text-center">
-                <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button 
-                    @click="router.push(`/${$route.params.slug}/rencana-aksi/view?id=${item.id}`)" 
-                    class="p-2.5 text-blue-500 hover:bg-blue-50 rounded-xl transition-colors"
-                  >
-                    <IconEye :size="20" />
-                  </button>
-                  <button 
-                    @click="router.push(`/${$route.params.slug}/rencana-aksi/edit?id=${item.id}`)" 
-                    class="p-2.5 text-emerald-500 hover:bg-emerald-50 rounded-xl transition-colors"
-                  >
-                    <IconPencil :size="20" />
-                  </button>
-                  <button 
-                    @click="handleDelete(item)" 
-                    class="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                  >
-                    <IconTrash :size="20" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <UiTable
+        :columns="tableColumns"
+        :data="tableRows"
+        :page-size="10"
+        :show-pagination="true"
+        row-key="id"
+      >
+        <template #cell-no="{ index }">
+          <span class="text-sm font-bold text-slate-400">{{ Number(index) + 1 }}</span>
+        </template>
+
+        <template #cell-indikator="{ value }">
+          <p class="text-sm font-bold text-slate-800 leading-tight">{{ value }}</p>
+        </template>
+
+        <template #cell-rencanaAksi="{ value }">
+          <p class="text-sm font-semibold text-[#2663A3] leading-snug">{{ value }}</p>
+        </template>
+
+        <template #cell-unitKerja="{ value }">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-slate-50 text-slate-600 border border-slate-200">
+            <IconBuilding :size="12" class="text-slate-400"/>
+            {{ value }}
+          </span>
+        </template>
+
+        <template #cell-target="{ value }">
+          <span class="px-3 py-1.5 rounded-xl text-xs font-black bg-blue-50 text-blue-700 border border-blue-200 inline-flex min-w-16 justify-center shadow-sm">
+            {{ value }}
+          </span>
+        </template>
+
+        <template #cell-anggaran="{ value }">
+          <span class="text-xs font-black text-emerald-600">
+            Rp {{ Number(value || 0).toLocaleString('id-ID') }}
+          </span>
+        </template>
+
+        <template #cell-aksi="{ row }">
+          <div class="flex items-center justify-center gap-1">
+            <button
+              @click="router.push(`/${$route.params.slug}/rencana-aksi/view?id=${row.id}`)"
+              class="p-2.5 text-blue-500 hover:bg-blue-50 rounded-xl transition-colors"
+            >
+              <IconEye :size="20" />
+            </button>
+            <button
+              @click="router.push(`/${$route.params.slug}/rencana-aksi/edit?id=${row.id}`)"
+              class="p-2.5 text-emerald-500 hover:bg-emerald-50 rounded-xl transition-colors"
+            >
+              <IconPencil :size="20" />
+            </button>
+            <button
+              @click="handleDelete(row)"
+              class="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+            >
+              <IconTrash :size="20" />
+            </button>
+          </div>
+        </template>
+      </UiTable>
     </div>
   </div>
 </template>
@@ -148,6 +143,7 @@ import {
   IconTarget, IconChartBar, IconSearch, IconTrash
 } from '@tabler/icons-vue'
 import FilterDropdown from '@/components/FilterDropdown.vue'
+import UiTable from '@/components/UI/Table.vue'
 import useSWRV from 'swrv'
 
 const router = useRouter()
@@ -166,6 +162,16 @@ const unitKerjaOptions = computed(() => {
 // Fetchers
 
 const { data: rencanaData, isValidating: loading } = useSWRV('/api/rencana-aksi', fetcher)
+
+const tableColumns = [
+  { key: 'no', label: 'No', center: true, width: 70 },
+  { key: 'indikator', label: 'Indikator Kinerja', width: '25%' },
+  { key: 'rencanaAksi', label: 'Rencana Aksi' },
+  { key: 'unitKerja', label: 'Unit Kerja', width: '20%' },
+  { key: 'target', label: 'Target', center: true, width: 100 },
+  { key: 'anggaran', label: 'Anggaran', center: true, width: 140 },
+  { key: 'aksi', label: 'Aksi', center: true, width: 140 },
+]
 
 // Computeds
 const tableRows = computed(() => {

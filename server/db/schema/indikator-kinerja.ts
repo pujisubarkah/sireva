@@ -1,20 +1,24 @@
-import { integer, serial, numeric, text, varchar, foreignKey } from "drizzle-orm/pg-core";
+import { integer, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { appSchema } from "./base";
-import { sasaranStrategis } from "./sasaran-strategis";
 
 export const indikatorKinerja = appSchema.table("indikator_kinerja", {
   id: serial("id").primaryKey().notNull(),
-  sasaranId: integer("sasaran_id"),
-  kode: varchar("kode", { length: 20 }),
-  namaIndikator: text("nama_indikator").notNull(),
-  satuan: varchar("satuan", { length: 50 }),
-  jenis: varchar("jenis", { length: 50 }),
-  baseline: numeric("baseline"),
-  unitKerja: varchar("unit_kerja", { length: 255 }),
-}, (table) => [
-  foreignKey({
-    columns: [table.sasaranId],
-    foreignColumns: [sasaranStrategis.id],
-    name: "indikator_kinerja_sasaran_id_fkey"
-  }).onDelete("cascade"),
-]);
+  idSk: integer("id_sk"),
+  namaIku: text("nama_iku"),
+  satuanPengukuran: varchar("satuan_pengukuran"),
+  definisi: text("definisi"),
+  formulaPenghitungan: text("formula_penghitungan"),
+  tujuan: text("tujuan"),
+  tingkatKendali: varchar("tingkat_kendali"),
+  tingkatValiditas: varchar("tingkat_validitas"),
+  polarisasiCapaian: varchar("polarisasi_capaian"),
+  unitPenyediaData: text("unit_penyedia_data"),
+  unitTerlibat: text("unit_terlibat"),
+  sumberData: text("sumber_data"),
+  waktuKetersediaanData: varchar("waktu_ketersediaan_data"),
+  periodePelaporan: varchar("periode_pelaporan"),
+  risiko: text("risiko"),
+  mitigasiRisiko: text("mitigasi_risiko"),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
+});

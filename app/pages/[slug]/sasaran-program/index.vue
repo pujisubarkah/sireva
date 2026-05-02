@@ -1,261 +1,158 @@
 <template>
-  <div class="space-y-6 pb-10">
-    <!-- Header Section -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
-      <div class="px-6 py-5 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-6">
+  <div class="space-y-6 max-w-6xl mx-auto pb-10">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm mb-6">
+      <div class="px-6 py-5 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-widest mb-1">
-            Perencanaan Taktis
+          <h1 class="text-xl font-bold text-slate-800">Sasaran Program</h1>
+          <p class="text-sm text-slate-500 mt-1">Daftar sasaran program berdasarkan data master.</p>
+        </div>
+        <button
+          type="button"
+          @click="router.push(`/${$route.params.slug}/sasaran-program/add`)"
+          class="w-full sm:w-auto px-5 py-2.5 bg-[#2663A3] text-white rounded-xl text-sm font-semibold hover:bg-blue-800 shadow-lg shadow-blue-700/20 flex items-center justify-center gap-2 transition-all"
+        >
+          <IconPlus :size="18" :stroke="'2'" />
+          Tambah Sasaran Program
+        </button>
+      </div>
+
+      <div class="px-6 py-4 bg-white border-b border-slate-200 flex items-center gap-4">
+        <div class="relative w-full md:w-80">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <IconSearch class="w-4 h-4 text-slate-400" />
           </div>
-          <h1 class="text-xl font-bold text-slate-800 tracking-tight">Sasaran Program (SP)</h1>
-          <p class="text-slate-500 mt-1 text-sm font-medium">Penjabaran strategis ke tingkat program kerja pada Level JPT Pratama.</p>
-        </div>
-        <div class="flex items-center gap-3">
-           <button
-            @click="router.push(`/${$route.params.slug}/sasaran-program/add`)"
-            class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2663A3] text-white font-bold text-sm shadow-lg shadow-blue-700/20 hover:bg-blue-800 transition-all"
-          >
-            <IconPlus :size="18" :stroke-width="3" />
-            Tambah Program
-          </button>
-        </div>
-      </div>
-
-      <!-- Filter & Search Bar -->
-      <div class="px-6 py-4 bg-white flex flex-col lg:flex-row lg:items-center gap-4">
-        <div class="relative flex-1">
-          <IconSearch class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" :size="20" />
-          <input 
+          <input
             v-model="searchQuery"
-            type="text" 
-            placeholder="Cari nama program..."
-            class="w-full pl-12 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#2663A3] transition-all"
-          />
-        </div>
-        <div class="flex flex-wrap items-center gap-3">
-          <FilterDropdown
-            v-model="selectedUnitKerja"
-            :options="unitKerjaOptions"
-            :icon="IconBuilding"
-            class="min-w-[200px]"
-          />
-          <FilterDropdown
-            v-model="selectedYear"
-            :options="yearOptions"
-            :icon="IconCalendarEvent"
+            type="text"
+            placeholder="Cari kode atau sasaran program..."
+            class="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-50"
           />
         </div>
       </div>
     </div>
 
-    <!-- Table List Layout -->
-    <div v-if="Object.keys(groupedData).length > 0" class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-slate-50/50 border-b border-slate-200">
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">No</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-[20%]">Program</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400">Sasaran Program</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-1/5">Unit Kerja</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-28 text-center">Target</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-32 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <template v-for="(programs, progName, gIndex) in groupedData" :key="progName">
-              <tr v-for="(prog, i) in programs" :key="prog.id" class="group hover:bg-slate-50/80 transition-colors">
-                <td class="p-4 text-center">
-                  <span class="text-sm font-bold text-slate-400">{{ i === 0 ? Number(gIndex) + 1 : '' }}</span>
-                </td>
-                <td class="p-4">
-                  <p v-if="i === 0" class="text-sm font-bold text-slate-800 leading-tight">{{ progName }}</p>
-                </td>
-                <td class="p-4">
-                  <div class="space-y-1">
-                    <p class="text-sm font-bold text-slate-800 leading-tight">{{ prog.sasaranProgram }}</p>
-                    <p class="text-[11px] font-medium text-[#2663A3] leading-snug">{{ prog.namaIndikator }}</p>
-                  </div>
-                </td>
-                <td class="p-4">
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-50 text-slate-600 border border-slate-200">
-                    <IconBuilding :size="12" class="text-slate-400"/>
-                    {{ prog.unitKerja }}
-                  </span>
-                </td>
-                <td class="p-4 text-center">
-                  <div class="flex flex-col items-center gap-1">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-100 min-w-[3rem]">
-                      {{ prog.targetRenstra[Number(selectedYear)] || '0' }}
-                    </span>
-                    <span class="text-[9px] text-slate-400 font-bold uppercase">{{ prog.satuan }}</span>
-                  </div>
-                </td>
-                <td class="p-4 text-center">
-                  <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button 
-                      @click="router.push(`/${$route.params.slug}/sasaran-program/view?id=${prog.id}`)" 
-                      class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                    >
-                      <IconEye :size="18" />
-                    </button>
-                    <button 
-                      @click="router.push(`/${$route.params.slug}/sasaran-program/edit?id=${prog.id}`)" 
-                      class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
-                    >
-                      <IconPencil :size="18" />
-                    </button>
-                    <button 
-                      @click="handleDelete(prog)" 
-                      class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <IconTrash :size="18" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
+    <div v-if="loading" class="text-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
+      <div class="inline-block animate-pulse text-slate-500 font-medium">Memuat data sasaran program...</div>
     </div>
 
-    <!-- Empty State -->
-    <div v-else class="bg-white rounded-2xl border border-slate-200 p-20 text-center shadow-sm">
+    <div v-else-if="filteredRows.length === 0" class="bg-white rounded-2xl border border-slate-200 p-20 text-center shadow-sm">
       <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
         <IconSearch :size="40" class="text-slate-300" />
       </div>
       <h3 class="text-lg font-bold text-slate-800">Tidak ada sasaran program ditemukan</h3>
-      <p class="text-slate-500 mt-2 max-w-sm mx-auto text-sm">Coba sesuaikan kata kunci pencarian atau filter Unit Kerja Anda.</p>
+      <p class="text-slate-500 mt-2 max-w-sm mx-auto text-sm">Coba sesuaikan kata kunci pencarian Anda.</p>
+    </div>
+
+    <div v-else class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <UiTable
+        :columns="tableColumns"
+        :data="filteredRows"
+        :page-size="10"
+        :show-pagination="true"
+        row-key="id"
+      >
+        <template #cell-no="{ index }">
+          <span class="text-sm font-bold text-slate-400">{{ index + 1 }}</span>
+        </template>
+
+        <template #cell-kode="{ value }">
+          <span class="text-xs font-black text-blue-600 uppercase tracking-tight">{{ value || '-' }}</span>
+        </template>
+
+        <template #cell-sasaranText="{ value }">
+          <p class="text-sm font-semibold text-slate-700 leading-snug">{{ value }}</p>
+        </template>
+
+        <template #cell-unitKerjaNama="{ value }">
+          <span class="text-sm font-medium text-slate-700">{{ value || '-' }}</span>
+        </template>
+
+        <template #cell-aksi="{ row }">
+          <div class="flex items-center justify-center gap-1">
+            <button
+              @click="router.push(`/${$route.params.slug}/sasaran-program/view?id=${row.id}`)"
+              class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+            >
+              <IconEye :size="18" />
+            </button>
+            <button
+              @click="router.push(`/${$route.params.slug}/sasaran-program/edit?id=${row.id}`)"
+              class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
+            >
+              <IconPencil :size="18" />
+            </button>
+            <button
+              @click="handleDelete(row)"
+              class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <IconTrash :size="18" />
+            </button>
+          </div>
+        </template>
+      </UiTable>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-/**
- * Komponen Sasaran Program (SP)
- * Migrasi ke Grouped Card Layout (By Sasaran Strategis).
- */
-
 definePageMeta({ layout: 'dashboard' })
 
-import { ref, onMounted, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import useSWRV from 'swrv'
-import { 
-  IconPlus, IconSearch, IconBuilding, IconCalendarEvent, 
-  IconEye, IconPencil, IconLayout, IconTrash
-} from '@tabler/icons-vue'
-import FilterDropdown from '@/components/FilterDropdown.vue'
+import { IconEye, IconPencil, IconPlus, IconSearch, IconTrash } from '@tabler/icons-vue'
+import UiTable from '@/components/UI/Table.vue'
 
-const router = useRouter()
-const route = useRoute()
-const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: unitData } = useSWRV('/api/unit-kerja', fetcher)
-
-// State Filters
-const searchQuery = ref('')
-const selectedYear = ref(String(new Date().getFullYear()))
-const yearOptions = ['2025', '2026', '2027', '2028', '2029']
-
-const selectedUnitKerja = ref('Semua Unit Kerja')
-const unitKerjaOptions = computed(() => {
-  const units = unitData.value?.map((u: any) => u.nama) || []
-  return ['Semua Unit Kerja', ...units]
-})
-
-type YearMap = Record<number, number>
-
-interface ProgramRow {
+type SasaranProgram = {
   id: number
-  sasaranProgram: string
+  idSs: number | null
+  kode: string | null
   sasaranText: string
-  programName: string
-  namaIndikator: string
-  satuan: string
-  targetRenstra: YearMap
-  targetPerjanjian: YearMap
-  unitKerja: string
+  unitKerjaId: number | null
+  unitKerjaNama: string | null
 }
 
-const baseData = ref<ProgramRow[]>([])
+const router = useRouter()
+const searchQuery = ref('')
+const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
-// Logic Pengelompokan Data (Group by Sasaran Strategis)
-const groupedData = computed(() => {
-  let filtered = baseData.value.filter(item => {
-    const matchesSearch = item.sasaranText.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
-                         (item.programName || '').toLowerCase().includes(searchQuery.value.toLowerCase());
-    const matchesUnit = selectedUnitKerja.value === 'Semua Unit Kerja' || item.unitKerja === selectedUnitKerja.value;
-    return matchesSearch && matchesUnit;
-  });
+const { data, isValidating: loading, mutate } = useSWRV('/api/sasaran-program', fetcher)
 
-  const groups: Record<string, ProgramRow[]> = {};
-  filtered.forEach(item => {
-    const key = item.programName || 'Tanpa Program';
-    if (!groups[key]) {
-      groups[key] = [];
-    }
-    groups[key].push(item);
-  });
+const tableColumns = [
+  { key: 'no', label: 'No', center: true, width: 70 },
+  { key: 'kode', label: 'Kode', width: 160 },
+  { key: 'sasaranText', label: 'Sasaran Program' },
+  { key: 'unitKerjaNama', label: 'Nama Unit Kerja', width: '28%' },
+  { key: 'aksi', label: 'Aksi', center: true, width: 160 },
+]
 
-  return groups;
-});
+const filteredRows = computed<SasaranProgram[]>(() => {
+  const rows = ((data.value ?? []) as SasaranProgram[]).slice().sort((a, b) => a.id - b.id)
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return rows
 
-onMounted(async () => {
-  try {
-    // Fetch real data from Sasaran Program API
-    const [spRes, progRes] = await Promise.all([
-      $fetch<any[]>('/api/sasaran-program'),
-      $fetch<any[]>('/api/master-program')
-    ]);
-
-    const programMap = new Map(progRes.map((p: any) => [p.id, p.namaProgram]));
-
-    baseData.value = spRes.map((p: any) => ({
-      id: p.id,
-      sasaranProgram: p.sasaranText,
-      sasaranText: p.sasaranText,
-      programName: p.programName || programMap.get(p.programId) || 'Program Umum',
-      namaIndikator: p.namaIndikator || '-',
-      satuan: p.satuan || 'Layanan',
-      targetRenstra: { 
-        2025: p.target2025 || 0, 
-        2026: p.target2026 || 0, 
-        2027: p.target2027 || 0, 
-        2028: p.target2028 || 0, 
-        2029: p.target2029 || 0 
-      },
-      targetPerjanjian: { 2025: 0, 2026: 0, 2027: 0, 2028: 0, 2029: 0 },
-      unitKerja: p.unitKerja || '-',
-    }));
-  } catch (error) {
-    console.error('Error fetching data:', error)
-  }
+  return rows.filter((item) => {
+    return (item.kode ?? '').toLowerCase().includes(q)
+      || (item.sasaranText ?? '').toLowerCase().includes(q)
+      || (item.unitKerjaNama ?? '').toLowerCase().includes(q)
+  })
 })
 
-async function handleDelete(item: any) {
-  if (!confirm(`Apakah Anda yakin ingin menghapus "${item.sasaranProgram}"? Data yang dihapus tidak dapat dikembalikan.`)) return;
-  
+async function handleDelete(item: SasaranProgram) {
+  if (!confirm(`Apakah Anda yakin ingin menghapus sasaran program "${item.sasaranText}"?`)) return
+
   try {
     const result = await $fetch<any[]>('/api/sasaran-program', {
       method: 'DELETE',
-      body: { id: item.id }
-    });
+      body: { id: item.id },
+    })
 
     if (result) {
-      // Reload page or re-fetch
-      window.location.reload();
+      mutate()
     }
   } catch (error) {
-    console.error(error);
-    alert('Terjadi kesalahan saat menghapus data.');
+    console.error(error)
+    alert('Terjadi kesalahan saat menghapus data.')
   }
 }
 </script>
-
-<style scoped>
-/* Grid transisi halus */
-.group:hover {
-  transform: translateY(-4px);
-}
-</style>
