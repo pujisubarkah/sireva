@@ -25,7 +25,7 @@
 
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <!-- Header -->
-      <div class="px-8 py-8 border-b border-slate-100 bg-gradient-to-br from-blue-50/50 via-white to-white relative overflow-hidden">
+      <div class="px-8 py-8 border-b border-slate-100 bg-linear-to-br from-blue-50/50 via-white to-white relative overflow-hidden">
         <div class="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
           <IconFileDescription :size="120" stroke-width="1" class="text-[#2663A3]" />
         </div>

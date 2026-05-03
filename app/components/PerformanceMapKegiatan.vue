@@ -9,18 +9,18 @@
     </div>
   </div>
   <div v-else-if="!allDiagrams.length" class="w-full py-10 px-4 flex justify-center bg-slate-50/50 rounded-2xl border border-slate-100">
-    <div class="text-center text-gray-500 py-20">No performance data available</div>
+    <div class="text-center text-gray-500 py-20">Belum ada data Sasaran Kegiatan</div>
   </div>
   <div v-else class="w-full py-10 px-4 space-y-10">
     <div
       v-for="item in allDiagrams"
-      :key="`${item.sasaran.id}-${item.indikator.id}`"
+      :key="`${item.sk.id}-${item.iku.id}`"
       class="flex justify-center bg-slate-50/50 rounded-2xl border border-slate-100 py-10 px-4"
     >
       <div class="flex flex-col items-center w-full max-w-3xl">
-        <!-- Top Node: Sasaran -->
-        <div class="bg-emerald-600 text-white rounded-2xl shadow-lg shadow-emerald-600/20 px-8 py-4 w-full max-w-2xl text-center z-10">
-          <h2 class="text-xl md:text-2xl font-bold tracking-wide">{{ item.sasaran.sasaranText }}</h2>
+        <!-- Top Node: Sasaran Kegiatan -->
+        <div class="bg-violet-600 text-white rounded-2xl shadow-lg shadow-violet-600/20 px-8 py-4 w-full max-w-2xl text-center z-10">
+          <h2 class="text-xl md:text-2xl font-bold tracking-wide">{{ item.sk.sasaranText }}</h2>
         </div>
         <div class="w-1 h-10 bg-slate-300"></div>
 
@@ -32,11 +32,9 @@
               <IconTarget :size="40" class="drop-shadow-sm" />
             </div>
             <div class="p-5 flex-1 flex flex-col justify-center">
-              <p class="text-center font-semibold text-slate-800 mb-1 leading-snug">
-                {{ item.indikator.namaIndikator }}
-              </p>
+              <p class="text-center font-semibold text-slate-800 mb-1 leading-snug">{{ item.iku.namaIku }}</p>
               <p class="text-center text-xs font-medium text-slate-500 mb-4">
-                Satuan: {{ item.indikator.satuan || '-' }}
+                Satuan: {{ item.iku.satuanPengukuran || '-' }}
               </p>
               <div class="bg-blue-50/80 rounded-xl p-4 text-center mb-4 border border-blue-100">
                 <h4 class="text-xs font-bold text-blue-700/80 uppercase tracking-wider mb-1">Capaian {{ CURRENT_YEAR }}</h4>
@@ -72,7 +70,7 @@
             <div class="flex bg-white rounded-xl border border-amber-300 shadow-md hover:shadow-lg transition-shadow overflow-hidden relative">
               <div class="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>
               <div class="p-4 flex-1 flex flex-col justify-center pl-5">
-                <h5 class="text-sm font-bold text-emerald-600 mb-1">Pertumbuhan {{ item.indikator.satuan }}</h5>
+                <h5 class="text-sm font-bold text-emerald-600 mb-1">Pertumbuhan {{ item.iku.satuanPengukuran }}</h5>
                 <div class="flex gap-3 text-xs font-medium text-slate-600">
                   <span>Capaian: <span class="font-bold text-slate-800">{{ item.metrics.capaian }}</span></span>
                   <span class="text-slate-300">|</span>
@@ -108,9 +106,9 @@
         </div>
 
         <div class="w-1 h-10 bg-slate-300 mt-4 md:mt-0"></div>
-        <!-- Bottom Node: Sasaran Kode -->
-        <div class="bg-blue-700 text-white rounded-2xl shadow-lg shadow-blue-700/20 px-8 py-3 text-center z-10">
-          <h3 class="text-base font-bold tracking-wide">{{ item.sasaran.kode }}</h3>
+        <!-- Bottom Node -->
+        <div class="bg-violet-700 text-white rounded-2xl shadow-lg shadow-violet-700/20 px-8 py-3 text-center z-10">
+          <h3 class="text-base font-bold tracking-wide">{{ item.sk.kode || 'SK' }}</h3>
         </div>
       </div>
     </div>
@@ -123,33 +121,59 @@ import useSWRV from 'swrv'
 import { IconTarget, IconChartBar, IconTrendingUp, IconPercentage } from '@tabler/icons-vue'
 
 const CURRENT_YEAR = new Date().getFullYear()
-
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
-// API returns flat array: { ssId, kode, sasaranText, indikatorId, indikatorNama, indikatorSatuan, targets: [{tahun, target}] }
-const { data: flatRows, isValidating: loading } = useSWRV<any[]>('/api/sasaran-strategis', fetcher)
+const { data: skRes, isValidating: skLoading } = useSWRV<any[]>('/api/sasaran-kegiatan', fetcher)
+const { data: ikuRes, isValidating: ikuLoading } = useSWRV<any[]>('/api/indikator-kinerja', fetcher)
+const { data: targetRes, isValidating: targetLoading } = useSWRV<any[]>('/api/target-indikator', fetcher)
 
-function getMetrics(indikator: any) {
-  if (!indikator) return { target: '-', realisasi: '-', capaian: '-%' }
-  const targets: { tahun: number; target: string }[] = indikator.targets ?? []
-  const row = targets.find(t => t.tahun === CURRENT_YEAR) ?? targets[targets.length - 1]
-  if (!row) return { target: '-', realisasi: '-', capaian: '-%' }
-  return { target: row.target ?? '-', realisasi: '-', capaian: '-%' }
+const loading = computed(() => skLoading.value || ikuLoading.value || targetLoading.value)
+
+// Latest target per indikator id
+const latestTargetByIku = computed(() => {
+  const result: Record<number, any> = {}
+  for (const t of (targetRes.value ?? [])) {
+    const id = t.indikatorId
+    if (!result[id] || new Date(t.createdAt) > new Date(result[id].createdAt)) {
+      result[id] = t
+    }
+  }
+  return result
+})
+
+// IKUs grouped by sasaran kegiatan id
+const ikuBySk = computed(() => {
+  const result: Record<number, any[]> = {}
+  for (const iku of (ikuRes.value ?? [])) {
+    if (iku.idSk == null) continue
+    ;(result[iku.idSk] ??= []).push(iku)
+  }
+  return result
+})
+
+function getMetrics(ikuId: number) {
+  const t = latestTargetByIku.value[ikuId]
+  if (!t) return { target: '-', realisasi: '-', capaian: '-%' }
+  const target = parseFloat(t.target)
+  const realisasi = parseFloat(t.realisasi)
+  return {
+    target: t.target ?? '-',
+    realisasi: t.realisasi ?? '-',
+    capaian: !isNaN(target) && !isNaN(realisasi) && target > 0
+      ? ((realisasi / target) * 100).toFixed(1) + '%'
+      : '-%',
+  }
 }
 
-// Build flat list of (sasaran, indikator) pairs — one diagram per pair
+// One diagram per (sasaran kegiatan × iku)
 const allDiagrams = computed(() => {
-  const result: { sasaran: any; indikator: any; metrics: any }[] = []
-  for (const row of (flatRows.value ?? [])) {
-    if (row.indikatorId == null) continue
-    const sasaran = { id: row.ssId, kode: row.kode, sasaranText: row.sasaranText }
-    const indikator = {
-      id: row.indikatorId,
-      namaIndikator: row.indikatorNama,
-      satuan: row.indikatorSatuan,
-      targets: row.targets ?? [],
+  const result: { sk: any; iku: any; metrics: any }[] = []
+  for (const sk of (skRes.value ?? [])) {
+    const ikus = ikuBySk.value[sk.id] ?? []
+    if (!ikus.length) continue
+    for (const iku of ikus) {
+      result.push({ sk, iku, metrics: getMetrics(iku.id) })
     }
-    result.push({ sasaran, indikator, metrics: getMetrics(indikator) })
   }
   return result
 })

@@ -6,5 +6,4 @@ export const sasaranProgram = appSchema.table("sasaran_program", {
   idSs: integer("id_ss"),
   kode: varchar("kode"),
   sasaranText: text("sasaran_text").notNull(),
-  unitKerjaId: integer("unit_kerja_id"),
 });

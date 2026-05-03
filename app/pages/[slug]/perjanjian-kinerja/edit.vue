@@ -12,7 +12,7 @@
 
     <!-- Premium Form Header -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-8 py-10 bg-gradient-to-r from-indigo-700 to-indigo-900 relative overflow-hidden">
+      <div class="px-8 py-10 bg-linear-to-r from-indigo-700 to-indigo-900 relative overflow-hidden">
         <div class="absolute top-0 right-0 p-8 opacity-10">
           <IconPencil :size="120" class="text-white" />
         </div>

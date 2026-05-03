@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
     const query = getQuery(event);
     const { tahun, unitKerja } = query;
 
-    const { indikatorKinerja } = await import('../../db/schema/indikator-kinerja');
+    const { indikatorKegiatan: indikatorKinerja } = await import('../../db/schema/indikator-kegiatan');
     const { sasaranKegiatan } = await import('../../db/schema/sasaran-kegiatan');
 
     let baseQuery = db.select({

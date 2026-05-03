@@ -1,33 +1,47 @@
 <script setup lang="ts">
-const route = useRoute()
-const unitName = computed(() => route.params.slug)
+import { ref } from 'vue'
 
 definePageMeta({ layout: 'dashboard' })
+
+const tabs = [
+  { key: 'ss', label: 'Sasaran Strategis' },
+  { key: 'sp', label: 'Sasaran Program' },
+  { key: 'sk', label: 'Sasaran Kegiatan' },
+]
+const activeTab = ref('ss')
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col items-center justify-center bg-white py-12 px-4">
-    <div class="bg-white shadow-2xl rounded-3xl p-12 max-w-2xl w-full text-center border border-blue-100 relative overflow-hidden">
-      <div class="flex flex-col items-center mb-8">
-        <svg width="96" height="96" viewBox="0 0 96 96" fill="none" class="mb-4">
-          <circle cx="48" cy="48" r="48" fill="#2663A3" fill-opacity="0.08"/>
-          <g>
-            <polygon points="48,22 54,40 73,40 57,52 63,70 48,59 33,70 39,52 23,40 42,40" fill="#2663A3"/>
-            <polygon points="48,28 52,40 64,40 54,48 58,60 48,53 38,60 42,48 32,40 44,40" fill="#FBB23B"/>
-          </g>
-        </svg>
-        <h1 class="text-4xl md:text-5xl font-extrabold mb-3 drop-shadow" style="color:#F2BD1D">Selamat Datang!</h1>
-        <p class="text-lg md:text-2xl text-gray-700 font-semibold mb-2">Anda berhasil login sebagai <span class="text-[#F2BD1D]">admin</span></p>
+  <div class="space-y-6 max-w-7xl mx-auto pb-10">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+      <div class="px-6 py-5 border-b border-slate-200 bg-slate-50">
+        <h1 class="text-xl font-bold text-slate-800">Peta Kinerja</h1>
+        <p class="text-sm text-slate-500 mt-1">Diagram capaian sasaran dan indikator kinerja.</p>
       </div>
-      <p class="text-gray-500 text-base md:text-lg mb-6">Halaman ini masih dalam pengembangan.<br>Silakan hubungi admin jika Anda membutuhkan akses fitur lebih lanjut.</p>
-      <div class="absolute -bottom-8 -right-8 opacity-10 pointer-events-none select-none">
-        <svg width="180" height="180" fill="none" viewBox="0 0 180 180">
-          <circle cx="90" cy="90" r="90" fill="#2663A3" />
-        </svg>
+
+      <!-- Tabs -->
+      <div class="flex gap-1 px-6 pt-4 border-b border-slate-200">
+        <button
+          v-for="tab in tabs"
+          :key="tab.key"
+          @click="activeTab = tab.key"
+          :class="[
+            'px-5 py-2.5 text-sm font-semibold rounded-t-lg transition-all border-b-2 -mb-px',
+            activeTab === tab.key
+              ? 'border-blue-600 text-blue-700 bg-blue-50'
+              : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+          ]"
+        >
+          {{ tab.label }}
+        </button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="p-6">
+        <PerformanceMap v-if="activeTab === 'ss'" />
+        <PerformanceMapProgram v-else-if="activeTab === 'sp'" />
+        <PerformanceMapKegiatan v-else-if="activeTab === 'sk'" />
       </div>
     </div>
   </div>
 </template>
-<style scoped>
-/* Empty style to clear cache */
-</style>

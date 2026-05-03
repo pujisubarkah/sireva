@@ -2,7 +2,7 @@ import { integer, serial, numeric, text, timestamp, foreignKey } from "drizzle-o
 import { sql } from "drizzle-orm";
 import { appSchema } from "./base";
 import { sasaranStrategis } from "./sasaran-strategis";
-import { indikatorKinerja } from "./indikator-kinerja";
+import { indikatorKegiatan } from "./indikator-kegiatan";
 
 export const laporanSasaranStrategis = appSchema.table("laporan_sasaran_strategis", {
   id: serial("id").primaryKey().notNull(),
@@ -21,7 +21,7 @@ export const laporanSasaranStrategis = appSchema.table("laporan_sasaran_strategi
   }).onDelete("cascade"),
   foreignKey({
     columns: [table.indikatorId],
-    foreignColumns: [indikatorKinerja.id],
+    foreignColumns: [indikatorKegiatan.id],
     name: "laporan_sasaran_strategis_indikator_id_fkey"
   }).onDelete("cascade"),
 ]);

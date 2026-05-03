@@ -44,52 +44,92 @@
     </div>
 
     <div v-else class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-      <UiTable
-        :columns="tableColumns"
-        :data="filteredRows"
-        :page-size="10"
-        :show-pagination="true"
-        row-key="id"
-      >
-        <template #cell-no="{ index }">
-          <span class="text-sm font-bold text-slate-400">{{ index + 1 }}</span>
-        </template>
-
-        <template #cell-kode="{ value }">
-          <span class="text-xs font-black text-blue-600 uppercase tracking-tight">{{ value || '-' }}</span>
-        </template>
-
-        <template #cell-sasaranText="{ value }">
-          <p class="text-sm font-semibold text-slate-700 leading-snug">{{ value }}</p>
-        </template>
-
-        <template #cell-unitKerjaNama="{ value }">
-          <span class="text-sm font-medium text-slate-700">{{ value || '-' }}</span>
-        </template>
-
-        <template #cell-aksi="{ row }">
-          <div class="flex items-center justify-center gap-1">
-            <button
-              @click="router.push(`/${$route.params.slug}/sasaran-program/view?id=${row.id}`)"
-              class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/50 border-b border-slate-200">
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">No</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-28">Kode</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-55">Sasaran Program</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-55">Nama Unit Kerja</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-55">Indikator Program</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-28">Satuan</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-40">Target</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-36 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr
+              v-for="(row, index) in filteredRows"
+              :key="`${row.id}-${row.indikatorId ?? index}`"
+              :class="index % 2 === 0 ? 'bg-white hover:bg-slate-50/70' : 'bg-blue-50/60 hover:bg-blue-100/60'"
+              class="transition-colors"
             >
-              <IconEye :size="18" />
-            </button>
-            <button
-              @click="router.push(`/${$route.params.slug}/sasaran-program/edit?id=${row.id}`)"
-              class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
-            >
-              <IconPencil :size="18" />
-            </button>
-            <button
-              @click="handleDelete(row)"
-              class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              <IconTrash :size="18" />
-            </button>
-          </div>
-        </template>
-      </UiTable>
+              <td class="p-4 text-center align-top">
+                <span class="text-sm font-bold text-slate-400">{{ index + 1 }}</span>
+              </td>
+              <td class="p-4 align-top">
+                <span class="text-xs font-black text-blue-600 uppercase tracking-tight">{{ row.kode || '-' }}</span>
+              </td>
+              <td class="p-4 align-top">
+                <p class="text-sm font-semibold text-slate-700 leading-snug">{{ row.sasaranText }}</p>
+              </td>
+              <td class="p-4 align-top">
+                <ul v-if="row.unitKerjaNames && row.unitKerjaNames.length" class="space-y-0.5">
+                  <li
+                    v-for="(name, i) in row.unitKerjaNames"
+                    :key="i"
+                    class="flex items-start gap-1.5 text-sm font-medium text-slate-700"
+                  >
+                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0"></span>
+                    {{ name }}
+                  </li>
+                </ul>
+                <span v-else class="text-sm text-slate-400">-</span>
+              </td>
+              <td class="p-4 align-top">
+                <p class="text-sm text-slate-700 leading-snug">{{ row.indikatorNama || '-' }}</p>
+              </td>
+              <td class="p-4 align-top">
+                <span class="text-sm text-slate-600">{{ row.indikatorSatuan || '-' }}</span>
+              </td>
+              <td class="p-4 align-top">
+                <div class="flex flex-col gap-1">
+                  <span
+                    v-for="t in row.targets"
+                    :key="t.tahun"
+                    class="inline-flex px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100"
+                  >
+                    {{ t.tahun }}: {{ t.target }}
+                  </span>
+                </div>
+              </td>
+              <td class="p-4 text-center align-top">
+                <div class="flex items-center justify-center gap-1">
+                  <button
+                    @click="router.push(`/${$route.params.slug}/sasaran-program/view?id=${row.id}`)"
+                    class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                  >
+                    <IconEye :size="18" />
+                  </button>
+                  <button
+                    @click="router.push(`/${$route.params.slug}/sasaran-program/edit?id=${row.id}`)"
+                    class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
+                  >
+                    <IconPencil :size="18" />
+                  </button>
+                  <button
+                    @click="handleDelete(row)"
+                    class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <IconTrash :size="18" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>
@@ -101,15 +141,18 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import useSWRV from 'swrv'
 import { IconEye, IconPencil, IconPlus, IconSearch, IconTrash } from '@tabler/icons-vue'
-import UiTable from '@/components/UI/Table.vue'
 
 type SasaranProgram = {
   id: number
   idSs: number | null
   kode: string | null
   sasaranText: string
-  unitKerjaId: number | null
-  unitKerjaNama: string | null
+  unitKerjaNames: string[]
+  indikatorId: number | null
+  indikatorKode: string | null
+  indikatorNama: string | null
+  indikatorSatuan: string | null
+  targets: { tahun: number; target: string | number | null }[]
 }
 
 const router = useRouter()
@@ -117,14 +160,6 @@ const searchQuery = ref('')
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
 const { data, isValidating: loading, mutate } = useSWRV('/api/sasaran-program', fetcher)
-
-const tableColumns = [
-  { key: 'no', label: 'No', center: true, width: 70 },
-  { key: 'kode', label: 'Kode', width: 160 },
-  { key: 'sasaranText', label: 'Sasaran Program' },
-  { key: 'unitKerjaNama', label: 'Nama Unit Kerja', width: '28%' },
-  { key: 'aksi', label: 'Aksi', center: true, width: 160 },
-]
 
 const filteredRows = computed<SasaranProgram[]>(() => {
   const rows = ((data.value ?? []) as SasaranProgram[]).slice().sort((a, b) => a.id - b.id)
@@ -134,7 +169,9 @@ const filteredRows = computed<SasaranProgram[]>(() => {
   return rows.filter((item) => {
     return (item.kode ?? '').toLowerCase().includes(q)
       || (item.sasaranText ?? '').toLowerCase().includes(q)
-      || (item.unitKerjaNama ?? '').toLowerCase().includes(q)
+      || (item.indikatorKode ?? '').toLowerCase().includes(q)
+      || (item.indikatorNama ?? '').toLowerCase().includes(q)
+      || (item.unitKerjaNames ?? []).some(n => n.toLowerCase().includes(q))
   })
 })
 

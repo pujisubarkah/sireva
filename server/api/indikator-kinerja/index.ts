@@ -1,5 +1,5 @@
 import { db } from '../../db';
-import { indikatorKinerja } from '../../db/schema/indikator-kinerja';
+import { indikatorKegiatan as indikatorKinerja } from '../../db/schema/indikator-kegiatan';
 import { eq } from 'drizzle-orm';
 import { defineEventHandler, readBody, getQuery } from 'h3';
 
@@ -20,17 +20,6 @@ export default defineEventHandler(async (event) => {
       satuanPengukuran: indikatorKinerja.satuanPengukuran,
       definisi: indikatorKinerja.definisi,
       formulaPenghitungan: indikatorKinerja.formulaPenghitungan,
-      tujuan: indikatorKinerja.tujuan,
-      tingkatKendali: indikatorKinerja.tingkatKendali,
-      tingkatValiditas: indikatorKinerja.tingkatValiditas,
-      polarisasiCapaian: indikatorKinerja.polarisasiCapaian,
-      unitPenyediaData: indikatorKinerja.unitPenyediaData,
-      unitTerlibat: indikatorKinerja.unitTerlibat,
-      sumberData: indikatorKinerja.sumberData,
-      waktuKetersediaanData: indikatorKinerja.waktuKetersediaanData,
-      periodePelaporan: indikatorKinerja.periodePelaporan,
-      risiko: indikatorKinerja.risiko,
-      mitigasiRisiko: indikatorKinerja.mitigasiRisiko,
       createdAt: indikatorKinerja.createdAt,
       updatedAt: indikatorKinerja.updatedAt,
       sasaranText: sasaranKegiatan.sasaranText

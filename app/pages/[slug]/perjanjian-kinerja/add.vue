@@ -12,7 +12,7 @@
 
     <!-- Premium Form Header -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-8 py-10 bg-gradient-to-r from-blue-600 to-[#2663A3] relative overflow-hidden">
+      <div class="px-8 py-10 bg-linear-to-r from-blue-600 to-[#2663A3] relative overflow-hidden">
         <div class="absolute top-0 right-0 p-8 opacity-10">
           <IconFileCheck :size="120" class="text-white" />
         </div>

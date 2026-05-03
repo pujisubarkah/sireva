@@ -44,52 +44,128 @@
     </div>
 
     <div v-else class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-      <UiTable
-        :columns="tableColumns"
-        :data="filteredRows"
-        :page-size="10"
-        :show-pagination="true"
-        row-key="id"
-      >
-        <template #cell-no="{ index }">
-          <span class="text-sm font-bold text-slate-400">{{ index + 1 }}</span>
-        </template>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/50 border-b border-slate-200">
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">No</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-28">Kode</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-55">Sasaran Kegiatan</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-40">Unit Kerja</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-55">Indikator Kegiatan</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-24">Satuan</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-40">Target</th>
+              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-36 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <template v-for="(row, index) in filteredRows" :key="row.id">
+              <!-- Jika tidak ada indikator, tampil satu baris -->
+              <tr v-if="!row.indikators || row.indikators.length === 0"
+                :class="index % 2 === 0 ? 'bg-white hover:bg-slate-50/70' : 'bg-blue-50/60 hover:bg-blue-100/60'"
+                class="transition-colors"
+              >
+                <td class="p-4 text-center align-top">
+                  <span class="text-sm font-bold text-slate-400">{{ ((meta.page - 1) * meta.limit) + index + 1 }}</span>
+                </td>
+                <td class="p-4 align-top">
+                  <span class="text-xs font-black text-blue-600 uppercase tracking-tight">{{ row.kode || '-' }}</span>
+                </td>
+                <td class="p-4 align-top">
+                  <p class="text-sm font-semibold text-slate-700 leading-snug">{{ row.sasaranText }}</p>
+                </td>
+                <td class="p-4 align-top">
+                  <span class="text-sm font-medium text-slate-700">{{ row.unitKerjaNama || '-' }}</span>
+                </td>
+                <td class="p-4 align-top text-slate-400 text-sm" colspan="3">-</td>
+                <td class="p-4 text-center align-top">
+                  <div class="flex items-center justify-center gap-1">
+                    <button @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/view?id=${row.id}`)" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><IconEye :size="18" /></button>
+                    <button @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/edit?id=${row.id}`)" class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"><IconPencil :size="18" /></button>
+                    <button @click="handleDelete(row)" class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"><IconTrash :size="18" /></button>
+                  </div>
+                </td>
+              </tr>
 
-        <template #cell-kode="{ value }">
-          <span class="text-xs font-black text-blue-600 uppercase tracking-tight">{{ value || '-' }}</span>
-        </template>
+              <!-- Jika ada indikator, buat satu baris per indikator dengan rowspan pada sel sasaran -->
+              <template v-else>
+                <tr v-for="(ind, iIdx) in row.indikators" :key="`${row.id}-${ind.id}`"
+                  :class="index % 2 === 0 ? 'bg-white hover:bg-slate-50/70' : 'bg-blue-50/60 hover:bg-blue-100/60'"
+                  class="transition-colors"
+                >
+                  <!-- Kolom sasaran hanya muncul di baris pertama indikator (rowspan) -->
+                  <template v-if="iIdx === 0">
+                    <td class="p-4 text-center align-top border-r border-slate-100" :rowspan="row.indikators.length">
+                      <span class="text-sm font-bold text-slate-400">{{ ((meta.page - 1) * meta.limit) + index + 1 }}</span>
+                    </td>
+                    <td class="p-4 align-top border-r border-slate-100" :rowspan="row.indikators.length">
+                      <span class="text-xs font-black text-blue-600 uppercase tracking-tight">{{ row.kode || '-' }}</span>
+                    </td>
+                    <td class="p-4 align-top border-r border-slate-100" :rowspan="row.indikators.length">
+                      <p class="text-sm font-semibold text-slate-700 leading-snug">{{ row.sasaranText }}</p>
+                    </td>
+                    <td class="p-4 align-top border-r border-slate-100" :rowspan="row.indikators.length">
+                      <span class="text-sm font-medium text-slate-700">{{ row.unitKerjaNama || '-' }}</span>
+                    </td>
+                  </template>
 
-        <template #cell-sasaranText="{ value }">
-          <p class="text-sm font-semibold text-slate-700 leading-snug">{{ value }}</p>
-        </template>
+                  <!-- Kolom indikator, satuan, target per baris -->
+                  <td class="p-4 align-top">
+                    <p class="text-sm text-slate-700 leading-snug">{{ ind.nama || '-' }}</p>
+                  </td>
+                  <td class="p-4 align-top">
+                    <span class="text-sm text-slate-600">{{ ind.satuan || '-' }}</span>
+                  </td>
+                  <td class="p-4 align-top">
+                    <div class="flex flex-col gap-1">
+                      <span
+                        v-for="t in (ind.targets || [])"
+                        :key="t.tahun"
+                        class="inline-flex px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100 w-max"
+                      >
+                        {{ t.tahun }}: {{ t.target }}
+                      </span>
+                    </div>
+                  </td>
 
-        <template #cell-unitKerjaNama="{ value }">
-          <span class="text-sm font-medium text-slate-700">{{ value || '-' }}</span>
-        </template>
+                  <!-- Tombol aksi hanya di baris pertama (rowspan) -->
+                  <template v-if="iIdx === 0">
+                    <td class="p-4 text-center align-top border-l border-slate-100" :rowspan="row.indikators.length">
+                      <div class="flex items-center justify-center gap-1">
+                        <button @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/view?id=${row.id}`)" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><IconEye :size="18" /></button>
+                        <button @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/edit?id=${row.id}`)" class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"><IconPencil :size="18" /></button>
+                        <button @click="handleDelete(row)" class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"><IconTrash :size="18" /></button>
+                      </div>
+                    </td>
+                  </template>
+                </tr>
+              </template>
+            </template>
+          </tbody>
+        </table>
+      </div>
 
-        <template #cell-aksi="{ row }">
-          <div class="flex items-center justify-center gap-1">
-            <button
-              @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/view?id=${row.id}`)"
-              class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-            >
-              <IconEye :size="18" />
-            </button>
-            <button
-              @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/edit?id=${row.id}`)"
-              class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
-            >
-              <IconPencil :size="18" />
-            </button>
-            <button
-              @click="handleDelete(row)"
-              class="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              <IconTrash :size="18" />
-            </button>
-          </div>
-        </template>
-      </UiTable>
+      <div v-if="meta && meta.totalPages > 1" class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+        <span class="text-sm text-slate-500">
+          Menampilkan halaman <span class="font-bold text-slate-700">{{ meta.page }}</span> dari <span class="font-bold text-slate-700">{{ meta.totalPages }}</span> (Total {{ meta.total }} data)
+        </span>
+        <div class="flex gap-2">
+          <button 
+            @click="page--" 
+            :disabled="page === 1"
+            class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-600 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            Sebelumnya
+          </button>
+          <button 
+            @click="page++" 
+            :disabled="page >= meta.totalPages"
+            class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-600 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            Selanjutnya
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -101,7 +177,13 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import useSWRV from 'swrv'
 import { IconEye, IconPencil, IconPlus, IconSearch, IconTrash } from '@tabler/icons-vue'
-import UiTable from '@/components/UI/Table.vue'
+
+type IndikatorItem = {
+  id: number
+  nama: string | null
+  satuan: string | null
+  targets: { tahun: number; target: string | number | null }[]
+}
 
 type SasaranKegiatan = {
   id: number
@@ -110,24 +192,27 @@ type SasaranKegiatan = {
   sasaranText: string
   unitKerjaId: number | null
   unitKerjaNama: string | null
+  indikators: IndikatorItem[]
 }
 
 const router = useRouter()
 const searchQuery = ref('')
+const page = ref(1)
+
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
-const { data, isValidating: loading, mutate } = useSWRV('/api/sasaran-kegiatan', fetcher)
+const apiUrl = computed(() => `/api/sasaran-kegiatan?page=${page.value}&limit=20`)
+const { data, isValidating: loading, mutate } = useSWRV(() => apiUrl.value, fetcher)
 
-const tableColumns = [
-  { key: 'no', label: 'No', center: true, width: 70 },
-  { key: 'kode', label: 'Kode', width: 160 },
-  { key: 'sasaranText', label: 'Sasaran Kegiatan' },
-  { key: 'unitKerjaNama', label: 'Nama Unit Kerja', width: '28%' },
-  { key: 'aksi', label: 'Aksi', center: true, width: 160 },
-]
+const meta = computed(() => {
+  return (data.value && !Array.isArray(data.value) && data.value.meta) 
+    ? data.value.meta 
+    : { total: 0, page: 1, limit: 20, totalPages: 1 }
+})
 
 const filteredRows = computed<SasaranKegiatan[]>(() => {
-  const rows = ((data.value ?? []) as SasaranKegiatan[]).slice().sort((a, b) => a.id - b.id)
+  const source = data.value && !Array.isArray(data.value) && data.value.data ? data.value.data : (data.value ?? [])
+  const rows = (source as SasaranKegiatan[]).slice().sort((a, b) => a.id - b.id)
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return rows
 
@@ -135,6 +220,7 @@ const filteredRows = computed<SasaranKegiatan[]>(() => {
     return (item.kode ?? '').toLowerCase().includes(q)
       || (item.sasaranText ?? '').toLowerCase().includes(q)
       || (item.unitKerjaNama ?? '').toLowerCase().includes(q)
+      || (item.indikators ?? []).some(i => (i.nama ?? '').toLowerCase().includes(q))
   })
 })
 

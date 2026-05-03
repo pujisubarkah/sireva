@@ -1,6 +1,5 @@
 import { db } from '../../db';
 import { rencanaAksi } from '../../db/schema/rencana-aksi';
-import { indikatorKinerja } from '../../db/schema/indikator-kinerja';
 import { sasaranStrategis } from '../../db/schema/sasaran-strategis';
 import { eq, sql } from 'drizzle-orm';
 import { defineEventHandler, readBody, getQuery, createError } from 'h3';
