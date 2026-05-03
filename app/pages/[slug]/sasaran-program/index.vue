@@ -7,6 +7,7 @@
           <p class="text-sm text-slate-500 mt-1">Daftar sasaran program berdasarkan data master.</p>
         </div>
         <button
+          v-if="!isUserOnly"
           type="button"
           @click="router.push(`/${$route.params.slug}/sasaran-program/add`)"
           class="w-full sm:w-auto px-5 py-2.5 bg-[#2663A3] text-white rounded-xl text-sm font-semibold hover:bg-blue-800 shadow-lg shadow-blue-700/20 flex items-center justify-center gap-2 transition-all"
@@ -51,10 +52,11 @@
               <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">No</th>
               <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-28">Kode</th>
               <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-55">Sasaran Program</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-55">Nama Unit Kerja</th>
+              <th v-if="!isUserOnly" class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-55">Nama Unit Kerja</th>
               <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-55">Indikator Program</th>
               <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-28">Satuan</th>
               <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-40">Target</th>
+              <th v-if="isUserOnly" class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-40">Realisasi</th>
               <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-36 text-center">Aksi</th>
             </tr>
           </thead>
@@ -74,7 +76,7 @@
               <td class="p-4 align-top">
                 <p class="text-sm font-semibold text-slate-700 leading-snug">{{ row.sasaranText }}</p>
               </td>
-              <td class="p-4 align-top">
+              <td v-if="!isUserOnly" class="p-4 align-top">
                 <ul v-if="row.unitKerjaNames && row.unitKerjaNames.length" class="space-y-0.5">
                   <li
                     v-for="(name, i) in row.unitKerjaNames"
@@ -103,6 +105,18 @@
                     {{ t.tahun }}: {{ t.target }}
                   </span>
                 </div>
+              </td>
+              <td v-if="isUserOnly" class="p-4 align-top">
+                <div v-if="row.realisasi && row.realisasi.length" class="flex flex-col gap-1">
+                  <span
+                    v-for="r in row.realisasi"
+                    :key="r.tahun"
+                    class="inline-flex px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100"
+                  >
+                    {{ r.tahun }}: {{ r.realisasi }}
+                  </span>
+                </div>
+                <span v-else class="text-sm text-slate-400">-</span>
               </td>
               <td class="p-4 text-center align-top">
                 <div class="flex items-center justify-center gap-1">
@@ -141,6 +155,7 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import useSWRV from 'swrv'
 import { IconEye, IconPencil, IconPlus, IconSearch, IconTrash } from '@tabler/icons-vue'
+import { useAuthUser } from '~/composables/useAuthUser'
 
 type SasaranProgram = {
   id: number
@@ -153,13 +168,48 @@ type SasaranProgram = {
   indikatorNama: string | null
   indikatorSatuan: string | null
   targets: { tahun: number; target: string | number | null }[]
+  realisasi?: { tahun: number; realisasi: string | number | null }[]
 }
 
 const router = useRouter()
 const searchQuery = ref('')
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
-const { data, isValidating: loading, mutate } = useSWRV('/api/sasaran-program', fetcher)
+const { authUser, role } = useAuthUser()
+const { data: unitList } = useSWRV<any[]>('/api/unit-kerja', fetcher)
+
+const userUnitKerjaId = computed<number | null>(() => {
+  const unitName = String(authUser.value?.unit_kerja || '').trim().toLowerCase()
+  if (!unitName) return null
+
+  const found = (unitList.value ?? []).find((u: any) => String(u?.nama || '').trim().toLowerCase() === unitName)
+  return found?.id != null ? Number(found.id) : null
+})
+
+const isSuperAdmin = computed(() => {
+  const roleName = String(role.value || '').toLowerCase()
+  const roleId = Number(authUser.value?.role_id)
+  return roleName === 'super_admin' || roleId === 1
+})
+
+const isUserOnly = computed(() => {
+  const roleName = String(role.value || '').toLowerCase()
+  const roleId = Number(authUser.value?.role_id)
+  return roleName === 'user' || roleId === 3
+})
+
+const apiUrl = computed<string | null>(() => {
+  if (isSuperAdmin.value) return '/api/sasaran-program'
+
+  const unitId = userUnitKerjaId.value
+  if (!unitId) return null
+  return `/api/sasaran-program/unit-kerja/${unitId}`
+})
+
+const { data, isValidating: loading, mutate } = useSWRV(
+  () => apiUrl.value,
+  fetcher,
+)
 
 const filteredRows = computed<SasaranProgram[]>(() => {
   const rows = ((data.value ?? []) as SasaranProgram[]).slice().sort((a, b) => a.id - b.id)

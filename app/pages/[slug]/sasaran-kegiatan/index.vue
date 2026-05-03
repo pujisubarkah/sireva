@@ -7,6 +7,7 @@
           <p class="text-sm text-slate-500 mt-1">Daftar sasaran kegiatan berdasarkan data master.</p>
         </div>
         <button
+          v-if="!isUserOnly"
           type="button"
           @click="router.push(`/${$route.params.slug}/sasaran-kegiatan/add`)"
           class="w-full sm:w-auto px-5 py-2.5 bg-[#2663A3] text-white rounded-xl text-sm font-semibold hover:bg-blue-800 shadow-lg shadow-blue-700/20 flex items-center justify-center gap-2 transition-all"
@@ -53,7 +54,7 @@
               <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-55">Sasaran Kegiatan</th>
               <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-40">Unit Kerja</th>
               <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-55">Indikator Kegiatan</th>
-              <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-24">Satuan</th>
+               <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-24">Satuan</th>
               <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 min-w-40">Target</th>
               <th class="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 w-36 text-center">Aksi</th>
             </tr>
@@ -177,6 +178,7 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import useSWRV from 'swrv'
 import { IconEye, IconPencil, IconPlus, IconSearch, IconTrash } from '@tabler/icons-vue'
+import { useAuthUser } from '~/composables/useAuthUser'
 
 type IndikatorItem = {
   id: number
@@ -195,24 +197,105 @@ type SasaranKegiatan = {
   indikators: IndikatorItem[]
 }
 
+type UnitScopedSasaranKegiatanRow = {
+  id: number
+  idSp: number | null
+  kode: string | null
+  sasaranText: string
+  unitKerjaId: number | null
+  unitKerjaNama: string | null
+  indikatorId: number | null
+  indikatorNama: string | null
+  indikatorSatuan: string | null
+  targets: { tahun: number; target: string | number | null }[]
+}
+
 const router = useRouter()
 const searchQuery = ref('')
 const page = ref(1)
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
-const apiUrl = computed(() => `/api/sasaran-kegiatan?page=${page.value}&limit=20`)
+const { authUser, role } = useAuthUser()
+const { data: unitList } = useSWRV<any[]>('/api/unit-kerja', fetcher)
+
+const userUnitKerjaId = computed<number | null>(() => {
+  const unitName = String(authUser.value?.unit_kerja || '').trim().toLowerCase()
+  if (!unitName) return null
+
+  const found = (unitList.value ?? []).find((u: any) => String(u?.nama || '').trim().toLowerCase() === unitName)
+  return found?.id != null ? Number(found.id) : null
+})
+
+const isSuperAdmin = computed(() => {
+  const roleName = String(role.value || '').toLowerCase()
+  const roleId = Number(authUser.value?.role_id)
+  return roleName === 'super_admin' || roleId === 1
+})
+
+const isUserOnly = computed(() => {
+  const roleName = String(role.value || '').toLowerCase()
+  const roleId = Number(authUser.value?.role_id)
+  return roleName === 'user' || roleId === 3
+})
+
+const apiUrl = computed<string | null>(() => {
+  if (isSuperAdmin.value) return `/api/sasaran-kegiatan?page=${page.value}&limit=20`
+
+  const unitId = userUnitKerjaId.value
+  if (!unitId) return null
+  return `/api/sasaran-kegiatan/unit-kerja/${unitId}`
+})
+
 const { data, isValidating: loading, mutate } = useSWRV(() => apiUrl.value, fetcher)
 
 const meta = computed(() => {
+  if (!isSuperAdmin.value) {
+    return { total: 0, page: 1, limit: 20, totalPages: 1 }
+  }
+
   return (data.value && !Array.isArray(data.value) && data.value.meta) 
     ? data.value.meta 
     : { total: 0, page: 1, limit: 20, totalPages: 1 }
 })
 
 const filteredRows = computed<SasaranKegiatan[]>(() => {
-  const source = data.value && !Array.isArray(data.value) && data.value.data ? data.value.data : (data.value ?? [])
-  const rows = (source as SasaranKegiatan[]).slice().sort((a, b) => a.id - b.id)
+  let rows: SasaranKegiatan[] = []
+
+  if (isSuperAdmin.value) {
+    const source = data.value && !Array.isArray(data.value) && data.value.data ? data.value.data : (data.value ?? [])
+    rows = (source as SasaranKegiatan[]).slice().sort((a, b) => a.id - b.id)
+  } else {
+    const unitRows = (Array.isArray(data.value) ? data.value : []) as UnitScopedSasaranKegiatanRow[]
+    const grouped = new Map<number, SasaranKegiatan>()
+
+    for (const row of unitRows) {
+      if (!grouped.has(row.id)) {
+        grouped.set(row.id, {
+          id: row.id,
+          idSp: row.idSp,
+          kode: row.kode,
+          sasaranText: row.sasaranText,
+          unitKerjaId: row.unitKerjaId,
+          unitKerjaNama: row.unitKerjaNama,
+          indikators: [],
+        })
+      }
+
+      const current = grouped.get(row.id)!
+      if (row.indikatorId != null) {
+        current.indikators.push({
+          id: row.indikatorId,
+          nama: row.indikatorNama,
+          satuan: row.indikatorSatuan,
+          targets: Array.isArray(row.targets) ? row.targets : [],
+        })
+      }
+    }
+
+    rows = Array.from(grouped.values()).sort((a, b) => a.id - b.id)
+  }
+
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return rows
 

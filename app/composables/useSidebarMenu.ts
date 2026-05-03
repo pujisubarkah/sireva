@@ -110,20 +110,9 @@ const userMenuItems: SidebarMenuItem[] = [
     label: 'Perencanaan Kinerja',
     icon: 'IconClipboardList',
     children: [
-      { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.sasaranStrategis, icon: 'IconActivity' },
-      { label: 'Perjanjian Kinerja', href: SIDEBAR_MENU_ROUTES.perjanjianKinerja, icon: 'IconChecklist' },
       { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.sasaranProgram, icon: 'IconFocus2' },
+      { label: 'Sasaran Kegiatan', href: SIDEBAR_MENU_ROUTES.sasaranKegiatan, icon: 'IconListDetails' },
       { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.rencanaAksi, icon: 'IconChecklist' },
-    ],
-  },
-  {
-    label: 'Pemantauan Kinerja',
-    icon: 'IconChartBar',
-    children: [
-      { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.pemantauanSasaranProgram, icon: 'IconFocus2' },
-      { label: 'Sasaran Kegiatan', href: SIDEBAR_MENU_ROUTES.pemantauanSasaranKegiatan, icon: 'IconListDetails' },
-      { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.pemantauanRencanaAksi, icon: 'IconChecklist' },
-      { label: 'Cascading', href: SIDEBAR_MENU_ROUTES.cascading, icon: 'IconSitemap' },
     ],
   },
 ];

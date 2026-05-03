@@ -5,6 +5,7 @@ export interface AuthUser {
   username?: string;
   email?: string;
   role?: string;
+  role_id?: number;
   alias?: string;
   unit_kerja?: string;
 }
