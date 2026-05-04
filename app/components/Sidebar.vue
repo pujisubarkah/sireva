@@ -24,9 +24,9 @@
 
       <!-- Logout -->
       <div class="mt-8 shrink-0 pt-4 border-t border-white/5">
-        <NuxtLink to="/login" @click="handleLogout" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 font-semibold text-sm hover:bg-red-500 hover:text-white transition-all duration-200 group">
+        <NuxtLink to="/" @click="handleLogout" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 font-semibold text-sm hover:bg-red-500 hover:text-white transition-all duration-200 group">
           <IconLogout :size="18" :stroke="'2'" class="transition-transform group-hover:-translate-x-1" />
-          Logout Sistem
+          Logout
         </NuxtLink>
       </div>
     </div>
@@ -38,6 +38,7 @@
 import { computed } from 'vue';
 import { useSidebarMenu } from '@/composables/useSidebarMenu';
 import { useRoute } from 'vue-router';
+
 import {
   IconDashboard,
   IconClipboardList,
@@ -53,7 +54,9 @@ import {
   IconSitemap,
   IconDatabase,
   IconUser,
-  IconLogout
+  IconLogout,
+  IconReport,
+  IconSettings
 } from '@tabler/icons-vue';
 
 const iconMap = {
@@ -71,7 +74,9 @@ const iconMap = {
   IconSitemap,
   IconDatabase,
   IconUser,
-  IconLogout
+  IconLogout,
+  IconReport,
+  IconSettings
 };
 
 

@@ -91,20 +91,20 @@ const adminMenuItems: SidebarMenuItem[] = [
   },
   {
     label: 'Laporan',
-    icon: 'IconFileText',
+    icon: 'IconReport',
     children: [
       { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.laporanSasaranStrategis, icon: 'IconReport' },
       { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.laporanSasaranProgram, icon: 'IconReport' },
       { label: 'Kinerja (Rencana Aksi)', href: SIDEBAR_MENU_ROUTES.laporanRencanaAksi, icon: 'IconReport' },
     ],
   },
-];
-
-const userMenuItems: SidebarMenuItem[] = [
   {
-    label: 'Dashboard',
-    href: SIDEBAR_MENU_ROUTES.dashboard,
-    icon: 'IconDashboard',
+    label: 'Manajemen Sistem',
+    icon: 'IconSettings',
+    children: [
+      { label: 'Master Unit Kerja', href: SIDEBAR_MENU_ROUTES.masterUnitKerja, icon: 'IconSitemap' },
+      { label: 'Master User', href: SIDEBAR_MENU_ROUTES.masterUser, icon: 'IconUser' },
+    ],
   },
   {
     label: 'Perencanaan Kinerja',

@@ -163,13 +163,8 @@ const handleLogin = async () => {
       setAuthUser(data.user ?? null)
       emit('update:modelValue', false)
       resetForm()
-      // Redirect ke /[slug] sesuai role
-      const role = data.user?.role?.toLowerCase()
-      if (role) {
-        navigateTo(`/${role}`)
-      } else {
-        navigateTo('/')
-      }
+      // Redirect ke halaman utama setelah login
+      navigateTo('/')
     } else {
       toast.error(data.message || 'Login gagal')
       serverError.value = data.message || 'Login gagal'
