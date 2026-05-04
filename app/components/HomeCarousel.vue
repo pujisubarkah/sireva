@@ -79,6 +79,12 @@ const slides: SlideItem[] = [
     title: 'Bangun pengambilan keputusan berbasis data yang lebih cepat dan terukur.',
     description: 'Gunakan dashboard dan tabel monitoring untuk membaca progres triwulan, mengevaluasi target, dan menindaklanjuti rencana aksi prioritas.',
   },
+  {
+    src: '/tohaganteng.jpeg',
+    alt: 'Foto Tohaganteng',
+    title: 'Tohaganteng: Inspirasi Baru',
+    description: 'Menjadi inspirasi dan semangat baru dalam setiap langkah perubahan.',
+  },
 ]
 
 const currentIndex = ref(0)

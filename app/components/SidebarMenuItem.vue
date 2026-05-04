@@ -6,8 +6,8 @@
       :class="[
         'group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-base font-medium',
         isActive(item.href)
-          ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20'
-          : 'text-blue-100/70 hover:bg-white/5 hover:text-white'
+          ? 'bg-[#4472a6] text-white rounded-lg shadow-md'
+          : 'text-blue-100/80 hover:bg-[#4472a6] hover:text-white rounded-lg'
       ]"
     >
       <span :class="[
@@ -21,14 +21,14 @@
       {{ item.label }}
     </NuxtLink>
 
-    <div v-else-if="item.children" class="rounded-xl overflow-hidden border border-white/5 bg-white/2">
+    <div v-else-if="item.children" :class="isOpen ? 'mb-2' : ''">
       <div
         @click="isOpen = !isOpen"
         :class="[
           'flex items-center justify-between gap-3 px-3 py-2.5 text-base font-medium cursor-pointer select-none transition-colors duration-200',
           isParentActive(item)
-            ? 'text-white bg-blue-700/50'
-            : 'text-blue-100/80 hover:bg-white/5 hover:text-white'
+            ? 'text-white bg-[#4472a6] rounded-lg'
+            : 'text-blue-100/80 hover:bg-[#4472a6] hover:text-white rounded-lg'
         ]"
       >
         <div class="flex items-center gap-3 min-w-0">
@@ -48,7 +48,7 @@
           ]" 
         />
       </div>
-      <div v-show="isOpen" class="pb-2 px-2">
+      <div v-show="isOpen" class="pb-2 px-2 mt-2">
         <NuxtLink
           v-for="child in item.children"
           :key="child.href"
@@ -56,8 +56,8 @@
           :class="[
             'group flex items-center gap-2 pl-6 pr-3 py-2 rounded-lg text-base transition-all duration-200',
             isActive(child.href)
-              ? 'bg-blue-600 text-white shadow-sm shadow-blue-900/20'
-              : 'text-blue-100/70 hover:bg-white/5 hover:text-white'
+              ? 'bg-[#4472a6] text-white rounded-lg shadow-sm'
+              : 'text-blue-100/80 hover:bg-[#4472a6] hover:text-white rounded-lg'
           ]"
         >
           <span :class="[
@@ -122,8 +122,9 @@ function isParentActive(item: SidebarMenuItem) {
 
 const isOpen = ref(false);
 
+
 onMounted(() => {
-  if (isParentActive(props.item)) {
+  if (props.item.children) {
     isOpen.value = true;
   }
 });
