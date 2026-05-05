@@ -36,6 +36,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { navigateTo } from '#app';
 import { useSidebarMenu } from '@/composables/useSidebarMenu';
 import { useRoute } from 'vue-router';
 
@@ -99,6 +100,7 @@ const { clearAuthUser } = useAuthUser();
 
 function handleLogout() {
   clearAuthUser();
+  navigateTo('/');
 }
 </script>
 

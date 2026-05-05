@@ -119,6 +119,22 @@ const errors = ref({
 
 const usernameRegex = /^[a-zA-Z0-9_.-]{3,}$/
 
+const resolveSlugFromUser = (user: any) => {
+  const role = typeof user?.role === 'string' ? user.role.trim().toLowerCase() : ''
+  const safeRole = role
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9_-]/g, '')
+
+  if (safeRole) return safeRole
+
+  const roleId = Number(user?.role_id ?? 0)
+  if (roleId === 1) return 'super_admin'
+  if (roleId === 2) return 'admin'
+  return 'user'
+}
+
+const getPostLoginPath = (user: any) => `/${resolveSlugFromUser(user)}/dashboard`
+
 const isValid = computed(() => {
   if (usernameOrEmail.value && !usernameRegex.test(usernameOrEmail.value)) {
     errors.value.usernameOrEmail = 'Username tidak valid'
@@ -149,14 +165,20 @@ const handleLogin = async () => {
     if (data.success) {
       toast.success('Login berhasil!')
       setAuthUser(data.user ?? null)
-      
-      // Redirect based on role or to dashboard
-      const role = data.user?.role?.toLowerCase()
-      if (role) {
-        navigateTo(`/${role}`)
-      } else {
-        navigateTo('/')
-      }
+
+      // Ensure cookie saved explicitly and log debug info
+      const cookie = useCookie('sireva_user', {
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      })
+      cookie.value = data.user ?? null
+      console.log('DEBUG: /api/auth/login response ->', data)
+      console.log('DEBUG: authUser after setAuthUser ->', authUser.value)
+      console.log('DEBUG: cookie value ->', cookie.value)
+
+      // Redirect to role slug dashboard
+      await navigateTo(getPostLoginPath(data.user), { replace: true })
     } else {
       toast.error(data.message || 'Login gagal. Periksa kembali akun Anda.')
       serverError.value = data.message || 'Login gagal'
@@ -173,9 +195,9 @@ const handleLogin = async () => {
 
 // Check if already logged in
 onMounted(() => {
+  console.log('DEBUG: onMounted authUser ->', authUser.value)
   if (authUser.value) {
-    const role = authUser.value.role?.toLowerCase()
-    navigateTo(role ? `/${role}` : '/')
+    navigateTo(getPostLoginPath(authUser.value), { replace: true })
   }
 })
 </script>

@@ -120,6 +120,22 @@ const errors = ref({ usernameOrEmail: '', password: '' })
 
 const usernameRegex = /^[a-zA-Z0-9_.-]{3,}$/
 
+const resolveSlugFromUser = (user: any) => {
+  const role = typeof user?.role === 'string' ? user.role.trim().toLowerCase() : ''
+  const safeRole = role
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9_-]/g, '')
+
+  if (safeRole) return safeRole
+
+  const roleId = Number(user?.role_id ?? 0)
+  if (roleId === 1) return 'super_admin'
+  if (roleId === 2) return 'admin'
+  return 'user'
+}
+
+const getPostLoginPath = (user: any) => `/${resolveSlugFromUser(user)}/dashboard`
+
 const isValid = computed(() => {
   if (!usernameOrEmail.value) {
     errors.value.usernameOrEmail = 'Username wajib diisi'
@@ -161,10 +177,18 @@ const handleLogin = async () => {
     if (data.success) {
       toast.success('Login berhasil!')
       setAuthUser(data.user ?? null)
+
+      const cookie = useCookie('sireva_user', {
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      })
+      cookie.value = data.user ?? null
+
       emit('update:modelValue', false)
       resetForm()
-      // Redirect ke halaman utama setelah login
-      navigateTo('/')
+      // Redirect ke dashboard role/slug
+      await navigateTo(getPostLoginPath(data.user), { replace: true })
     } else {
       toast.error(data.message || 'Login gagal')
       serverError.value = data.message || 'Login gagal'
