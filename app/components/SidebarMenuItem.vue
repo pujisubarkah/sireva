@@ -77,7 +77,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, computed } from 'vue';
 import type { PropType } from 'vue';
 
 interface SidebarMenuChildItem {
@@ -120,14 +120,8 @@ function isParentActive(item: SidebarMenuItem) {
   return false;
 }
 
-const isOpen = ref(false);
-
-
-onMounted(() => {
-  if (props.item.children) {
-    isOpen.value = true;
-  }
-});
+const isParentInitiallyActive = computed(() => props.item.children ? isParentActive(props.item) : false);
+const isOpen = ref(isParentInitiallyActive.value);
 
 watch(() => props.activePath, () => {
   if (isParentActive(props.item)) {
