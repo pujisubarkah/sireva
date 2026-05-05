@@ -99,6 +99,7 @@ import { useToast } from '#imports'
 import { Button } from '@idds/vue'
 import { IconMail, IconLock } from '@tabler/icons-vue'
 import { useAuthUser } from '@/composables/useAuthUser'
+import { useRoute, useRouter } from 'vue-router'
 
 definePageMeta({
   layout: false
@@ -106,6 +107,8 @@ definePageMeta({
 
 const toast = useToast()
 const { authUser, setAuthUser } = useAuthUser()
+const route = useRoute()
+const router = useRouter()
 
 const usernameOrEmail = ref('')
 const password = ref('')
@@ -134,6 +137,24 @@ const resolveSlugFromUser = (user: any) => {
 }
 
 const getPostLoginPath = (user: any) => `/${resolveSlugFromUser(user)}/dashboard`
+
+const redirectToPostLoginPath = async (user: any) => {
+  const target = getPostLoginPath(user)
+
+  if (route.path !== target) {
+    try {
+      await router.push(target)
+    } catch (e) {
+      console.warn('Router push failed, fallback to navigateTo:', e)
+      await navigateTo(target, { replace: true })
+    }
+  }
+
+  // Last fallback if navigation still does not happen on client
+  if (process.client && window.location.pathname !== target) {
+    window.location.assign(target)
+  }
+}
 
 const isValid = computed(() => {
   if (usernameOrEmail.value && !usernameRegex.test(usernameOrEmail.value)) {
@@ -178,7 +199,7 @@ const handleLogin = async () => {
       console.log('DEBUG: cookie value ->', cookie.value)
 
       // Redirect to role slug dashboard
-      await navigateTo(getPostLoginPath(data.user), { replace: true })
+      await redirectToPostLoginPath(data.user)
     } else {
       toast.error(data.message || 'Login gagal. Periksa kembali akun Anda.')
       serverError.value = data.message || 'Login gagal'
@@ -197,7 +218,7 @@ const handleLogin = async () => {
 onMounted(() => {
   console.log('DEBUG: onMounted authUser ->', authUser.value)
   if (authUser.value) {
-    navigateTo(getPostLoginPath(authUser.value), { replace: true })
+    redirectToPostLoginPath(authUser.value)
   }
 })
 </script>
