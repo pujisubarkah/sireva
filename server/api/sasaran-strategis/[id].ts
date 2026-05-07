@@ -1,7 +1,17 @@
 import { db } from '../../db';
 import { sasaranStrategis } from '../../db/schema/sasaran-strategis';
 import { indikatorStrategis } from '../../db/schema/indikator-strategis';
-import { eq, sql } from 'drizzle-orm';
+import { targetIndikatorStrategis } from '../../db/schema/target-indikator-strategis';
+import { sasaranProgram } from '../../db/schema/sasaran-program';
+import { laporanSasaranProgram } from '../../db/schema/laporan-sasaran-program';
+import { indikatorProgram } from '../../db/schema/indikator-program';
+import { targetIndikatorProgram } from '../../db/schema/target-indikator-program';
+import { sasaranKegiatan } from '../../db/schema/sasaran-kegiatan';
+import { indikatorKegiatan } from '../../db/schema/indikator-kegiatan';
+import { targetIndiaktorKegiatan } from '../../db/schema/target-indikator-kegiatan';
+import { laporanSasaranStrategis } from '../../db/schema/laporan-sasaran-strategis';
+import { perjanjianKinerja } from '../../db/schema/perjanjian-kinerja';
+import { eq, sql, inArray } from 'drizzle-orm';
 import { defineEventHandler, readBody, createError, getMethod, getRouterParam } from 'h3';
 
 export default defineEventHandler(async (event) => {
@@ -18,6 +28,9 @@ export default defineEventHandler(async (event) => {
 			id: sasaranStrategis.id,
 			kode: sasaranStrategis.kode,
 			sasaranText: sasaranStrategis.sasaranText,
+			unitKerjaId: sasaranStrategis.unitKerjaId,
+			tujuanId: sasaranStrategis.tujuanId,
+			ownerUnitName: sql<string>`(select nama from sireva.unit_kerja where id = ${sasaranStrategis.unitKerjaId})`,
 			indikatorStrategis: sql<any[]>`
 				coalesce(
 					jsonb_agg(
@@ -53,6 +66,8 @@ export default defineEventHandler(async (event) => {
 				sasaranStrategis.id,
 				sasaranStrategis.kode,
 				sasaranStrategis.sasaranText,
+				sasaranStrategis.unitKerjaId,
+				sasaranStrategis.tujuanId,
 			)
 			.limit(1);
 
@@ -65,7 +80,7 @@ export default defineEventHandler(async (event) => {
 
 	if (method === 'PUT') {
 		const body = await readBody(event);
-		const { kode, sasaranText } = body ?? {};
+		const { kode, sasaranText, unitKerjaId, tujuanId } = body ?? {};
 
 		if (sasaranText !== undefined && (typeof sasaranText !== 'string' || sasaranText.trim() === '')) {
 			throw createError({ statusCode: 400, statusMessage: 'Field "sasaranText" tidak boleh kosong.' });
@@ -74,6 +89,8 @@ export default defineEventHandler(async (event) => {
 		const updateData: Record<string, unknown> = {};
 		if (kode !== undefined) updateData.kode = kode;
 		if (sasaranText !== undefined) updateData.sasaranText = sasaranText.trim();
+		if (unitKerjaId !== undefined) updateData.unitKerjaId = unitKerjaId;
+		if (tujuanId !== undefined) updateData.tujuanId = tujuanId;
 
 		const [updated] = await db
 			.update(sasaranStrategis)
@@ -89,16 +106,89 @@ export default defineEventHandler(async (event) => {
 	}
 
 	if (method === 'DELETE') {
-		const [deleted] = await db
-			.delete(sasaranStrategis)
-			.where(eq(sasaranStrategis.id, id))
-			.returning();
+		try {
+			return await db.transaction(async (tx) => {
+				// 1. Get IDs for the entire hierarchy to handle NO ACTION constraints
+				const indicators = await tx.select({ id: indikatorStrategis.id })
+					.from(indikatorStrategis)
+					.where(eq(indikatorStrategis.sasaranStrategisId, id));
+				const indicatorIds = indicators.map(i => i.id);
 
-		if (!deleted) {
-			throw createError({ statusCode: 404, statusMessage: 'Sasaran strategis tidak ditemukan.' });
+				const sps = await tx.select({ id: sasaranProgram.id })
+					.from(sasaranProgram)
+					.where(eq(sasaranProgram.idSs, id));
+				const spIds = sps.map(s => s.id);
+
+				let skIds: number[] = [];
+				let ikIds: number[] = [];
+				if (spIds.length > 0) {
+					const sks = await tx.select({ id: sasaranKegiatan.id })
+						.from(sasaranKegiatan)
+						.where(inArray(sasaranKegiatan.idSp, spIds));
+					skIds = sks.map(s => s.id);
+
+					if (skIds.length > 0) {
+						const iks = await tx.select({ id: indikatorKegiatan.id })
+							.from(indikatorKegiatan)
+							.where(inArray(indikatorKegiatan.idSk, skIds));
+						ikIds = iks.map(i => i.id);
+					}
+				}
+
+				// 2. Delete Leaf Nodes (Depth 4) - The ones that usually block
+				if (ikIds.length > 0) {
+					await tx.delete(targetIndiaktorKegiatan)
+						.where(inArray(targetIndiaktorKegiatan.idIku, ikIds));
+				}
+
+				if (indicatorIds.length > 0) {
+					await tx.delete(targetIndikatorStrategis)
+						.where(inArray(targetIndikatorStrategis.indikatorId, indicatorIds));
+				}
+
+				// 3. Delete Junctions/Reports (Depth 3)
+				if (indicatorIds.length > 0) {
+					await tx.delete(perjanjianKinerja)
+						.where(sql`${perjanjianKinerja.sasaranId} = ${id} OR ${perjanjianKinerja.indikatorId} IN (${sql.join(indicatorIds, sql`, `)})`);
+				} else {
+					await tx.delete(perjanjianKinerja)
+						.where(eq(perjanjianKinerja.sasaranId, id));
+				}
+
+				await tx.delete(laporanSasaranStrategis)
+					.where(eq(laporanSasaranStrategis.sasaranId, id));
+
+				// 4. Delete nested tree (Depth 2 & 1)
+				// Deleting sasaranProgram should cascade to its direct children IF DB supports it,
+				// but we manually handled the deep blockers (target_indikator_kegiatan)
+				if (spIds.length > 0) {
+					await tx.delete(sasaranProgram)
+						.where(inArray(sasaranProgram.id, spIds));
+				}
+
+				// 5. Delete Indikator Strategis
+				await tx.delete(indikatorStrategis)
+					.where(eq(indikatorStrategis.sasaranStrategisId, id));
+
+				// 6. Finally delete the SS record
+				const [deleted] = await tx
+					.delete(sasaranStrategis)
+					.where(eq(sasaranStrategis.id, id))
+					.returning();
+
+				if (!deleted) {
+					throw createError({ statusCode: 404, statusMessage: 'Sasaran strategis tidak ditemukan.' });
+				}
+
+				return { success: true, deleted };
+			});
+		} catch (error: any) {
+			console.error('Delete Error:', error);
+			throw createError({ 
+				statusCode: 500, 
+				statusMessage: `Gagal menghapus data: ${error.message || 'Kesalahan database'}` 
+			});
 		}
-
-		return { success: true, deleted };
 	}
 
 	throw createError({ statusCode: 405, statusMessage: 'Method Not Allowed' });

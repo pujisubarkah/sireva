@@ -10,158 +10,134 @@
       <span class="text-slate-600 tracking-normal capitalize font-black">Tambah Baru</span>
     </div>
 
-    <!-- Premium Form Header -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-8 py-10 bg-gradient-to-r from-blue-600 to-[#2663A3] relative overflow-hidden">
-        <div class="absolute top-0 right-0 p-8 opacity-10">
-          <IconPlus :size="120" class="text-white" />
-        </div>
-        <div class="relative z-10 flex items-center gap-6">
-          <div class="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
-            <IconPlus :size="32" class="text-white" />
-          </div>
-          <div>
-            <h1 class="text-2xl font-black text-white tracking-tight">Buat Rencana Aksi Baru</h1>
-            <p class="text-blue-100 mt-1 text-sm font-medium">Definisikan langkah operasional untuk mencapai target output kegiatan.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Form -->
-      <form @submit.prevent="handleSubmit" class="p-8 space-y-12">
+    <!-- Content Section -->
+    <div class="max-w-4xl mx-auto space-y-6">
+      <form @submit.prevent="handleSubmit" class="space-y-6">
         
-        <!-- Section 01: Konteks Operasional -->
-        <div class="space-y-6">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-blue-600/20">
-              01
+        <!-- Section 01: Sasaran Kegiatan -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-6 py-4 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#2663A3]">
+              <IconTarget :size="18" stroke-width="2.5" />
             </div>
-            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Konteks Operasional</h2>
+            <h2 class="text-sm font-black text-[#2663A3] uppercase tracking-wider">Perencanaan - Sasaran Kegiatan</h2>
           </div>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Unit Kerja -->
-            <div class="space-y-2 md:col-span-2">
-              <label for="unitKerja" class="block text-sm font-bold text-slate-700 ml-1">Unit Kerja Pelaksana</label>
+          <div class="p-8 space-y-6">
+            <!-- Sasaran Kegiatan -->
+            <div class="space-y-2">
+              <label class="block text-sm font-bold text-slate-700 ml-1">Sasaran Kegiatan <span class="text-red-500">*</span></label>
               <select 
-                id="unitKerja" 
-                v-model="form.unitKerja" 
-                class="field-input"
-                required
-              >
-                <option value="" disabled selected>-- Pilih Unit Kerja --</option>
-                <option v-for="unit in units" :key="unit.id" :value="unit.nama">
-                  {{ unit.nama }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Pilih Sasaran Kegiatan -->
-            <div class="space-y-2 md:col-span-2">
-              <label for="kegiatanId" class="block text-sm font-bold text-slate-700 ml-1">Induk Sasaran Kegiatan (Output)</label>
-              <select 
-                id="kegiatanId" 
-                v-model="form.kegiatanId" 
+                v-model="form.sasaranId" 
                 class="field-input"
                 required
               >
                 <option :value="null" disabled>-- Pilih Sasaran Kegiatan --</option>
-                <option v-for="k in kegiatanList" :key="k.id" :value="k.id">{{ k.sasaranText }}</option>
+                <option v-for="s in filteredSasaranList" :key="s.id" :value="s.id">{{ s.sasaranText }}</option>
               </select>
             </div>
 
-            <!-- Info Indikator (Read Only atau Select jika ada banyak) -->
-            <div class="space-y-2 md:col-span-2">
-              <label class="block text-sm font-bold text-slate-700 ml-1">Indikator Output Terkait</label>
-              <div class="field-input bg-slate-50 text-slate-500 font-medium">
-                {{ selectedKegiatan?.namaIndikator || 'Pilih kegiatan terlebih dahulu' }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="h-px bg-slate-100"></div>
-
-        <!-- Section 02: Rincian Aksi -->
-        <div class="space-y-6">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-indigo-600/20">
-              02
-            </div>
-            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest">Detail Rencana Aksi</h2>
-          </div>
-          
-          <div class="grid grid-cols-1 gap-6">
-            <!-- Deskripsi Aksi -->
+            <!-- Indikator Kinerja -->
             <div class="space-y-2">
-              <label for="rencanaAksi" class="block text-sm font-bold text-slate-700 ml-1">Deskripsi Rencana Aksi (Tahapan)</label>
-              <textarea 
-                id="rencanaAksi" 
-                v-model="form.rencanaAksi" 
-                rows="4"
-                class="field-input resize-none"
-                placeholder="Jelaskan langkah nyata yang akan dilakukan..."
+              <label class="block text-sm font-bold text-slate-700 ml-1">Indikator Kinerja <span class="text-red-500">*</span></label>
+              <select 
+                v-model="form.indikatorId" 
+                class="field-input"
                 required
-              ></textarea>
-            </div>
-
-            <!-- Target Capaian -->
-            <div class="space-y-4 pt-4">
-              <div class="flex items-center justify-between ml-1">
-                <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.1em]">Target Capaian Operasional</h3>
-                <span v-if="isAutoFilled" class="text-[9px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
-                  <IconLock :size="10" /> Sinkron PK
-                </span>
-              </div>
-              <div class="grid grid-cols-2 sm:grid-cols-6 gap-4">
-                <div class="space-y-2 col-span-2 sm:col-span-1">
-                  <label class="block text-[10px] font-black text-slate-400 uppercase text-center tracking-tighter">Total Target</label>
-                  <input 
-                    v-model.number="form.target" 
-                    type="number" 
-                    step="0.01"
-                    class="field-input !p-3 text-center font-black text-[#2663A3] text-lg transition-all duration-500" 
-                    placeholder="0"
-                    required
-                  />
-                </div>
-                <!-- Monthly Inputs B01-B12 -->
-                <div v-for="m in 12" :key="m" class="space-y-2">
-                  <label class="block text-[10px] font-bold text-slate-400 uppercase text-center tracking-tighter">B{{ String(m).padStart(2, '0') }}</label>
-                  <input 
-                    v-model.number="form['b' + String(m).padStart(2, '0')]" 
-                    type="number" 
-                    step="0.01"
-                    class="field-input !p-2 text-center text-xs font-semibold text-slate-600" 
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-              <p class="text-[11px] text-slate-400 italic ml-1 flex items-center gap-1">
-                <IconCheck v-if="isAutoFilled" :size="12" class="text-blue-500" />
-                {{ isAutoFilled ? 'Total target terkunci sesuai sasaran kegiatan.' : 'Target TW (Triwulan) digunakan untuk memonitor progres berkala.' }}
+                :disabled="!form.sasaranId"
+              >
+                <option :value="null" disabled>-- Pilih Indikator Kinerja --</option>
+                <option v-for="i in filteredIndikatorList" :key="i.id" :value="i.id">{{ i.namaIndikator }}</option>
+              </select>
+              <p v-if="form.sasaranId && filteredIndikatorList.length === 0" class="text-[11px] text-amber-600 font-bold ml-1 italic">
+                * Tidak ada indikator dengan target tahun berjalan ({{ currentYear }})
               </p>
             </div>
           </div>
         </div>
 
+        <!-- Section 02: Rencana Aksi -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-6 py-4 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+              <IconListDetails :size="18" stroke-width="2.5" />
+            </div>
+            <h2 class="text-sm font-black text-indigo-600 uppercase tracking-wider">Perencanaan - Rencana Aksi</h2>
+          </div>
+          
+          <div class="p-8 space-y-6">
+            <div v-for="(item, index) in form.rencanaAksiList" :key="index" class="space-y-4 p-6 bg-slate-50/50 rounded-2xl border border-slate-100 relative group">
+              <button 
+                v-if="form.rencanaAksiList.length > 1"
+                type="button"
+                @click="removeRencanaAksi(Number(index))"
+                class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors z-10"
+              >
+                <IconX :size="14" stroke-width="3" />
+              </button>
+
+              <div class="space-y-2">
+                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Rencana Aksi / Aktivitas #{{ Number(index) + 1 }} <span class="text-red-500">*</span></label>
+                <textarea 
+                  v-model="item.namaAksi" 
+                  rows="2"
+                  class="field-input resize-none"
+                  placeholder="Masukkan deskripsi rencana aksi..."
+                  required
+                ></textarea>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="space-y-2 col-span-2 sm:col-span-1">
+                  <label class="block text-[10px] font-black text-slate-400 uppercase tracking-tighter ml-1">Target Total</label>
+                  <input v-model.number="item.target" type="number" class="field-input !p-2 font-bold" required />
+                </div>
+                <div class="space-y-2">
+                   <label class="block text-[10px] font-bold text-slate-400 uppercase text-center tracking-tighter">B01-B03 (TW I)</label>
+                   <input v-model.number="item.tw1" type="number" class="field-input !p-2 text-center" placeholder="0" />
+                </div>
+                <div class="space-y-2">
+                   <label class="block text-[10px] font-bold text-slate-400 uppercase text-center tracking-tighter">B04-B06 (TW II)</label>
+                   <input v-model.number="item.tw2" type="number" class="field-input !p-2 text-center" placeholder="0" />
+                </div>
+                <div class="space-y-2">
+                   <label class="block text-[10px] font-bold text-slate-400 uppercase text-center tracking-tighter">B07-B12 (TW III/IV)</label>
+                   <input v-model.number="item.tw3" type="number" class="field-input !p-2 text-center" placeholder="0" />
+                </div>
+              </div>
+            </div>
+
+            <button 
+              type="button" 
+              @click="addRencanaAksi"
+              class="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 font-bold text-sm hover:border-[#2663A3] hover:text-[#2663A3] transition-all flex items-center justify-center gap-2"
+            >
+              <IconPlus :size="18" />
+              Tambah Rencana Aksi Lainnya
+            </button>
+            
+            <p class="text-[11px] text-slate-400 text-center italic">Pilih sasaran kegiatan yang akan diturunkan menjadi rencana aksi operasional.</p>
+          </div>
+        </div>
+
         <!-- Footer Actions -->
-        <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-8 mt-4 border-t border-slate-100">
+        <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-6">
           <button 
             type="button" 
             @click="router.push(`/${$route.params.slug}/rencana-aksi`)"
-            class="w-full sm:w-auto px-8 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm hover:bg-slate-200 transition-colors"
+            class="w-full sm:w-auto px-10 py-3 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
           >
+            <IconX :size="18" />
             Batal
           </button>
           <button 
             type="submit" 
-            :disabled="submitting"
+            :disabled="submitting || !form.indikatorId"
             class="w-full sm:w-auto px-10 py-3 rounded-xl bg-[#2663A3] text-white font-bold text-sm shadow-xl shadow-blue-700/20 hover:bg-blue-800 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <IconCheck v-if="!submitting" :size="20" :stroke-width="3" />
+            <IconDeviceFloppy :size="18" />
+            <span v-if="!submitting">Simpan Perencanaan</span>
             <span v-else class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-            Simpan Rencana
           </button>
         </div>
       </form>
@@ -176,81 +152,94 @@
 
 definePageMeta({ layout: 'dashboard' })
 
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { IconArrowLeft, IconPlus, IconCheck, IconLock } from '@tabler/icons-vue';
+import { 
+  IconArrowLeft, IconPlus, IconCheck, IconTarget, 
+  IconListDetails, IconX, IconDeviceFloppy 
+} from '@tabler/icons-vue';
 import useSWRV from 'swrv';
 
 const router = useRouter();
 const route = useRoute();
 
+// Config
+const currentYear = 2026;
+
 // State
 const submitting = ref(false);
-const isAutoFilled = ref(false);
 
 const form = ref<any>({
-  kegiatanId: null,
-  unitKerja: '',
-  rencanaAksi: '',
-  target: 0,
-  ...Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`b${String(i + 1).padStart(2, '0')}`, 0]))
-});
-
-// Watch kegiatan change to auto-fill target
-import { watch } from 'vue';
-watch(() => form.value.kegiatanId, (newId) => {
-  if (newId && kegiatanList.value) {
-    const k = (kegiatanList.value as any[]).find(item => item.id === newId);
-    if (k) {
-      form.value.unitKerja = k.unitKerja || '';
-      form.value.target = Number(k.anggaran || 100); 
-      isAutoFilled.value = true;
-    }
-  } else {
-    isAutoFilled.value = false;
-  }
+  sasaranId: null,
+  indikatorId: null,
+  rencanaAksiList: [
+    { namaAksi: '', target: 0, tw1: 0, tw2: 0, tw3: 0 }
+  ]
 });
 
 // Fetchers
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 const { data: kegiatanList } = useSWRV('/api/sasaran-kegiatan', fetcher);
-const { data: units } = useSWRV('/api/unit-kerja', fetcher);
 
-const selectedKegiatan = computed(() => {
-  if (!form.value.kegiatanId || !kegiatanList.value) return null;
-  return (kegiatanList.value as any[]).find(k => k.id === form.value.kegiatanId);
+// Computed / Filters
+const filteredSasaranList = computed(() => {
+  if (!kegiatanList.value) return [];
+  // Filter sasaran that has at least one indicator with target in currentYear
+  return (kegiatanList.value as any[]).filter(s => {
+    return s.indikators?.some((i: any) => 
+      i.targets?.some((t: any) => Number(t.tahun) === currentYear && t.target != null)
+    );
+  });
 });
 
+const filteredIndikatorList = computed(() => {
+  if (!form.value.sasaranId || !kegiatanList.value) return [];
+  const sasaran = (kegiatanList.value as any[]).find(s => s.id === form.value.sasaranId);
+  if (!sasaran) return [];
+  
+  // Return only indicators that have target for currentYear
+  return (sasaran.indikators || []).filter((i: any) => 
+    i.targets?.some((t: any) => Number(t.tahun) === currentYear && t.target != null)
+  );
+});
+
+// Methods
+const addRencanaAksi = () => {
+  form.value.rencanaAksiList.push({ namaAksi: '', target: 0, tw1: 0, tw2: 0, tw3: 0 });
+};
+
+const removeRencanaAksi = (index: number) => {
+  form.value.rencanaAksiList.splice(index, 1);
+};
+
 const handleSubmit = async () => {
-  if (!form.value.kegiatanId) {
-    alert('Silakan pilih Sasaran Kegiatan terlebih dahulu.');
-    return;
-  }
+  if (!form.value.indikatorId) return;
 
   submitting.value = true;
   try {
-    const result = await $fetch<any>('/api/rencana-aksi', {
-      method: 'POST',
-      body: {
-        indikatorId: form.value.kegiatanId,
-        namaAksi: form.value.rencanaAksi,
-        unitKerja: form.value.unitKerja,
-        target: form.value.target,
-        b01: form.value.b01, b02: form.value.b02, b03: form.value.b03, b04: form.value.b04,
-        b05: form.value.b05, b06: form.value.b06, b07: form.value.b07, b08: form.value.b08,
-        b09: form.value.b09, b10: form.value.b10, b11: form.value.b11, b12: form.value.b12
-      }
-    });
-
-    if (result && (result.success !== false)) {
-      router.push(`/${route.params.slug}/rencana-aksi`);
-    } else {
-      alert('Gagal menyimpan: ' + (result?.message || 'Data tidak tersimpan.'));
+    // We send multiple requests or one batch request depending on API.
+    // For now, let's assume one by one or modify the API if possible.
+    // Given existing code, I'll loop for simplicity or follow the batch pattern.
+    
+    for (const item of form.value.rencanaAksiList) {
+      await $fetch<any>('/api/rencana-aksi', {
+        method: 'POST',
+        body: {
+          indikatorId: form.value.indikatorId,
+          namaAksi: item.namaAksi,
+          target: item.target,
+          tw1: item.tw1,
+          tw2: item.tw2,
+          tw3: item.tw3,
+          tahun: currentYear
+        }
+      });
     }
+
+    router.push(`/${route.params.slug}/rencana-aksi`);
   } catch (error: any) {
     console.error('Error saving data:', error);
-    const msg = error.data?.statusMessage || error.data?.message || 'Terjadi kesalahan pada server.';
-    alert('Gagal menyimpan data: ' + msg);
+    alert('Terjadi kesalahan saat menyimpan data.');
   } finally {
     submitting.value = false;
   }

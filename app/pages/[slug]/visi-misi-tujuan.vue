@@ -28,6 +28,7 @@
           </div>
         </div>
         <button
+          v-if="isSuperAdmin"
           @click="router.push(`/${$route.params.slug}/visi-misi/add`)"
           class="w-full sm:w-auto px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-blue-600 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-slate-900/10 flex items-center justify-center gap-2"
         >
@@ -134,6 +135,13 @@ const { data: tujuanRes, isValidating: tujuanLoading, error: tujuanError } = use
 
 // State Management
 const loading = computed(() => visiLoading.value || misiLoading.value || tujuanLoading.value);
+
+const { authUser, role } = useAuthUser();
+
+const isSuperAdmin = computed(() => {
+  const roleName = String(role.value || '').toLowerCase()
+  return roleName === 'super_admin'
+})
 
 const errorMessage = computed(() => {
   const err = visiError.value || misiError.value || tujuanError.value;

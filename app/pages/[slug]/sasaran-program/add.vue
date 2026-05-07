@@ -1,165 +1,108 @@
 <template>
-  <div class="max-w-3xl mx-auto pb-10 space-y-4">
-    <button
-      @click="router.push(`/${$route.params.slug}/sasaran-program`)"
-      class="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-[#2663A3]"
-    >
-      <IconArrowLeft :size="16" />
-      Kembali
-    </button>
+  <div class="max-w-4xl mx-auto pb-10 space-y-6 mt-4">
+    <div class="flex items-center gap-3 mb-2">
+      <div class="p-2 bg-blue-100 text-blue-600 rounded-lg">
+        <IconClipboardList :size="24" />
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800">Form Perencanaan Sasaran Program</h1>
+        <p class="text-sm text-slate-500 mt-1">Lengkapi form perencanaan tingkat program. Kolom Unit Kerja diisi otomatis berdasarkan alur Cascading Kinerja.</p>
+      </div>
+    </div>
 
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
-      <div class="px-6 py-5 border-b border-slate-200 bg-slate-50">
-        <h1 class="text-xl font-bold text-slate-800">Tambah Sasaran Program</h1>
-        <p class="text-sm text-slate-500 mt-1">Form untuk menambah sasaran program, unit kerja, indikator, dan target.</p>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-slate-100 bg-[#F8FAFC] flex items-center gap-2">
+        <IconTarget :size="20" class="text-blue-600" />
+        <h2 class="text-sm font-bold text-blue-700">Perencanaan - Sasaran Program</h2>
       </div>
 
       <form @submit.prevent="handleSubmit" class="p-6 space-y-6">
+        <!-- Unit Kerja (Hanya Super Admin) -->
+        <div v-if="isSuperAdmin" class="space-y-2">
+          <label for="unitKerjaId" class="block text-sm font-semibold text-slate-700">Unit Kerja <span class="text-red-500">*</span></label>
+          <select id="unitKerjaId" v-model="form.unitKerjaId" required class="field-input">
+            <option :value="null" disabled>-- Pilih Unit Kerja --</option>
+            <option v-for="u in unitList" :key="u.id" :value="u.id">
+              {{ u.nama }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Unit Kerja (Admin/Eselon 1 - Read Only) -->
+        <div v-else-if="isAdmin" class="space-y-2">
+          <label class="block text-sm font-semibold text-slate-700">Unit Kerja</label>
+          <div class="field-input bg-slate-50 text-slate-500 font-medium cursor-not-allowed">
+            {{ loggedUnitKerjaName || 'Unit kerja tidak terdeteksi' }}
+          </div>
+        </div>
+
         <!-- Sasaran Program -->
-        <div class="space-y-4">
-          <div class="space-y-2 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
-            <label for="kode" class="block text-sm font-semibold text-slate-700 sm:w-44 sm:shrink-0">Kode</label>
-            <div class="sm:flex-1">
-              <input
-                id="kode"
-                v-model="form.kode"
-                type="text"
-                class="field-input"
-                placeholder="Contoh: SP-01.01"
-              />
-            </div>
-          </div>
-
-          <div class="space-y-2 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
-            <label for="idSs" class="block text-sm font-semibold text-slate-700 sm:w-44 sm:shrink-0">Sasaran Strategis <span class="text-red-500">*</span></label>
-            <div class="sm:flex-1">
-              <select id="idSs" v-model="form.idSs" required class="field-input">
-                <option :value="null" disabled>-- Pilih Sasaran Strategis --</option>
-                <option v-for="s in uniqueSasaranStrategisList" :key="s.id" :value="s.id">{{ s.kode ? `${s.kode} - ${s.sasaranText}` : s.sasaranText }}</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="space-y-2 sm:space-y-0 sm:flex sm:items-start sm:gap-4">
-            <label for="sasaranText" class="block text-sm font-semibold text-slate-700 sm:w-44 sm:shrink-0 sm:pt-3">Sasaran Program <span class="text-red-500">*</span></label>
-            <div class="sm:flex-1">
-              <textarea
-                id="sasaranText"
-                v-model="form.sasaranText"
-                required
-                class="field-input min-h-28"
-                placeholder="Masukkan sasaran program..."
-              ></textarea>
-            </div>
-          </div>
-
-          <div class="space-y-2 sm:space-y-0 sm:flex sm:items-start sm:gap-4">
-            <label class="block text-sm font-semibold text-slate-700 sm:w-44 sm:shrink-0 sm:pt-1">Unit Kerja</label>
-            <div class="sm:flex-1 space-y-2">
-              <div class="max-h-48 overflow-y-auto border border-slate-200 rounded-xl p-3 bg-slate-50/40">
-                <label
-                  v-for="u in (units as any[] ?? [])"
-                  :key="u.id"
-                  class="flex items-start gap-2 py-1.5 text-sm text-slate-700 cursor-pointer"
-                >
-                  <input v-model="form.unitKerjaIds" type="checkbox" :value="u.id" class="mt-0.5" />
-                  <span>{{ u.nama }}</span>
-                </label>
-              </div>
-              <p class="text-xs text-slate-500">Boleh pilih lebih dari satu unit kerja.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Indikator Program -->
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wide">Indikator Program</h2>
-            <button
-              type="button"
-              @click="addIndikator"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 border border-blue-200 transition-colors"
-            >
-              <IconPlus :size="14" />
-              Tambah Indikator
-            </button>
-          </div>
-
-          <div
-            v-for="(indikator, iIdx) in form.indikatorList"
-            :key="iIdx"
-            class="border border-slate-200 rounded-xl p-4 space-y-4 bg-slate-50/50"
+        <div class="space-y-2">
+          <label for="sasaranId" class="block text-sm font-semibold text-slate-700">Sasaran Program <span class="text-red-500">*</span></label>
+          <select 
+            id="sasaranId" 
+            v-model="form.sasaranId" 
+            required 
+            class="field-input"
+            :disabled="isSuperAdmin && !form.unitKerjaId"
           >
-            <div class="flex items-start gap-3">
-              <div class="flex-1 space-y-4">
-                <div class="space-y-2 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
-                  <label class="block text-xs font-semibold text-slate-600 sm:w-44 sm:shrink-0">Nama Indikator {{ iIdx + 1 }}</label>
-                  <div class="sm:flex-1">
-                    <input
-                      v-model="indikator.nama"
-                      type="text"
-                      class="field-input text-sm"
-                      placeholder="Masukkan nama indikator..."
-                    />
-                  </div>
-                </div>
-                <div class="space-y-2 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
-                  <label class="block text-xs font-semibold text-slate-600 sm:w-44 sm:shrink-0">Satuan</label>
-                  <div class="sm:flex-1">
-                    <input
-                      v-model="indikator.satuan"
-                      type="text"
-                      class="field-input text-sm"
-                      placeholder="Contoh: %, poin, dokumen..."
-                    />
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                @click="removeIndikator(iIdx)"
-                class="mt-1 p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <IconTrash :size="16" />
-              </button>
-            </div>
-
-            <div class="space-y-2 sm:space-y-0 sm:flex sm:items-start sm:gap-4">
-              <label class="block text-xs font-semibold text-slate-600 sm:w-44 sm:shrink-0 sm:pt-2">Target per Tahun</label>
-              <div class="sm:flex-1">
-                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                  <div v-for="t in indikator.targets" :key="t.tahun" class="space-y-1">
-                    <span class="block text-xs text-slate-500 text-center">{{ t.tahun }}</span>
-                    <input
-                      v-model="t.target"
-                      type="number"
-                      step="any"
-                      class="field-input text-sm text-center px-2"
-                      placeholder="-"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="form.indikatorList.length === 0" class="text-center py-6 border border-dashed border-slate-300 rounded-xl text-sm text-slate-400">
-            Belum ada indikator. Klik "Tambah Indikator" untuk menambah.
-          </div>
+            <option :value="null" disabled>-- Pilih Sasaran Program --</option>
+            <option v-for="s in sasaranOptions" :key="s.id" :value="s.id">
+              {{ s.kode ? `${s.kode} - ${s.sasaranText}` : s.sasaranText }}
+            </option>
+          </select>
+          <p v-if="isSuperAdmin && !form.unitKerjaId" class="text-[11px] text-amber-600 font-bold ml-1 italic">
+            * Silakan pilih Unit Kerja terlebih dahulu
+          </p>
         </div>
 
-        <div class="pt-2 flex items-center justify-end gap-3">
+        <!-- Indikator Kinerja -->
+        <div class="space-y-2">
+          <label for="indikatorId" class="block text-sm font-semibold text-slate-700">Indikator Kinerja <span class="text-red-500">*</span></label>
+          <select id="indikatorId" v-model="form.indikatorId" required class="field-input" :disabled="!form.sasaranId">
+            <option :value="null" disabled>-- Pilih Indikator Kinerja Program --</option>
+            <option v-for="i in indikatorOptions" :key="i.id" :value="i.id">
+              {{ i.nama }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Target Capaian -->
+        <div class="space-y-2">
+          <label for="target" class="block text-sm font-semibold text-slate-700">Target Capaian <span class="text-red-500">*</span></label>
+          <div class="flex items-center gap-3">
+            <input
+              id="target"
+              v-model="form.target"
+              type="text"
+              required
+              class="field-input flex-1"
+              placeholder="Masukkan nilai target capaian program..."
+            />
+            <div class="px-4 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-sm font-semibold flex items-center gap-2 whitespace-nowrap">
+              <IconCalendar :size="18" />
+              Tahun {{ currentYear }}
+            </div>
+          </div>
+          <p class="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
+            <IconInfoCircle :size="14" />
+            Target secara sistem akan masuk ke database tahun berjalan.
+          </p>
+        </div>
+
+        <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
           <button
             type="button"
             @click="router.push(`/${$route.params.slug}/sasaran-program`)"
-            class="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50"
+            class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
           >
             Batal
           </button>
           <button
             type="submit"
-            :disabled="submitting"
-            class="px-5 py-2.5 rounded-lg bg-[#2663A3] text-white text-sm font-semibold hover:bg-blue-800 disabled:opacity-50"
+            :disabled="submitting || !isValid"
+            class="px-5 py-2.5 rounded-xl bg-[#2663A3] text-white text-sm font-semibold hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-blue-500/20 transition-all"
           >
             {{ submitting ? 'Menyimpan...' : 'Simpan' }}
           </button>
@@ -170,117 +113,121 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'dashboard' })
+/**
+ * Komponen Sasaran Program Add Standardized
+ */
 
-import { computed, ref } from 'vue'
+definePageMeta({ 
+  layout: 'dashboard',
+  middleware: [
+    function (to, from) {
+      const { role } = useAuthUser()
+      const roleName = String(role.value || '').toLowerCase().replace(/\s+/g, '_')
+      if (roleName === 'user') {
+        return navigateTo(`/${to.params.slug}/sasaran-program`)
+      }
+    }
+  ]
+})
+
+import { ref, computed, watch, onMounted, watchEffect } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import useSWRV from 'swrv'
-import { IconArrowLeft, IconPlus, IconTrash } from '@tabler/icons-vue'
+import { IconClipboardList, IconTarget, IconCalendar, IconInfoCircle } from '@tabler/icons-vue'
+import { useToast, useAuthUser } from '#imports'
 
 const router = useRouter()
 const route = useRoute()
+const toast = useToast()
+const { authUser, role } = useAuthUser()
+
 const submitting = ref(false)
-const targetYears = [2025, 2026, 2027, 2028, 2029]
+const currentYear = new Date().getFullYear()
+
+// Role & Unit Logic
+const normalizedRole = computed(() => String(role.value || '').toLowerCase().replace(/\s+/g, '_'))
+
+// FAIL-SAFE REDIRECT FOR USER ROLE
+watchEffect(() => {
+  if (normalizedRole.value === 'user') {
+    router.replace(`/${route.params.slug}/sasaran-program`)
+  }
+})
+
+const isSuperAdmin = computed(() => normalizedRole.value === 'super_admin')
+const isAdmin = computed(() => normalizedRole.value === 'admin')
+const loggedUnitKerjaName = computed(() => String(authUser.value?.unit_kerja || '').trim())
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: units } = useSWRV('/api/unit-kerja', fetcher)
-const { data: sasaranStrategisRaw } = useSWRV('/api/sasaran-strategis', fetcher)
+const { data: sasaranRaw } = useSWRV('/api/sasaran-program?limit=1000', fetcher)
+const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
 
-type SasaranStrategisOption = {
-  id: number
-  kode: string | null
-  sasaranText: string
-}
-
-const uniqueSasaranStrategisList = computed<SasaranStrategisOption[]>(() => {
-  const rows = (sasaranStrategisRaw.value ?? []) as any[]
-  const map = new Map<number, SasaranStrategisOption>()
-  for (const row of rows) {
-    if (row.ssId != null && !map.has(row.ssId)) {
-      map.set(row.ssId, {
-        id: row.ssId,
-        kode: row.kode ?? null,
-        sasaranText: row.sasaranText,
-      })
-    }
-  }
-  return Array.from(map.values())
+const userUnitKerjaId = computed(() => {
+  if (!isAdmin.value || !unitList.value) return null
+  const found = unitList.value.find((u: any) => u.nama === loggedUnitKerjaName.value)
+  return found?.id || null
 })
 
-function makeIndikator() {
-  return {
-    nama: '',
-    satuan: '',
-    targets: targetYears.map(tahun => ({ tahun, target: '' })),
+const sasaranOptions = computed(() => {
+  const source = Array.isArray(sasaranRaw.value?.data) ? sasaranRaw.value.data : (sasaranRaw.value || [])
+  
+  if (isSuperAdmin.value) {
+    if (!form.value.unitKerjaId) return []
+    return source.filter((s: any) => s.unitKerjaId === form.value.unitKerjaId)
   }
-}
+
+  if (isAdmin.value) {
+    const unitId = userUnitKerjaId.value
+    if (!unitId) return []
+    return source.filter((s: any) => s.unitKerjaId === unitId)
+  }
+
+  return []
+})
 
 const form = ref({
-  kode: '',
-  idSs: null as number | null,
-  sasaranText: '',
-  unitKerjaIds: [] as number[],
-  indikatorList: [makeIndikator()] as ReturnType<typeof makeIndikator>[],
+  unitKerjaId: null as number | null,
+  sasaranId: null as number | null,
+  indikatorId: null as number | null,
+  target: '',
 })
 
-function addIndikator() {
-  form.value.indikatorList.push(makeIndikator())
-}
+const indikatorOptions = computed(() => {
+  if (!form.value.sasaranId) return []
+  const sasaran = sasaranOptions.value.find((s: any) => s.id === form.value.sasaranId)
+  return sasaran?.indikators || []
+})
 
-function removeIndikator(index: number) {
-  form.value.indikatorList.splice(index, 1)
-}
+watch(() => form.value.sasaranId, () => {
+  form.value.indikatorId = null
+})
+
+watch(() => form.value.unitKerjaId, () => {
+  form.value.sasaranId = null
+  form.value.indikatorId = null
+})
+
+const isValid = computed(() => !!form.value.sasaranId && !!form.value.indikatorId && !!form.value.target)
 
 const handleSubmit = async () => {
-  if (!form.value.sasaranText.trim() || !form.value.idSs) return
+  if (!isValid.value) return
 
   submitting.value = true
   try {
-    const sp = await $fetch<{ id: number }[]>('/api/sasaran-program', {
+    await $fetch('/api/sasaran-program/target', {
       method: 'POST',
       body: {
-        idSs: form.value.idSs,
-        kode: form.value.kode || null,
-        sasaranText: form.value.sasaranText,
-        unitKerjaIds: form.value.unitKerjaIds,
-      },
-    })
-
-    const spId = sp[0]?.id
-    if (!spId) throw new Error('Gagal mendapatkan ID sasaran program')
-
-    for (const indikator of form.value.indikatorList) {
-      if (!indikator.nama.trim()) continue
-
-      const ind = await $fetch<{ id: number }[]>('/api/indikator-program', {
-        method: 'POST',
-        body: {
-          sasaranProgramId: spId,
-          nama: indikator.nama,
-          satuan: indikator.satuan || null,
-        },
-      })
-
-      const indId = ind[0]?.id
-      if (!indId) continue
-
-      for (const t of indikator.targets) {
-        if (t.target === '' || t.target === null) continue
-        await $fetch('/api/target-indikator-program', {
-          method: 'POST',
-          body: {
-            indikatorId: indId,
-            tahun: t.tahun,
-            target: t.target,
-          },
-        })
+        idIku: form.value.indikatorId,
+        tahun: currentYear,
+        targetNilai: form.value.target
       }
-    }
-
+    })
+    
+    toast.success('Target sasaran program berhasil disimpan!')
     router.push(`/${route.params.slug}/sasaran-program`)
-  } catch (error) {
-    console.error('Error saving data:', error)
-    alert('Gagal menyimpan data ke server. Silakan coba lagi.')
+  } catch (err: any) {
+    console.error('Error saving target:', err)
+    toast.error(err.data?.message || 'Gagal menyimpan target sasaran program')
   } finally {
     submitting.value = false
   }
@@ -305,7 +252,22 @@ const handleSubmit = async () => {
   box-shadow: 0 0 0 4px rgba(38, 99, 163, 0.1);
 }
 
+.field-input:disabled {
+  background-color: rgb(248 250 252);
+  color: rgb(148 163 184);
+  cursor: not-allowed;
+}
+
 .field-input::placeholder {
   color: rgb(203 213 225);
+}
+
+select.field-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
 }
 </style>

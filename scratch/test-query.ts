@@ -1,7 +1,8 @@
 import { db } from '../server/db';
 import { rencanaAksi } from '../server/db/schema/rencana-aksi';
-import { indikatorKinerja } from '../server/db/schema/indikator-kinerja';
+import { sasaranKegiatan } from '../server/db/schema/sasaran-kegiatan';
 import { sasaranStrategis } from '../server/db/schema/sasaran-strategis';
+import { sasaranProgram } from '../server/db/schema/sasaran-program';
 import { eq } from 'drizzle-orm';
 
 async function main() {
@@ -15,13 +16,17 @@ async function main() {
       tw2: rencanaAksi.tw2,
       tw3: rencanaAksi.tw3,
       tw4: rencanaAksi.tw4,
-      indikator: indikatorKinerja.namaIndikator,
-      sasaran: sasaranStrategis.sasaranText
+      kegiatan: sasaranKegiatan.sasaranText,
+      program: sasaranProgram.sasaranText,
+      strategis: sasaranStrategis.sasaranText
     })
     .from(rencanaAksi)
-    .leftJoin(indikatorKinerja, eq(rencanaAksi.indikatorId, indikatorKinerja.id))
-    .leftJoin(sasaranStrategis, eq(indikatorKinerja.sasaranId, sasaranStrategis.id));
-    console.log(res);
+    .leftJoin(sasaranKegiatan, eq(rencanaAksi.indikatorId, sasaranKegiatan.id))
+    .leftJoin(sasaranProgram, eq(sasaranKegiatan.idSp, sasaranProgram.id))
+    .leftJoin(sasaranStrategis, eq(sasaranProgram.idSs, sasaranStrategis.id));
+    
+    console.log('Query Success:', res.length, 'rows found');
+    console.log(JSON.stringify(res.slice(0, 3), null, 2));
   } catch (error) {
     console.error('RAW ERROR:');
     console.error(error);

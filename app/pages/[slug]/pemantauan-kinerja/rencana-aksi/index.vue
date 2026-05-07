@@ -1,128 +1,100 @@
 <template>
-  <div class="space-y-4">
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-center">
-        <div class="text-slate-500 text-sm font-medium mb-1">Total Rencana Aksi</div>
-        <div class="text-2xl font-bold text-slate-800">{{ summary.total }}</div>
+  <div class="space-y-8 pb-10">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
+      <div class="flex items-start gap-4">
+        <div class="p-3 bg-blue-100 rounded-2xl text-[#2663A3]">
+          <IconChartBar :size="28" stroke-width="2.5" />
+        </div>
+        <div>
+          <h1 class="text-3xl font-black text-slate-900 tracking-tight">Pemantauan Rencana Aksi</h1>
+          <p class="text-slate-500 font-medium text-sm mt-0.5">Daftar laporan pemantauan aktivitas dan progres rencana aksi.</p>
+        </div>
       </div>
-      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-center">
-        <div class="text-slate-500 text-sm font-medium mb-1">Rata-rata Capaian</div>
-        <div class="text-2xl font-bold text-blue-600">{{ summary.averageCapaian }}%</div>
-      </div>
-      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-center">
-        <div class="text-slate-500 text-sm font-medium mb-1">Tercapai (≥100%)</div>
-        <div class="text-2xl font-bold text-emerald-600">{{ summary.tercapai }}</div>
-      </div>
-      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-center">
-        <div class="text-slate-500 text-sm font-medium mb-1">Perlu Perhatian (<80%)</div>
-        <div class="text-2xl font-bold text-red-600">{{ summary.perluPerhatian }}</div>
+
+      <div class="flex items-center gap-3">
+        <NuxtLink
+          :to="`/${route.params.slug}/pemantauan-kinerja/rencana-aksi/add`"
+          class="px-6 py-3 rounded-2xl bg-[#2663A3] text-white text-sm font-black hover:bg-blue-800 transition-all shadow-xl shadow-blue-700/20 flex items-center gap-2 active:scale-95"
+        >
+          <IconPlus :size="18" stroke-width="3" />
+          Input Pemantauan
+        </NuxtLink>
       </div>
     </div>
 
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
-      <!-- Header Utama -->
-      <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 text-center">
-        <h1 class="text-lg font-semibold text-slate-800">Pemantauan Rencana Aksi</h1>
-        <p class="text-sm text-slate-500 mt-1">Pemantauan realisasi capaian Rencana Aksi.</p>
+    <!-- Filters & Search -->
+    <div class="px-2 flex flex-col md:flex-row gap-4">
+      <div class="relative group flex-1">
+        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <IconSearch :size="20" class="text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+        </div>
+        <input 
+          v-model="searchQuery"
+          type="text" 
+          placeholder="Cari laporan..." 
+          class="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 transition-all text-sm font-medium"
+        />
+      </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="mx-2 bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+      <div v-if="loading" class="p-20 text-center flex flex-col items-center gap-4">
+        <div class="w-12 h-12 border-4 border-slate-100 border-t-[#2663A3] rounded-full animate-spin"></div>
+        <p class="text-slate-400 font-bold text-xs uppercase tracking-widest">Memuat Data Pemantauan...</p>
       </div>
 
-      <!-- Toolbar -->
-      <div class="px-5 py-4 border-b border-slate-200 bg-white flex flex-wrap items-center justify-between gap-4">
-        <h2 class="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-          <div class="w-2 h-2 rounded-full bg-blue-600"></div>
-          Realisasi Rencana Aksi
-        </h2>
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="relative min-w-[240px]">
-            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-              <IconSearch class="w-4 h-4 text-slate-400" />
-            </div>
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Cari rencana aksi..."
-              class="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 bg-slate-50/50 transition-all font-medium"
-            />
+      <UiTable
+        v-else
+        :columns="tableColumns"
+        :data="displayRows"
+        row-key="id"
+      >
+        <template #cell-no="{ index }">
+          <span class="text-sm font-black text-slate-400">{{ index + 1 }}</span>
+        </template>
+
+        <template #cell-rencanaAksi="{ row }">
+          <div class="space-y-1">
+            <p class="text-[13px] font-bold text-slate-800 leading-tight">{{ row.rencanaAksiNama }}</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{{ row.indikatorNama }}</p>
           </div>
-          <div class="h-8 w-px bg-slate-200 mx-1"></div>
-          <FilterDropdown
-            v-model="selectedUnitKerja"
-            :options="unitKerjaOptions"
-            :icon="IconBuilding"
-          />
-          <FilterDropdown
-            v-model="selectedYear"
-            :options="yearOptions"
-            :icon="IconCalendarEvent"
-          />
-          <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
-            <IconDownload class="w-4 h-4" />
-            <span>Export</span>
-          </button>
-        </div>
-      </div>
+        </template>
 
-      <!-- Loading State -->
-      <div v-if="loading" class="p-12 text-center text-slate-500">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-700/30 border-t-blue-700 mb-4"></div>
-        <p>Memuat data rencana aksi...</p>
-      </div>
+        <template #cell-unitKerja="{ value }">
+          <span class="px-2 py-1 bg-slate-50 text-slate-600 text-[10px] font-bold rounded-lg border border-slate-100">
+            {{ value }}
+          </span>
+        </template>
 
-      <!-- Konten Tabel -->
-      <div v-else class="overflow-x-auto">
-        <div style="min-width: 1200px;" class="p-5">
-          <Table :columns="columns" :data="tableRows" :showPagination="false" rowKey="id">
-            <!-- Kolom Aksi -->
-            <template #cell-aksi="{ row }">
-              <button class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Lihat Detail">
-                <IconEye class="w-5 h-5" />
-              </button>
-            </template>
-            
-            <!-- Capaian Badge & Progress -->
-            <template #cell-capaian="{ row }">
-              <div class="flex flex-col gap-1.5 w-full min-w-[120px]">
-                <div class="flex items-center justify-between text-xs">
-                  <span 
-                    :class="[
-                      'px-2 py-0.5 rounded font-bold',
-                      row.capaian === '-' ? 'bg-slate-100 text-slate-500' :
-                      parseFloat(row.capaian) >= 100 ? 'bg-emerald-100 text-emerald-700' : 
-                      parseFloat(row.capaian) >= 80 ? 'bg-blue-100 text-blue-700' :
-                      parseFloat(row.capaian) >= 50 ? 'bg-amber-100 text-amber-700' :
-                      'bg-red-100 text-red-700'
-                    ]"
-                  >
-                    {{ row.capaian !== '-' ? row.capaian + '%' : '-' }}
-                  </span>
-                  <span v-if="row.capaian !== '-'" class="text-slate-500 font-medium text-[10px] uppercase tracking-wider">
-                    {{ parseFloat(row.capaian) >= 100 ? 'Sgt Baik' : parseFloat(row.capaian) >= 80 ? 'Baik' : parseFloat(row.capaian) >= 50 ? 'Cukup' : 'Kurang' }}
-                  </span>
-                </div>
-                <div v-if="row.capaian !== '-'" class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                  <div 
-                    class="h-1.5 rounded-full transition-all duration-500"
-                    :class="[
-                      parseFloat(row.capaian) >= 100 ? 'bg-emerald-500' : 
-                      parseFloat(row.capaian) >= 80 ? 'bg-blue-500' :
-                      parseFloat(row.capaian) >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                    ]"
-                    :style="{ width: `${Math.min(parseFloat(row.capaian), 100)}%` }"
-                  ></div>
-                </div>
-              </div>
-            </template>
+        <template #cell-keterangan="{ value }">
+          <p class="text-xs text-slate-600 italic">"{{ value }}"</p>
+        </template>
 
-            <!-- Anggaran Cell -->
-            <template #cell-anggaran="{ row }">
-              <span class="text-xs font-black text-emerald-600">
-                Rp {{ Number(row.anggaran || 0).toLocaleString('id-ID') }}
-              </span>
-            </template>
-          </Table>
-        </div>
-      </div>
+        <template #cell-aksi="{ row }">
+          <div class="flex items-center justify-center gap-1">
+            <NuxtLink
+              :to="`/${route.params.slug}/pemantauan-kinerja/rencana-aksi/view?id=${row.id}`"
+              class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+            >
+              <IconEye :size="18" />
+            </NuxtLink>
+            <NuxtLink
+              :to="`/${route.params.slug}/pemantauan-kinerja/rencana-aksi/edit?id=${row.id}`"
+              class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+            >
+              <IconPencil :size="18" />
+            </NuxtLink>
+            <button
+              @click="handleDelete(row)"
+              class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+            >
+              <IconTrash :size="18" />
+            </button>
+          </div>
+        </template>
+      </UiTable>
     </div>
   </div>
 </template>
@@ -130,113 +102,52 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
-import { IconCalendarEvent, IconBuilding, IconSearch, IconDownload, IconEye } from '@tabler/icons-vue';
-import Table from '@/components/UI/Table.vue';
-import FilterDropdown from '@/components/FilterDropdown.vue';
-import useSWRV from 'swrv';
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { 
+  IconChartBar, IconPlus, IconSearch, IconEye, IconPencil, IconTrash 
+} from '@tabler/icons-vue'
+import useSWRV from 'swrv'
+import UiTable from '@/components/UI/Table.vue'
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
-const { data: unitData } = useSWRV('/api/unit-kerja', fetcher);
-const selectedUnitKerja = ref('Semua Unit Kerja');
-const unitKerjaOptions = computed(() => {
-  const units = unitData.value?.map((u: any) => u.nama) || [];
-  return ['Semua Unit Kerja', ...units];
-});
+const route = useRoute()
+const fetcher = (url: string) => fetch(url).then(r => r.json())
 
-const selectedYear = ref(String(new Date().getFullYear()));
-const yearOptions = ['2025', '2026', '2027', '2028', '2029'];
+const searchQuery = ref('')
 
-const searchQuery = ref('');
+const { data: rawData, isValidating: loading, mutate } = useSWRV('/api/pemantauan-rencana-aksi', fetcher)
 
-const router = useRouter();
+const tableColumns = [
+  { key: 'no', label: 'No', align: 'center', width: 60 },
+  { key: 'unitKerja', label: 'Unit Kerja', width: '20%' },
+  { key: 'rencanaAksi', label: 'Rencana Aksi & Indikator', width: '40%' },
+  { key: 'keterangan', label: 'Keterangan', width: '25%' },
+  { key: 'aksi', label: 'Aksi', align: 'center', width: 150 },
+]
 
-const rencanaUrl = computed(() => `/api/rencana-aksi?tahun=${selectedYear.value}&unitKerja=${selectedUnitKerja.value}`);
-const { data: rencanaData, isValidating: loading } = useSWRV(rencanaUrl, fetcher);
-
-const columns = computed(() => [
-  { key: 'no', label: 'No', className: 'text-center w-14' },
-  { key: 'sasaran', label: 'Sasaran' },
-  { key: 'indikator', label: 'Indikator' },
-  { key: 'unitKerja', label: 'Unit Kerja' },
-  { key: 'rencanaAksi', label: 'Rencana Aksi' },
-  { key: 'target', label: `Target (${selectedYear.value})`, className: 'text-center w-28' },
-  { key: 'anggaran', label: 'Anggaran', className: 'text-center w-32' },
-  { key: 'realisasi', label: 'Realisasi', className: 'text-center w-28 font-semibold' },
-  { key: 'capaian', label: '% Capaian', className: 'w-40' },
-  { key: 'aksi', label: '', className: 'w-14 text-center' }
-]);
-
-// Dummy Data State (for simulation)
-const dummyRealisasi = ref<Record<string, string>>({
-  '1': '5',
-  '2': '80'
-});
-
-const tableRows = computed(() => {
-  if (!rencanaData.value) return [];
-  
-  let filteredData = rencanaData.value.map((item: any, index: number) => {
-    const targetVal = parseFloat(item.target) || 0;
-    const realisasiStr = dummyRealisasi.value[item.id];
-    const realisasiVal = realisasiStr ? parseFloat(realisasiStr) : 0;
-    
-    let capaian = 0;
-    if (targetVal > 0 && realisasiStr) {
-      capaian = (realisasiVal / targetVal) * 100;
-    }
-
-    return {
-      ...item,
-      target: targetVal,
-      realisasi: realisasiStr || '-',
-      capaian: realisasiStr ? capaian.toFixed(1) : '-',
-    };
-  });
-
-  if (selectedUnitKerja.value !== 'Semua Unit Kerja') {
-    filteredData = filteredData.filter((d: any) => d.unitKerja === selectedUnitKerja.value);
-  }
+const displayRows = computed(() => {
+  let rows = (rawData.value || []) as any[]
+  if (rawData.value?.data) rows = rawData.value.data
 
   if (searchQuery.value) {
-    const q = searchQuery.value.toLowerCase();
-    filteredData = filteredData.filter((d: any) => 
-      d.rencanaAksi.toLowerCase().includes(q) || 
-      d.indikator.toLowerCase().includes(q) ||
-      d.sasaran.toLowerCase().includes(q)
-    );
+    const q = searchQuery.value.toLowerCase()
+    rows = rows.filter(r => 
+      r.rencanaAksiNama?.toLowerCase().includes(q) || 
+      r.keterangan?.toLowerCase().includes(q) ||
+      r.unitKerjaNama?.toLowerCase().includes(q)
+    )
   }
 
-  return filteredData.map((d: any, index: number) => ({ ...d, no: index + 1 }));
-});
+  return rows
+})
 
-const summary = computed(() => {
-  const rows = tableRows.value;
-  const total = rows.length;
-  
-  let validCapaianCount = 0;
-  let totalCapaian = 0;
-  let tercapai = 0;
-  let perluPerhatian = 0;
-
-  rows.forEach((r: any) => {
-    if (r.capaian !== '-' && r.capaian !== 'NaN') {
-      const val = parseFloat(r.capaian);
-      validCapaianCount++;
-      totalCapaian += val;
-      if (val >= 100) tercapai++;
-      if (val < 80) perluPerhatian++;
-    }
-  });
-
-  const averageCapaian = validCapaianCount > 0 ? (totalCapaian / validCapaianCount).toFixed(1) : '0';
-
-  return {
-    total,
-    averageCapaian,
-    tercapai,
-    perluPerhatian
-  };
-});
+async function handleDelete(row: any) {
+  if (!confirm('Hapus laporan pemantauan ini?')) return
+  try {
+    await $fetch(`/api/pemantauan-rencana-aksi/${row.id}`, { method: 'DELETE' })
+    mutate()
+  } catch (error) {
+    console.error('Error:', error)
+  }
+}
 </script>
