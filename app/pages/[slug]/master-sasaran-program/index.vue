@@ -50,6 +50,7 @@
                 <IconPencil :size="16" />
               </NuxtLink>
               <button
+                @click="handleDelete(row.id)"
                 type="button"
                 :aria-label="`Hapus ${row.kode}`"
                 title="Hapus"
@@ -73,12 +74,31 @@ import { useRouter, useRoute } from 'vue-router';
 import useSWRV from 'swrv';
 import { IconPencil, IconTrash, IconPlus, IconEye } from '@tabler/icons-vue';
 import Table from '@/components/UI/Table.vue';
+import { useToast } from '#imports';
+
+const toast = useToast();
 
 const router = useRouter();
 const route = useRoute();
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
-const { data, error, isValidating } = useSWRV<any>('/api/sasaran-program', fetcher);
+const { data, error, isValidating, mutate } = useSWRV<any>('/api/sasaran-program', fetcher);
+
+const handleDelete = async (id: number) => {
+  if (!confirm('Apakah Anda yakin ingin menghapus data master sasaran program ini?')) return;
+  
+  try {
+    await $fetch('/api/sasaran-program', {
+      method: 'DELETE',
+      body: { id }
+    });
+    toast.success('Data master berhasil dihapus');
+    mutate(); // Refresh table data
+  } catch (err: any) {
+    console.error('Delete error:', err);
+    toast.error(err.data?.statusMessage || 'Gagal menghapus data');
+  }
+};
 
 const loading = computed(() => isValidating.value && !data.value);
 
@@ -93,7 +113,7 @@ const tableRows = computed(() => {
   return source.map((item: any) => ({
     id: item.id,
     kode: item.kode || '-',
-    sasaran: item.sasaranText || '-',
+    sasaran: item.sasaran_program_text || '-',
     aksi: '',
   }));
 });

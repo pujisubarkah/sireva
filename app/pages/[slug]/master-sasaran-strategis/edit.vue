@@ -49,25 +49,6 @@
               />
             </div>
 
-            <!-- Unit Kerja -->
-            <div class="space-y-2">
-              <label class="text-sm font-bold text-slate-700 flex items-center gap-1">
-                Unit Kerja <span class="text-red-500">*</span>
-              </label>
-              <div class="relative group">
-                <select
-                  v-model="form.unitKerjaId"
-                  required
-                  class="w-full appearance-none bg-white border-2 border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all cursor-pointer"
-                >
-                  <option :value="null" disabled>-- Pilih Unit Kerja --</option>
-                  <option v-for="u in unitList" :key="u.id" :value="u.id">{{ u.nama }}</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400 group-focus-within:text-[#2663A3]">
-                  <IconChevronDown :size="20" stroke-width="3" />
-                </div>
-              </div>
-            </div>
 
 
           </div>
@@ -222,11 +203,9 @@ const submitting = ref(false)
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 const { data: detail, isValidating: fetching } = useSWRV(id ? `/api/sasaran-strategis/${id}` : null, fetcher)
-const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
 
 const form = ref({
   kode: '',
-  unitKerjaId: null as number | null,
   sasaranText: '',
   satuan: '',
   indikatorList: [] as any[]
@@ -235,7 +214,6 @@ const form = ref({
 watchEffect(() => {
   if (detail.value) {
     form.value.kode = detail.value.kode || ''
-    form.value.unitKerjaId = detail.value.unitKerjaId
     form.value.sasaranText = detail.value.sasaranText || ''
     
     // Map indicators and targets
@@ -282,7 +260,6 @@ const handleSubmit = async () => {
       body: {
         kode: form.value.kode,
         sasaranText: form.value.sasaranText,
-        unitKerjaId: form.value.unitKerjaId
       },
     })
 

@@ -51,6 +51,7 @@
               </NuxtLink>
               <button
                 type="button"
+                @click="handleDelete(row.id)"
                 :aria-label="`Hapus ${row.kode}`"
                 title="Hapus"
                 class="action-btn action-btn-delete"
@@ -73,12 +74,14 @@ import { useRouter, useRoute } from 'vue-router';
 import useSWRV from 'swrv';
 import { IconPencil, IconTrash, IconPlus, IconEye } from '@tabler/icons-vue';
 import Table from '@/components/UI/Table.vue';
+import { useToast } from '#imports'
 
 const router = useRouter();
 const route = useRoute();
+const toast = useToast();
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
-const { data, error, isValidating } = useSWRV<any>('/api/sasaran-kegiatan', fetcher);
+const { data, error, isValidating, mutate } = useSWRV<any>('/api/sasaran-kegiatan', fetcher);
 
 const loading = computed(() => isValidating.value && !data.value);
 
@@ -89,11 +92,11 @@ const errorMessage = computed(() => {
 
 const tableRows = computed(() => {
   if (!data.value) return [];
-  const source = Array.isArray(data.value?.data) ? data.value.data : (Array.isArray(data.value) ? data.value : []);
+  const source = Array.isArray(data.value) ? data.value : (data.value?.data || []);
   return source.map((item: any) => ({
     id: item.id,
     kode: item.kode || '-',
-    sasaran: item.sasaranText || '-',
+    sasaran: item.sasaran_kegiatan_text || '-',
     aksi: '',
   }));
 });
@@ -104,6 +107,20 @@ const columns = [
   { key: 'sasaran', label: 'Sasaran Kegiatan' },
   { key: 'aksi', label: 'Aksi', className: 'text-center w-32' },
 ];
+
+const handleDelete = async (id: number) => {
+  if (!confirm('Apakah Anda yakin ingin menghapus data master sasaran kegiatan ini?')) return
+  try {
+    await $fetch('/api/sasaran-kegiatan', {
+      method: 'DELETE',
+      body: { id }
+    })
+    toast.success('Data master berhasil dihapus.')
+    mutate()
+  } catch (error: any) {
+    toast.error('Gagal menghapus data master.')
+  }
+}
 </script>
 
 <style scoped>

@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-4xl mx-auto pb-20 space-y-8">
+  <div class="max-w-5xl mx-auto pb-20 space-y-8 mt-4">
     <!-- Header Section -->
     <div class="flex items-center justify-between px-2">
       <div class="flex items-start gap-4">
@@ -9,7 +9,7 @@
         <div>
           <h1 class="text-2xl font-black text-slate-900 tracking-tight">Master Data: Edit Sasaran Program</h1>
           <p class="text-slate-500 font-medium text-sm mt-0.5">
-            Perbarui data master (kamus) sasaran program, hierarki cascading, dan target periode Renstra.
+            Perbarui data master sasaran program, hierarki cascading, dan target Renstra.
           </p>
         </div>
       </div>
@@ -27,161 +27,132 @@
     </div>
 
     <form v-else @submit.prevent="handleSubmit" class="space-y-6">
-      <!-- Section 1: Hierarki & Relasi Data (Cascading) -->
       <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden transition-all hover:shadow-md">
-        <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center gap-3">
-          <IconSitemap :size="20" class="text-slate-500" stroke-width="2.5" />
-          <h2 class="text-slate-700 font-bold text-sm uppercase tracking-wider">Hierarki & Relasi Data (Cascading)</h2>
-        </div>
-        <div class="p-8">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Kode -->
-            <div class="space-y-2">
-              <label class="text-sm font-bold text-slate-700 flex items-center gap-1">
-                Kode <span class="text-red-500">*</span>
-              </label>
-              <input
-                v-model="form.kode"
-                type="text"
-                required
-                class="w-full bg-white border-2 border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all placeholder:text-slate-400"
-                placeholder="Contoh: SP-001"
-              />
-            </div>
-
-            <!-- Unit Kerja -->
-            <div class="space-y-2">
-              <label class="text-sm font-bold text-slate-700 flex items-center gap-1">
-                Unit Kerja <span class="text-red-500">*</span>
-              </label>
-              <div class="relative group">
-                <select
-                  v-model="form.unitKerjaId"
-                  required
-                  class="w-full appearance-none bg-white border-2 border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all cursor-pointer"
-                >
-                  <option :value="null" disabled>-- Pilih Unit Kerja --</option>
-                  <option v-for="u in unitList" :key="u.id" :value="u.id">{{ u.nama }}</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400 group-focus-within:text-[#2663A3]">
-                  <IconChevronDown :size="20" stroke-width="3" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Sasaran Strategis Induk -->
-            <div class="md:col-span-2 space-y-2">
-              <label class="text-sm font-bold text-slate-700 flex items-center gap-1">
-                Sasaran Strategis Induk <span class="text-red-500">*</span>
-              </label>
-              <div class="relative group">
-                <select
-                  v-model="form.idSs"
-                  required
-                  class="w-full appearance-none bg-white border-2 border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all cursor-pointer"
-                >
-                  <option :value="null" disabled>-- Pilih Sasaran Strategis --</option>
-                  <option v-for="ss in sasaranStrategisList" :key="ss.id" :value="ss.id">{{ ss.sasaranText }}</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400 group-focus-within:text-[#2663A3]">
-                  <IconChevronDown :size="20" stroke-width="3" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 2: Rincian Sasaran Program Master -->
-      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden transition-all hover:shadow-md">
+        <!-- Table Form Header -->
         <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center gap-3">
           <IconFileText :size="20" class="text-slate-500" stroke-width="2.5" />
-          <h2 class="text-slate-700 font-bold text-sm uppercase tracking-wider">Rincian Sasaran Program Master</h2>
+          <h2 class="text-slate-700 font-bold text-sm uppercase tracking-wider">Formulir Edit Sasaran Program</h2>
         </div>
-        <div class="p-8 space-y-6">
-          <!-- Sasaran Program -->
-          <div class="space-y-2">
-            <label class="text-sm font-bold text-slate-700 flex items-center gap-1">
-              Sasaran Program <span class="text-red-500">*</span>
-            </label>
-            <div class="relative group">
-              <textarea
-                v-model="form.sasaranText"
-                required
-                rows="3"
-                class="w-full bg-white border-2 border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all placeholder:text-slate-400 resize-none"
-                placeholder="Deskripsikan sasaran program..."
-              ></textarea>
-              <div class="absolute bottom-4 right-4 text-slate-300 pointer-events-none">
-                <IconPencil :size="20" />
-              </div>
-            </div>
-          </div>
 
-          <!-- Indikator Kinerja Utama -->
-          <div class="space-y-2">
-            <label class="text-sm font-bold text-slate-700 flex items-center gap-1">
-              Indikator Kinerja (Utama) <span class="text-red-500">*</span>
-            </label>
-            <div class="relative group">
-              <textarea
-                v-model="form.indikatorUtama"
-                required
-                rows="2"
-                class="w-full bg-white border-2 border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all placeholder:text-slate-400 resize-none"
-                placeholder="Deskripsikan indikator kinerja utama..."
-              ></textarea>
-              <div class="absolute bottom-4 right-4 text-slate-300 pointer-events-none">
-                <IconPencil :size="20" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 3: Pengukuran & Target (Periode Renstra) -->
-      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden transition-all hover:shadow-md">
-        <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center gap-3">
-          <IconTarget :size="20" class="text-slate-500" stroke-width="2.5" />
-          <h2 class="text-slate-700 font-bold text-sm uppercase tracking-wider">Pengukuran & Target (Periode Renstra)</h2>
-        </div>
-        <div class="p-8 space-y-8">
-          <!-- Satuan Pengukuran -->
-          <div class="max-w-md space-y-2">
-            <label class="text-sm font-bold text-slate-700 flex items-center gap-1">
-              Satuan Pengukuran <span class="text-red-500">*</span>
-            </label>
-            <input
-              v-model="form.satuan"
-              type="text"
-              required
-              class="w-full bg-white border-2 border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all placeholder:text-slate-400"
-              placeholder="Contoh: Persen, Dokumen, Nilai..."
-            />
-          </div>
-
-          <!-- Target Master -->
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <label class="text-sm font-bold text-slate-700">Target Master (Tahun 1 s.d. Tahun 5)</label>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div v-for="n in 5" :key="n" class="space-y-2 text-center">
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tahun {{ n }}</span>
+        <table class="w-full text-sm border-collapse">
+          <tbody>
+            <!-- 1. Kode -->
+            <tr class="border-b border-slate-100">
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">1. Kode <span class="text-red-500">*</span></td>
+              <td class="px-8 py-5">
                 <input
-                  v-model="form.targets[n-1]"
+                  v-model="form.kode"
                   type="text"
                   required
-                  class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-center text-sm font-bold text-slate-700 focus:outline-none focus:border-[#2663A3] focus:bg-white transition-all shadow-inner"
-                  placeholder="0"
+                  class="w-full md:w-1/3 bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
                 />
-              </div>
-            </div>
-            <p class="text-[11px] text-slate-400 italic">
-              * Isi target capaian untuk 5 tahun periode Rencana Strategis (Renstra). Nilai ini akan menjadi acuan (master) saat unit kerja melakukan perencanaan tahunan.
-            </p>
-          </div>
-        </div>
+              </td>
+            </tr>
+
+            <!-- 2. Unit Kerja -->
+            <tr class="border-b border-slate-100">
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">2. Unit Kerja <span class="text-red-500">*</span></td>
+              <td class="px-8 py-5">
+                <div class="relative max-w-xl">
+                  <select
+                    v-model="form.unit_kerja"
+                    required
+                    class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                  >
+                    <option value="" disabled>-- Pilih Unit Kerja --</option>
+                    <option v-for="u in unitList" :key="u.id" :value="u.nama">{{ u.nama }}</option>
+                  </select>
+                  <IconChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" :size="18" />
+                </div>
+              </td>
+            </tr>
+
+            <!-- 3. Sasaran Strategis -->
+            <tr class="border-b border-slate-100">
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">3. Sasaran Strategis <span class="text-red-500">*</span></td>
+              <td class="px-8 py-5">
+                <div class="relative max-w-2xl">
+                  <select
+                    v-model="form.id_ss"
+                    required
+                    class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                  >
+                    <option :value="null" disabled>-- Pilih Sasaran Strategis --</option>
+                    <option v-for="ss in sasaranStrategisOptions" :key="ss.id" :value="ss.id">
+                      [{{ ss.kode }}] {{ ss.sasaranText }}
+                    </option>
+                  </select>
+                  <IconChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" :size="18" />
+                </div>
+              </td>
+            </tr>
+
+            <!-- 4. Indikator Kinerja (Kode IKU) -->
+            <tr class="border-b border-slate-100">
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">4. Indikator Kinerja <span class="text-red-500">*</span></td>
+              <td class="px-8 py-5">
+                <div class="relative max-w-2xl">
+                  <select
+                    v-model="form.kode_iku"
+                    required
+                    class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                    :disabled="!form.id_ss"
+                  >
+                    <option value="" disabled>-- Pilih Indikator Strategis --</option>
+                    <option v-for="is in indikatorStrategisOptions" :key="is.id" :value="is.kode || is.nama">
+                      {{ is.nama }}
+                    </option>
+                  </select>
+                  <IconChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" :size="18" />
+                </div>
+              </td>
+            </tr>
+
+            <!-- 5. Sasaran Program Text -->
+            <tr class="border-b border-slate-100">
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">5. Nama Sasaran Program <span class="text-red-500">*</span></td>
+              <td class="px-8 py-5">
+                <textarea
+                  v-model="form.sasaran_program_text"
+                  required
+                  class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] min-h-[100px] transition-all"
+                ></textarea>
+              </td>
+            </tr>
+
+            <!-- 6. Satuan -->
+            <tr class="border-b border-slate-100">
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">6. Satuan <span class="text-red-500">*</span></td>
+              <td class="px-8 py-5">
+                <input
+                  v-model="form.satuan"
+                  type="text"
+                  required
+                  class="w-full md:w-1/2 bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                />
+              </td>
+            </tr>
+
+            <!-- 7. Target Renstra -->
+            <tr>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700 align-top pt-8">7. Target Renstra (5 Tahun) <span class="text-red-500">*</span></td>
+              <td class="px-8 py-8">
+                <div class="grid grid-cols-5 gap-4">
+                  <div v-for="n in 5" :key="n" class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center block">Tahun {{ n }}</label>
+                    <input
+                      v-model="form[`target_${n}`]"
+                      type="number"
+                      step="any"
+                      required
+                      class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-2 py-2.5 text-center font-bold text-slate-700 focus:bg-white focus:border-[#2663A3] transition-all"
+                    />
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- Action Buttons -->
@@ -191,8 +162,7 @@
           @click="router.push(`/${route.params.slug}/master-sasaran-program`)"
           class="px-8 py-3.5 rounded-2xl border-2 border-slate-200 text-slate-500 font-bold text-sm hover:bg-slate-50 transition-all flex items-center gap-2"
         >
-          <IconX :size="18" />
-          Batal
+          <IconX :size="18" /> Batal
         </button>
         <button
           type="submit"
@@ -211,16 +181,17 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-import { ref, watchEffect, computed } from 'vue'
+import { ref, computed, watchEffect } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { 
-  IconPencil, IconSitemap, IconFileText, IconTarget,
-  IconChevronDown, IconX, IconDeviceFloppy 
+  IconPencil, IconFileText, IconChevronDown, IconTrash, IconPlus, IconX, IconDeviceFloppy 
 } from '@tabler/icons-vue'
 import useSWRV from 'swrv'
+import { useToast } from '#imports'
 
 const router = useRouter()
 const route = useRoute()
+const toast = useToast()
 const id = route.query.id
 const submitting = ref(false)
 
@@ -229,45 +200,96 @@ const { data: detail, isValidating: fetching } = useSWRV(id ? `/api/sasaran-prog
 const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
 const { data: ssData } = useSWRV('/api/sasaran-strategis', fetcher)
 
-const sasaranStrategisList = computed(() => {
-  if (!ssData.value) return []
-  return Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
-})
-
-const form = ref({
+// 1. Standardized Form State
+const form = ref<Record<string, any>>({
+  id_ss: null as number | null,
   kode: '',
-  unitKerjaId: null as number | null,
-  idSs: null as number | null,
-  sasaranText: '',
-  indikatorUtama: '',
+  unit_kerja: '',
+  kode_iku: '',
+  sasaran_program_text: '',
   satuan: '',
-  targets: ['', '', '', '', '']
+  target_1: 0,
+  target_2: 0,
+  target_3: 0,
+  target_4: 0,
+  target_5: 0
 })
 
+// 2. Load Data
 watchEffect(() => {
   if (detail.value) {
-    // Assuming detail[0] or direct object depending on API
     const item = Array.isArray(detail.value) ? detail.value[0] : detail.value
-    if (!item) return
-
-    form.value.kode = item.kode || ''
-    form.value.idSs = item.idSs
-    form.value.sasaranText = item.sasaranText || ''
-    // Unit Kerja handling... (Assuming relation exists)
+    if (item) {
+      form.value.id_ss = item.id_ss ? Number(item.id_ss) : null
+      form.value.kode = item.kode || ''
+      form.value.unit_kerja = item.unit_kerja || ''
+      form.value.kode_iku = item.kode_iku || ''
+      form.value.sasaran_program_text = item.sasaran_program_text || ''
+      form.value.satuan = item.satuan || ''
+      form.value.target_1 = Number(item.target_1 || 0)
+      form.value.target_2 = Number(item.target_2 || 0)
+      form.value.target_3 = Number(item.target_3 || 0)
+      form.value.target_4 = Number(item.target_4 || 0)
+      form.value.target_5 = Number(item.target_5 || 0)
+    }
   }
+})
+
+// 3. Options Mapping
+const sasaranStrategisOptions = computed(() => {
+  if (!ssData.value) return []
+  const source = Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
+  const seen = new Set()
+  return source.filter((item: any) => {
+    if (!item.ssId || seen.has(item.ssId)) return false
+    seen.add(item.ssId)
+    return true
+  }).map((item: any) => ({
+    id: Number(item.ssId),
+    kode: item.kode || '-',
+    sasaranText: item.sasaranText
+  }))
+})
+
+const indikatorStrategisOptions = computed(() => {
+  if (!form.value.id_ss || !ssData.value) return []
+  const source = Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
+  return source
+    .filter((item: any) => Number(item.ssId) === form.value.id_ss)
+    .map((item: any) => ({
+      id: item.indikatorId,
+      nama: item.indikatorNama,
+      kode: item.indikatorKode
+    }))
 })
 
 const handleSubmit = async () => {
   if (submitting.value) return
+  
   submitting.value = true
-
   try {
-    // Implement update logic
+    await $fetch('/api/sasaran-program', {
+      method: 'PUT',
+      body: {
+        id: id,
+        ...form.value
+      }
+    })
+    
+    toast.success('Data master sasaran program berhasil diperbarui.')
     router.push(`/${route.params.slug}/master-sasaran-program`)
-  } catch (error) {
-    console.error('Error saving data:', error)
+  } catch (error: any) {
+    console.error('Error:', error)
+    toast.error(error.data?.statusMessage || 'Gagal menyimpan perubahan.')
   } finally {
     submitting.value = false
   }
 }
 </script>
+
+<style scoped>
+/* Table-like form refinement */
+table tr:last-child {
+  border-bottom: none;
+}
+</style>

@@ -22,45 +22,6 @@
         </div>
         <div class="p-8">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Unit Kerja (Hanya Super Admin) -->
-            <div v-if="isSuperAdmin" class="space-y-2">
-              <label class="text-sm font-bold text-slate-700 flex items-center gap-1">
-                Unit Kerja <span class="text-red-500">*</span>
-              </label>
-              <div class="relative group">
-                <select
-                  v-model="form.unitKerjaId"
-                  required
-                  class="w-full appearance-none bg-white border-2 border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all cursor-pointer"
-                >
-                  <option :value="null" disabled>-- Pilih Unit Kerja --</option>
-                  <option v-for="u in unitList" :key="u.id" :value="u.id">{{ u.nama }}</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400 group-focus-within:text-[#2663A3]">
-                  <IconChevronDown :size="20" stroke-width="3" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Tujuan -->
-            <div class="space-y-2">
-              <label class="text-sm font-bold text-slate-700 flex items-center gap-1">
-                Tujuan <span class="text-red-500">*</span>
-              </label>
-              <div class="relative group">
-                <select
-                  v-model="form.tujuanId"
-                  required
-                  class="w-full appearance-none bg-white border-2 border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all cursor-pointer"
-                >
-                  <option :value="null" disabled>-- Pilih Tujuan --</option>
-                  <option v-for="t in tujuanList" :key="t.id" :value="t.id">{{ t.tujuanText }}</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400 group-focus-within:text-[#2663A3]">
-                  <IconChevronDown :size="20" stroke-width="3" />
-                </div>
-              </div>
-            </div>
 
             <!-- Sasaran Strategis -->
             <div class="col-span-1 md:col-span-2 space-y-2">
@@ -69,17 +30,22 @@
               </label>
               <div class="relative group">
                 <select
-                  v-model="form.sasaranText"
+                  v-model="form.masterSsId"
                   required
                   class="w-full appearance-none bg-white border-2 border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all cursor-pointer"
                 >
-                  <option value="" disabled>-- Pilih Sasaran Strategis --</option>
-                  <option v-for="opt in sasaranOptions" :key="opt" :value="opt">{{ opt }}</option>
+                  <option :value="null" disabled>-- Pilih Sasaran Strategis (Master) --</option>
+                  <option v-for="opt in filteredMasterSasaran" :key="opt.ssId" :value="opt.ssId">
+                    [{{ opt.kode }}] {{ opt.sasaranText }}
+                  </option>
                 </select>
                 <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400 group-focus-within:text-[#2663A3]">
                   <IconChevronDown :size="20" stroke-width="3" />
                 </div>
               </div>
+              <p v-if="form.unitKerjaId && filteredMasterSasaran.length === 0" class="text-[10px] text-red-500 font-bold italic">
+                * Tidak ada master data Sasaran Strategis untuk unit ini.
+              </p>
             </div>
           </div>
         </div>
@@ -123,17 +89,22 @@
                 <label class="text-xs font-bold text-slate-500 uppercase tracking-widest">Indikator Kinerja <span class="text-red-500">*</span></label>
                 <div class="relative group">
                   <select
-                    v-model="indikator.nama"
+                    v-model="indikator.masterIndId"
                     required
                     class="w-full appearance-none bg-white border-2 border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all cursor-pointer"
                   >
-                    <option value="" disabled>-- Pilih Indikator Kinerja --</option>
-                    <option v-for="opt in indikatorOptions" :key="opt" :value="opt">{{ opt }}</option>
+                    <option :value="null" disabled>-- Pilih Indikator Kinerja (Master) --</option>
+                    <option v-for="opt in availableIndikatorOptions" :key="opt.indikatorId" :value="opt.indikatorId">
+                      {{ opt.indikatorNama }} ({{ opt.indikatorSatuan }})
+                    </option>
                   </select>
                   <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400 group-focus-within:text-[#2663A3]">
                     <IconChevronDown :size="18" stroke-width="3" />
                   </div>
                 </div>
+                <p v-if="form.masterSsId && availableIndikatorOptions.length === 0" class="text-[10px] text-red-500 font-bold italic">
+                  * Sasaran ini tidak memiliki master indikator.
+                </p>
               </div>
 
               <div class="space-y-2">
@@ -173,7 +144,7 @@
               <IconInfoCircle :size="18" stroke-width="2.5" />
             </div>
             <p class="text-[13px] text-blue-700 font-medium leading-relaxed">
-              Anda dapat menambahkan lebih dari satu indikator kinerja untuk Sasaran Strategis yang dipilih. Setiap target akan otomatis tercatat pada database tahun berjalan ({{ currentYear }}).
+              Pilih Sasaran Strategis dan Indikator Kinerja dari master data yang telah tersedia. Target akan otomatis tercatat pada database tahun berjalan ({{ currentYear }}).
             </p>
           </div>
         </div>
@@ -206,7 +177,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-import { ref, computed, watchEffect } from 'vue'
+import { ref, computed, watchEffect, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { 
   IconLayoutGrid, IconTarget, IconChartBar, 
@@ -223,7 +194,7 @@ const currentYear = ref(2026)
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
-const { data: tujuanList } = useSWRV('/api/tujuan', fetcher)
+const { data: masterData } = useSWRV('/api/sasaran-strategis', fetcher)
 const { authUser, role } = useAuthUser()
 
 // Role & Unit Logic
@@ -237,27 +208,36 @@ const userUnitKerjaId = computed(() => {
   return found?.id || null
 })
 
-// Dummy options based on design
-const sasaranOptions = [
-  'Meningkatnya tata kelola organisasi yang efektif dan efisien',
-  'Terwujudnya pelayanan publik yang prima',
-  'Meningkatnya kualitas sumber daya manusia'
-]
+// Dynamic Master Options
+const filteredMasterSasaran = computed(() => {
+  if (!masterData.value) return []
+  
+  // Group by ssId to get unique sasarans
+  const map = new Map()
+  masterData.value.forEach((item: any) => {
+    if (!map.has(item.ssId)) {
+      map.set(item.ssId, item)
+    }
+  })
+  return Array.from(map.values())
+})
 
-const indikatorOptions = [
-  'Indeks Reformasi Birokrasi',
-  'Nilai Akuntabilitas Kinerja',
-  'Indeks Kepuasan Masyarakat',
-  'Persentase pegawai yang memenuhi standar kompetensi'
-]
+const availableIndikatorOptions = computed(() => {
+  if (!masterData.value || !form.value.masterSsId) return []
+  return masterData.value.filter((item: any) => item.ssId === form.value.masterSsId && item.indikatorId)
+})
 
 const form = ref({
-  sasaranText: '',
+  masterSsId: null as number | null,
   unitKerjaId: null as number | null,
-  tujuanId: null as number | null,
   indikatorList: [
-    { nama: '', target: '' }
+    { masterIndId: null as number | null, target: '' }
   ]
+})
+
+// Reset indicators if Sasaran changes
+watch(() => form.value.masterSsId, () => {
+  form.value.indikatorList = [{ masterIndId: null, target: '' }]
 })
 
 // Initialize Unit for Non-SuperAdmin
@@ -268,7 +248,7 @@ watchEffect(() => {
 })
 
 function addIndikator() {
-  form.value.indikatorList.push({ nama: '', target: '' })
+  form.value.indikatorList.push({ masterIndId: null, target: '' })
 }
 
 function removeIndikator(index: number) {
@@ -276,56 +256,35 @@ function removeIndikator(index: number) {
 }
 
 const handleSubmit = async () => {
-  if (!form.value.sasaranText) return
-
+  if (!form.value.masterSsId) return
   submitting.value = true
 
   try {
-    // 1. Simpan sasaran strategis
-    const ss = await $fetch<{ id: number }[]>('/api/sasaran-strategis', {
-      method: 'POST',
-      body: {
-        sasaranText: form.value.sasaranText,
-        unitKerjaId: form.value.unitKerjaId,
-        tujuanId: form.value.tujuanId,
-        kode: 'SS-' + Math.floor(Math.random() * 100) // Default random code
-      },
-    })
+    // Note: Since this is "Perencanaan", we likely only need to save targets for existing indicators
+    // but the current API structure in add.vue was creating new SS/Indicators.
+    // Given the user's request to "follow master", we will use the master IDs.
+    
+    const selectedSS = filteredMasterSasaran.value.find(s => s.ssId === form.value.masterSsId)
 
-    const ssId = ss[0]?.id
-    if (!ssId) throw new Error('Gagal mendapatkan ID sasaran strategis')
+    for (const item of form.value.indikatorList) {
+      if (!item.masterIndId || !item.target) continue
 
-    // 2. Simpan tiap indikator + targets
-    for (const indikator of form.value.indikatorList) {
-      if (!indikator.nama) continue
-
-      const ind = await $fetch<{ id: number }[]>('/api/indikator-strategis', {
-        method: 'POST',
-        body: {
-          sasaranStrategisId: ssId,
-          nama: indikator.nama,
-          satuan: 'Poin' // Default satuan
-        },
-      })
-
-      const indId = ind[0]?.id
-      if (!indId) continue
-
-      // Simpan target untuk tahun berjalan
+      // Save target for the selected master indicator
       await $fetch('/api/target-indikator-strategis', {
         method: 'POST',
         body: {
-          indikatorId: indId,
+          indikatorId: item.masterIndId,
           tahun: currentYear.value,
-          target: indikator.target,
+          target: item.target,
         },
       })
     }
 
+    alert('Perencanaan Berhasil Disimpan!')
     router.push(`/${route.params.slug}/sasaran-strategis`)
   } catch (error) {
     console.error('Error saving data:', error)
-    alert('Gagal menyimpan data ke server. Silakan coba lagi.')
+    alert('Gagal menyimpan perencanaan. Silakan coba lagi.')
   } finally {
     submitting.value = false
   }
@@ -338,4 +297,5 @@ select:focus + div {
   transform: rotate(180deg);
 }
 </style>
+
 

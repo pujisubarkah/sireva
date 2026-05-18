@@ -40,45 +40,6 @@
         </div>
         <div class="p-8">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Unit Kerja (Hanya Super Admin) -->
-            <div v-if="isSuperAdmin" class="space-y-2">
-              <label class="text-sm font-bold text-slate-700 flex items-center gap-1">
-                Unit Kerja <span class="text-red-500">*</span>
-              </label>
-              <div class="relative group">
-                <select
-                  v-model="form.unitKerjaId"
-                  required
-                  class="w-full appearance-none bg-white border-2 border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all cursor-pointer"
-                >
-                  <option :value="null" disabled>-- Pilih Unit Kerja --</option>
-                  <option v-for="u in unitList" :key="u.id" :value="u.id">{{ u.nama }}</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400 group-focus-within:text-[#2663A3]">
-                  <IconChevronDown :size="20" stroke-width="3" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Tujuan -->
-            <div class="space-y-2">
-              <label class="text-sm font-bold text-slate-700 flex items-center gap-1">
-                Tujuan <span class="text-red-500">*</span>
-              </label>
-              <div class="relative group">
-                <select
-                  v-model="form.tujuanId"
-                  required
-                  class="w-full appearance-none bg-white border-2 border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all cursor-pointer"
-                >
-                  <option :value="null" disabled>-- Pilih Tujuan --</option>
-                  <option v-for="t in tujuanList" :key="t.id" :value="t.id">{{ t.tujuanText }}</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400 group-focus-within:text-[#2663A3]">
-                  <IconChevronDown :size="20" stroke-width="3" />
-                </div>
-              </div>
-            </div>
 
             <!-- Sasaran Strategis -->
             <div class="col-span-1 md:col-span-2 space-y-2">
@@ -231,7 +192,6 @@ const currentYear = ref(2026)
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
-const { data: tujuanList } = useSWRV('/api/tujuan', fetcher)
 const { authUser, role } = useAuthUser()
 
 // Role & Unit Logic
@@ -249,7 +209,6 @@ const form = ref({
   sasaranText: '',
   kode: '',
   unitKerjaId: null as number | null,
-  tujuanId: null as number | null,
   indikatorList: [] as any[]
 })
 
@@ -273,7 +232,6 @@ onMounted(async () => {
     form.value.sasaranText = detail.sasaranText
     form.value.kode = detail.kode
     form.value.unitKerjaId = detail.unitKerjaId
-    form.value.tujuanId = detail.tujuanId
     
     // Map indikators and their target for currentYear
     form.value.indikatorList = (detail.indikatorStrategis || []).map((ind: any) => ({
@@ -315,7 +273,6 @@ const handleSubmit = async () => {
         sasaranText: form.value.sasaranText,
         kode: form.value.kode,
         unitKerjaId: form.value.unitKerjaId,
-        tujuanId: form.value.tujuanId
       },
     })
 

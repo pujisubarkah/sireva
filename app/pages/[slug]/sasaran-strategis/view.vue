@@ -80,30 +80,38 @@
             :key="idx"
             class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden group hover:border-blue-300 transition-all"
           >
-            <div class="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div class="flex items-start gap-5">
-                <div class="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-[#2663A3] group-hover:bg-[#2663A3] group-hover:text-white transition-colors">
-                   <span class="font-black text-lg">{{ idx + 1 }}</span>
+            <div class="p-8">
+              <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-8">
+                <!-- Left: Indikator Info -->
+                <div class="flex items-start gap-6 flex-1">
+                  <div class="relative">
+                    <div class="w-14 h-14 rounded-3xl bg-blue-50 flex items-center justify-center text-[#2663A3] group-hover:bg-[#2663A3] group-hover:text-white transition-all duration-300 shadow-sm">
+                      <span class="font-black text-xl">{{ idx + 1 }}</span>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100">
+                      <IconChartBar :size="12" class="text-slate-400" />
+                    </div>
+                  </div>
+                  <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                      <span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-widest rounded-md">Indikator Kinerja</span>
+                      <span v-if="ind.satuan" class="px-2 py-0.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest rounded-md shadow-sm">{{ ind.satuan }}</span>
+                    </div>
+                    <p class="text-xl font-bold text-slate-800 leading-tight group-hover:text-[#2663A3] transition-colors">{{ ind.nama }}</p>
+                  </div>
                 </div>
-                <div class="space-y-1">
-                  <p class="text-xs font-black text-slate-400 uppercase tracking-widest">Indikator Kinerja</p>
-                  <p class="text-lg font-bold text-slate-800">{{ ind.nama }}</p>
-                </div>
-              </div>
 
-              <div class="flex flex-wrap items-center gap-3">
-                <div v-for="year in years" :key="year" 
-                     class="px-4 py-3 rounded-2xl border-2 border-slate-50 bg-slate-50/50 flex flex-col items-center min-w-[80px]"
-                     :class="{'border-blue-100 bg-blue-50/50': year === currentYear}"
-                >
-                  <span class="text-[9px] font-black text-slate-400 uppercase">{{ year }}</span>
-                  <span class="text-base font-black text-slate-700" :class="{'text-[#2663A3]': year === currentYear}">
-                    {{ ind.targets?.[year] || '-' }}
-                  </span>
-                </div>
-                <div class="px-4 py-3 rounded-2xl bg-blue-600 text-white flex flex-col items-center min-w-[80px] shadow-lg shadow-blue-600/20">
-                   <span class="text-[9px] font-black uppercase opacity-60">Satuan</span>
-                   <span class="text-base font-black">{{ ind.satuan || '-' }}</span>
+                <!-- Right: Target Grid -->
+                <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 shrink-0">
+                  <div v-for="year in years" :key="year" 
+                       class="px-4 py-3 rounded-2xl border border-slate-100 bg-slate-50/30 flex flex-col items-center justify-center min-w-[70px] transition-all group-hover:bg-white group-hover:shadow-md"
+                       :class="{'border-blue-200 bg-blue-50/50 shadow-sm': year === currentYear}"
+                  >
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">{{ year }}</span>
+                    <span class="text-lg font-black text-slate-700" :class="{'text-[#2663A3]': year === currentYear}">
+                      {{ ind.targets?.[year] || '0' }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

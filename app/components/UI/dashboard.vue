@@ -1,113 +1,145 @@
 <template>
-  <div class="p-4 border border-gray-200 rounded-lg shadow-sm h-fit bg-guide-100">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-      <div v-for="stat in stats" :key="stat.title" class="w-full">
-        <div class="flex flex-row gap-4 w-full bg-white p-2 border border-neutral-200 rounded-lg">
-          <div class="flex flex-row justify-between w-full h-fit py-0">
-            <div class="flex flex-col">
-              <h1 class="text-[8px] md:text-[10px] font-medium text-slate-500">{{ stat.title }}</h1>
-              <p class="text-xs md:text-sm font-semibold text-slate-900">{{ stat.value }}</p>
-              <p
-                class="text-[8px] md:text-[10px] font-medium text-emerald-500 flex flex-row gap-2 items-center"
-              >
-                <IconTrendingUp :size="12" class="inline" />
-                {{ stat.subValue }}
-                <span class="text-[8px] md:text-[10px] font-medium text-slate-400"
-                  >{{ stat.subText }}</span
-                >
-              </p>
-            </div>
-            <div
-              class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center"
-            >
-              <component :is="stat.icon" :size="12" class="text-slate-700" />
+  <div class="space-y-6">
+    <!-- Top Header Bar -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <h1 class="text-xl font-black text-slate-800 tracking-tight uppercase">Dashboard Performa</h1>
+          <p class="text-xs font-bold text-slate-400 flex items-center gap-2">
+            <IconClock :size="14" />
+            Last update: {{ lastUpdate }}
+          </p>
+        </div>
+        
+        <div class="flex items-center gap-4">
+          <div class="flex flex-col">
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tahun</label>
+            <div class="relative">
+              <select class="appearance-none bg-slate-50 border border-slate-200 rounded-lg px-8 py-1.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer min-w-[120px]">
+                <option>2026</option>
+                <option>2025</option>
+                <option>2024</option>
+              </select>
+              <IconChevronDown class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" :size="16" />
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 h-[400px] w-full gap-4">
-      <div class="border border-neutral-200 rounded-lg bg-white p-4">
-        <component
-          :is="apexchartComponent"
-          v-if="apexchartComponent"
-          type="area"
-          height="100%"
-          :series="series"
-          :options="options"
-        />
-        <div v-else class="flex h-full items-center justify-center text-slate-400">
-          Loading chart...
+    <!-- Summary Cards (StatCard Components) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatCard 
+        title="Total Sasaran Strategis" 
+        :value="stats?.ss ?? '...'" 
+        :icon="IconTarget" 
+        color="blue" 
+      />
+      <StatCard 
+        title="Total Sasaran Program" 
+        :value="stats?.sp ?? '...'" 
+        :icon="IconChartPie" 
+        color="green" 
+      />
+      <StatCard 
+        title="Total Sasaran Kegiatan" 
+        :value="stats?.sk ?? '...'" 
+        :icon="IconLayoutGrid" 
+        color="orange" 
+      />
+      <StatCard 
+        title="Rerata Capaian IKU (%)" 
+        :value="(stats?.capaian ?? 0) + '%'" 
+        :icon="IconTrendingUp" 
+        color="red" 
+      />
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Chart 1: Tren Capaian IKU -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-[400px]">
+        <div class="p-6 border-b border-slate-50 flex items-center justify-between">
+          <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight">Tren Capaian IKU (Bulanan)</h3>
+          <div class="flex gap-2">
+            <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+          </div>
+        </div>
+        <div class="flex-1 p-4 relative">
+          <ClientOnly>
+            <component
+              :is="apexchartComponent"
+              v-if="apexchartComponent"
+              type="line"
+              height="100%"
+              width="100%"
+              :series="seriesIKU"
+              :options="optionsIKU"
+            />
+            <div v-else class="absolute inset-0 flex items-center justify-center">
+              <div class="w-8 h-8 border-4 border-slate-100 border-t-blue-500 rounded-full animate-spin"></div>
+            </div>
+          </ClientOnly>
+        </div>
+        <div class="px-6 py-3 bg-slate-50/50 border-t border-slate-100 text-center">
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bulan</p>
         </div>
       </div>
 
-      <div class="border border-neutral-200 rounded-lg bg-white overflow-hidden">
-        <Table
-          :columns="columns"
-          :fetchData="fetchData"
-          :pageSizeOptions="[]"
-          :initialSortOrder="null"
-          :showSearch="false"
-          :showPagination="false"
-          rowKey="id"
-        />
+      <!-- Chart 2: Capaian per Triwulan -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-[400px]">
+        <div class="p-6 border-b border-slate-50 flex items-center justify-between">
+          <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight">Capaian Strategis per Triwulan</h3>
+          <div class="flex gap-2">
+            <span class="w-3 h-3 rounded-full bg-emerald-400 shadow-lg shadow-emerald-200"></span>
+          </div>
+        </div>
+        <div class="flex-1 p-4 relative">
+          <ClientOnly>
+            <component
+              :is="apexchartComponent"
+              v-if="apexchartComponent"
+              type="area"
+              height="100%"
+              width="100%"
+              :series="seriesTW"
+              :options="optionsTW"
+            />
+            <div v-else class="absolute inset-0 flex items-center justify-center">
+              <div class="w-8 h-8 border-4 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+            </div>
+          </ClientOnly>
+        </div>
+        <div class="px-6 py-3 bg-slate-50/50 border-t border-slate-100 text-center">
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Periode Triwulan</p>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { shallowRef, onMounted } from 'vue';
-import { Table } from '@idds/vue';
+import { shallowRef, onMounted, ref } from 'vue';
 import { 
-  IconTrendingUp, IconChartBar, IconTarget, 
-  IconCreditCard, IconUsers, IconChartPie 
+  IconClock, IconChevronDown, IconTarget, 
+  IconChartPie, IconLayoutGrid, IconTrendingUp 
 } from '@tabler/icons-vue';
+import useSWRV from 'swrv';
+import StatCard from './StatCard.vue';
 
-const stats = [
-  { title: 'Sasaran Strategis', value: '12', subValue: '+2.4%', subText: 'vs bln lalu', icon: IconTarget },
-  { title: 'Sasaran Program', value: '48', subValue: '+5.1%', subText: 'vs bln lalu', icon: IconChartPie },
-  { title: 'Realisasi Anggaran', value: '78.4%', subValue: '+12.3%', subText: 'vs bln lalu', icon: IconCreditCard },
-  { title: 'Total User', value: '1,294', subValue: '+84', subText: 'new joiners', icon: IconUsers },
-];
-
-const columns = [
-  {
-    header: 'Bulan',
-    accessor: 'day',
-  },
-  {
-    header: 'Capaian (%)',
-    accessor: 'price',
-  },
-];
-
-const data = [
-  { id: 1, day: 'Januari', price: 72 },
-  { id: 2, day: 'Februari', price: 78 },
-  { id: 3, day: 'Maret', price: 75 },
-  { id: 4, day: 'April', price: 84 },
-  { id: 5, day: 'Mei', price: 82 },
-];
-
-const fetchData = async () => {
-  const initialPageSize = 5;
-  let resultData = [...data];
-
-  if (resultData.length < initialPageSize) {
-    const emptyRowsCount = initialPageSize - resultData.length;
-    const emptyRows = Array(emptyRowsCount).fill({});
-    resultData = [...resultData, ...emptyRows];
-  }
-
-  return {
-    data: resultData,
-    total: resultData.length,
-  };
-};
+const lastUpdate = ref(new Date().toLocaleString('id-ID', { 
+  day: 'numeric', 
+  month: 'long', 
+  year: 'numeric', 
+  hour: '2-digit', 
+  minute: '2-digit' 
+}));
 
 const apexchartComponent = shallowRef<any>(null);
+
+// Fetch Real Data from API
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+const { data: stats } = useSWRV('/api/dashboard/stats', fetcher);
 
 onMounted(async () => {
   if (typeof window !== 'undefined') {
@@ -116,56 +148,47 @@ onMounted(async () => {
   }
 });
 
-const series = [{ name: 'Capaian', data: data.map((item) => item.price) }];
+// Chart Data (Placeholder but mapped to stats if possible)
+const seriesIKU = [{
+  name: 'Capaian IKU (%)',
+  data: [65, 78, 84, 82, 89]
+}];
 
-const options = {
+const optionsIKU = {
   chart: {
-    type: 'area',
+    type: 'line',
     toolbar: { show: false },
-    zoom: { enabled: false },
-    fontFamily: 'Inter, sans-serif',
+    zoom: { enabled: false }
   },
-  colors: ['#2663A3'],
-  stroke: {
-    curve: 'smooth',
-    width: 2,
+  colors: ['#3b82f6'],
+  stroke: { curve: 'smooth', width: 4 },
+  markers: { size: 5, colors: ['#ffffff'], strokeColors: '#3b82f6', strokeWidth: 3 },
+  xaxis: {
+    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei'],
+    labels: { style: { colors: '#64748b', fontWeight: 600 } }
   },
+  yaxis: { min: 0, max: 100, labels: { style: { colors: '#64748b' } } },
+  grid: { borderColor: '#f1f5f9', strokeDashArray: 4 }
+};
+
+const seriesTW = [{
+  name: 'Capaian Strategis',
+  data: [45, 62, 85, 92]
+}];
+
+const optionsTW = {
+  chart: { type: 'area', toolbar: { show: false }, zoom: { enabled: false } },
+  colors: ['#10b981'],
+  stroke: { curve: 'smooth', width: 3 },
   fill: {
     type: 'gradient',
-    gradient: {
-      shadeIntensity: 1,
-      opacityFrom: 0.5,
-      opacityTo: 0.05,
-      stops: [0, 90, 100],
-    },
-  },
-  dataLabels: {
-    enabled: false,
-  },
-  grid: {
-    strokeDashArray: 4,
-    padding: {
-      left: 8,
-      right: 8,
-    },
+    gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.1, stops: [0, 90, 100] }
   },
   xaxis: {
-    categories: data.map((item) => item.day),
-    axisBorder: { show: false },
-    axisTicks: { show: false },
-    labels: {
-      show: true,
-      style: { colors: '#94a3b8' }
-    },
+    categories: ['TW I', 'TW II', 'TW III', 'TW IV'],
+    labels: { style: { colors: '#64748b', fontWeight: 600 } }
   },
-  yaxis: {
-    labels: {
-      show: true,
-      style: { colors: '#94a3b8' }
-    },
-  },
-  tooltip: {
-    enabled: true,
-  },
+  yaxis: { min: 0, max: 100, labels: { style: { colors: '#64748b' } } },
+  grid: { borderColor: '#f1f5f9', strokeDashArray: 4 }
 };
 </script>

@@ -17,7 +17,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3">L
         <!-- Floating Add Button -->
         <button
           v-if="isSuperAdmin"
@@ -29,16 +29,6 @@
         </button>
 
         <div class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-2xl shadow-sm">
-          <FilterDropdown
-            v-if="isSuperAdmin"
-            v-model="selectedUnitId"
-            :options="unitOptions"
-            :icon="IconBuilding"
-            placeholder="Pilih Unit Kerja"
-            class="border-0! shadow-none hover:bg-slate-50"
-            :label-mode="true"
-          />
-          <div v-if="isSuperAdmin" class="w-px h-6 bg-slate-200"></div>
           <FilterDropdown
             v-model="selectedYear"
             :options="yearOptions"
@@ -118,14 +108,6 @@
           <p class="text-[13px] font-bold text-slate-800 leading-tight">{{ value }}</p>
         </template>
 
-        <template #cell-unit="{ row }">
-          <span v-if="row.ownerUnitName" class="px-3 py-1.5 bg-blue-50 text-[#2663A3] text-[10px] font-black rounded-xl border border-blue-100 uppercase tracking-tight">
-            {{ row.ownerUnitName }}
-          </span>
-          <span v-else class="text-[10px] text-slate-400 font-bold uppercase italic tracking-widest">
-            Global / Semua Unit
-          </span>
-        </template>
 
         <template #cell-indikatorNama="{ value }">
           <p class="text-[12px] font-black text-slate-700 uppercase tracking-tight leading-snug">{{ value || '-' }}</p>
@@ -157,11 +139,13 @@
             </button>
             <button
               v-if="isSuperAdmin"
-              @click="handleDelete(row)"
-              class="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all active:scale-90"
+              @click.stop="handleDelete(row)"
+              :disabled="loadingDeleteId === row.ssId"
+              class="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed"
               title="Hapus"
             >
-              <IconTrash :size="20" stroke-width="2.5" />
+              <IconTrash v-if="loadingDeleteId !== row.ssId" :size="20" stroke-width="2.5" />
+              <div v-else class="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
             </button>
           </div>
         </template>
@@ -187,7 +171,10 @@ import {
 import FilterDropdown from '@/components/FilterDropdown.vue'
 import UiTable from '@/components/UI/Table.vue'
 import useSWRV from 'swrv'
+import { useToast } from '#imports'
 import { useAuthUser } from '~/composables/useAuthUser'
+
+const toast = useToast()
 
 const router = useRouter()
 const fetcher = (url: string) => fetch(url).then(r => r.json())
@@ -195,44 +182,31 @@ const fetcher = (url: string) => fetch(url).then(r => r.json())
 // State
 const searchQuery = ref('')
 const selectedYear = ref('2026')
-const selectedUnitId = ref<number | null>(null)
 const currentPage = ref(1)
 const pageSize = ref(10)
+const loadingDeleteId = ref<number | null>(null)
 
 // Options
 const yearOptions = ['2025', '2026', '2027', '2028', '2029']
 
 // Data Fetching
 const { role, authUser } = useAuthUser()
-const { data: unitData } = useSWRV('/api/unit-kerja', fetcher)
 // Role Checks Normalized
 const normalizedRole = computed(() => String(role.value || '').toLowerCase().replace(/\s+/g, '_'))
 const isSuperAdmin = computed(() => normalizedRole.value === 'super_admin')
 const isAdmin = computed(() => normalizedRole.value === 'admin')
 
 const loggedUnitKerjaName = computed(() => String(authUser.value?.unit_kerja || '').trim())
-const userUnitKerjaId = computed(() => {
-  if (!isAdmin.value || !unitData.value) return null
-  const found = unitData.value.find((u: any) => u.nama === loggedUnitKerjaName.value)
-  return found?.id || null
-})
+const userUnitKerjaId = computed(() => null) // logic for unit removed as per request
 
 const apiUrl = computed(() => {
-  if (isSuperAdmin.value) {
-    if (selectedUnitId.value) return `/api/sasaran-strategis/unit-kerja/${selectedUnitId.value}`
-    return '/api/sasaran-strategis'
-  }
-  const unitId = userUnitKerjaId.value
-  if (!unitId) return null
-  return `/api/sasaran-strategis/unit-kerja/${unitId}`
+  if (isSuperAdmin.value) return '/api/sasaran-strategis'
+  return '/api/sasaran-strategis' // Simplified to return all as unit is not required
 })
 
 const { data: ssRaw, isValidating: loading, mutate } = useSWRV(() => apiUrl.value, fetcher)
 
-const unitOptions = computed(() => {
-  const units = (unitData.value || []).map((u: any) => ({ value: u.id, label: u.nama }))
-  return [{ value: null, label: 'Semua Unit Kerja' }, ...units]
-})
+// unitOptions removed as unit is not required
 
 const displayRows = computed(() => {
   let rows = (ssRaw.value || []) as any[]
@@ -261,22 +235,37 @@ const paginatedRows = computed(() => {
 const tableColumns = [
   { key: 'no', label: 'No', center: true, width: 60 },
   { key: 'kode', label: 'Kode', center: true, width: 80 },
-  { key: 'sasaranText', label: 'Sasaran Strategis', width: '25%' },
-  { key: 'unit', label: 'Unit Kerja', width: '20%' },
+  { key: 'sasaranText', label: 'Sasaran Strategis', width: '30%' },
   { key: 'indikatorNama', label: 'Indikator Kinerja', width: '25%' },
   { key: 'target', label: 'Target', center: true, width: 140 },
   { key: 'aksi', label: 'Aksi', center: true, width: 120 },
 ]
 
 async function handleDelete(item: any) {
-  if (!confirm(`Hapus sasaran strategis "${item.sasaranText}"?`)) return
+  if (!item.ssId) {
+    toast.error('ID Sasaran Strategis tidak ditemukan.')
+    return
+  }
+
+  const confirmMsg = `Apakah Anda yakin ingin menghapus sasaran strategis "${item.sasaranText}"?\n\nTindakan ini akan menghapus:\n- Seluruh indikator terkait\n- Seluruh target dan laporan terkait\n- Data ini tidak dapat dikembalikan.`
+  
+  if (!confirm(confirmMsg)) return
+  
+  loadingDeleteId.value = item.ssId
   try {
     await $fetch(`/api/sasaran-strategis/${item.ssId}`, { method: 'DELETE' })
-    mutate()
-  } catch (error) {
-    alert('Gagal menghapus data.')
+    toast.success('Data sasaran strategis berhasil dihapus.')
+    
+    // Explicit revalidation
+    await mutate()
+  } catch (error: any) {
+    console.error('Delete error details:', error)
+    const msg = error.data?.statusMessage || error.message || 'Gagal menghapus data dari database.'
+    toast.error(msg)
+  } finally {
+    loadingDeleteId.value = null
   }
 }
 
-watch([searchQuery, selectedYear, selectedUnitId], () => { currentPage.value = 1 })
+watch([searchQuery, selectedYear], () => { currentPage.value = 1 })
 </script>

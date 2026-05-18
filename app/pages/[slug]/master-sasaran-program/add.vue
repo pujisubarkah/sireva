@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-5xl mx-auto pb-20 space-y-8">
+  <div class="max-w-5xl mx-auto pb-20 space-y-8 mt-4">
     <!-- Header Section -->
     <div class="flex items-center justify-between px-2">
       <div class="flex items-start gap-4">
@@ -9,7 +9,7 @@
         <div>
           <h1 class="text-2xl font-black text-slate-900 tracking-tight">Master Data: Tambah Sasaran Program</h1>
           <p class="text-slate-500 font-medium text-sm mt-0.5">
-            Formulir kustomisasi master data sasaran program (Tabel Form Style).
+            Formulir kustomisasi master data sasaran program (Standardized).
           </p>
         </div>
       </div>
@@ -36,9 +36,8 @@
                   v-model="form.kode"
                   type="text"
                   required
-                  maxlength="10"
                   class="w-full md:w-1/3 bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all"
-                  placeholder="Max 10 digit"
+                  placeholder="Contoh: SP.01"
                 />
               </td>
             </tr>
@@ -49,12 +48,12 @@
               <td class="px-8 py-5">
                 <div class="relative max-w-xl">
                   <select
-                    v-model="form.unitKerjaId"
+                    v-model="form.unit_kerja"
                     required
                     class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all"
                   >
-                    <option :value="null" disabled>-- Pilih Unit Kerja --</option>
-                    <option v-for="u in unitList" :key="u.id" :value="u.id">{{ u.nama }}</option>
+                    <option value="" disabled>-- Pilih Unit Kerja --</option>
+                    <option v-for="u in unitList" :key="u.id" :value="u.nama">{{ u.nama }}</option>
                   </select>
                   <IconChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" :size="18" />
                 </div>
@@ -67,48 +66,51 @@
               <td class="px-8 py-5">
                 <div class="relative max-w-2xl">
                   <select
-                    v-model="form.idSs"
+                    v-model="form.id_ss"
                     required
                     class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
                   >
                     <option :value="null" disabled>-- Pilih Sasaran Strategis --</option>
-                    <option v-for="ss in uniqueSasaranStrategis" :key="ss.ssId" :value="ss.ssId">{{ ss.sasaranText }}</option>
+                    <option v-for="ss in sasaranStrategisOptions" :key="ss.id" :value="ss.id">
+                      [{{ ss.kode }}] {{ ss.sasaranText }}
+                    </option>
                   </select>
                   <IconChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" :size="18" />
                 </div>
               </td>
             </tr>
 
-            <!-- 4. Indikator Kinerja (Strategis) -->
+            <!-- 4. Indikator Kinerja (Kode IKU) -->
             <tr class="border-b border-slate-100">
               <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">4. Indikator Kinerja <span class="text-red-500">*</span></td>
               <td class="px-8 py-5">
                 <div class="relative max-w-2xl">
                   <select
-                    v-model="form.idIs"
+                    v-model="form.kode_iku"
                     required
                     class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                    :disabled="!form.id_ss"
                   >
-                    <option :value="null" disabled>-- Pilih Indikator Strategis --</option>
-                    <option v-for="is in filteredIndikatorStrategis" :key="is.id" :value="is.id">{{ is.nama }}</option>
+                    <option value="" disabled>-- Pilih Indikator Strategis --</option>
+                    <option v-for="is in indikatorStrategisOptions" :key="is.id" :value="is.kode || is.nama">
+                      {{ is.nama }}
+                    </option>
                   </select>
                   <IconChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" :size="18" />
                 </div>
               </td>
             </tr>
 
-            <!-- 5. Sasaran Program -->
+            <!-- 5. Sasaran Program Text -->
             <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">5. Sasaran Program <span class="text-red-500">*</span></td>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">5. Nama Sasaran Program <span class="text-red-500">*</span></td>
               <td class="px-8 py-5">
-                <input
-                  v-model="form.sasaranText"
-                  type="text"
+                <textarea
+                  v-model="form.sasaran_program_text"
                   required
-                  maxlength="50"
-                  class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all"
-                  placeholder="Sasaran Program"
-                />
+                  class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all min-h-[100px]"
+                  placeholder="Masukkan deskripsi sasaran program..."
+                ></textarea>
               </td>
             </tr>
 
@@ -120,7 +122,6 @@
                   v-model="form.satuan"
                   type="text"
                   required
-                  maxlength="20"
                   class="w-full md:w-1/2 bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all"
                   placeholder="Contoh: Persen, Dokumen, dll"
                 />
@@ -128,45 +129,21 @@
             </tr>
 
             <!-- 7. Target Renstra -->
-            <tr class="border-b border-slate-100">
+            <tr>
               <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700 align-top pt-8">7. Target Renstra (5 Tahun) <span class="text-red-500">*</span></td>
               <td class="px-8 py-8">
                 <div class="grid grid-cols-5 gap-4">
                   <div v-for="n in 5" :key="n" class="space-y-2">
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center block">Tahun {{ n }}</label>
                     <input
-                      v-model="form.targets[n-1]"
-                      type="text"
+                      v-model="form[`target_${n}`]"
+                      type="number"
+                      step="any"
                       required
-                      maxlength="10"
                       class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-2 py-2.5 text-center font-bold text-slate-700 focus:bg-white focus:border-[#2663A3] transition-all"
                       placeholder="0"
                     />
                   </div>
-                </div>
-              </td>
-            </tr>
-
-            <!-- 8. Indikator KIK -->
-            <tr>
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">8. Indikator KIK (Optional)</td>
-              <td class="px-8 py-5">
-                <div class="space-y-3">
-                  <div v-for="(ind, idx) in form.indikatorTambahan" :key="idx" class="flex gap-2">
-                    <input
-                      v-model="ind.nama"
-                      type="text"
-                      maxlength="50"
-                      class="flex-1 bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
-                      placeholder="Input Indikator KIK"
-                    />
-                    <button @click="removeIndikator(idx)" type="button" class="p-2.5 text-red-500 bg-red-50 rounded-xl hover:bg-red-100 transition-colors">
-                      <IconTrash :size="18" />
-                    </button>
-                  </div>
-                  <button @click="addIndikator" type="button" class="text-xs font-bold text-[#2663A3] hover:underline flex items-center gap-1">
-                    <IconPlus :size="14" stroke-width="3" /> Tambah Indikator KIK
-                  </button>
                 </div>
               </td>
             </tr>
@@ -206,7 +183,9 @@ import {
   IconDatabase, IconFileText, IconChevronDown, IconTrash, IconPlus, IconX, IconDeviceFloppy 
 } from '@tabler/icons-vue'
 import useSWRV from 'swrv'
+import { useToast } from '#imports'
 
+const toast = useToast()
 const router = useRouter()
 const route = useRoute()
 const submitting = ref(false)
@@ -215,61 +194,71 @@ const fetcher = (url: string) => fetch(url).then(r => r.json())
 const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
 const { data: ssData } = useSWRV('/api/sasaran-strategis', fetcher)
 
-interface SSItem {
-  ssId: number;
-  sasaranText: string;
-  indikatorId: number;
-  indikatorNama: string;
-}
-
-const sasaranStrategisList = computed<SSItem[]>(() => {
-  if (!ssData.value) return []
-  return Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
-})
-
-const uniqueSasaranStrategis = computed(() => {
-  const seen = new Set();
-  return sasaranStrategisList.value.filter(item => {
-    if (seen.has(item.ssId)) return false;
-    seen.add(item.ssId);
-    return true;
-  });
-})
-
-const filteredIndikatorStrategis = computed(() => {
-  if (!form.value.idSs) return []
-  return sasaranStrategisList.value
-    .filter(item => item.ssId === form.value.idSs)
-    .map(item => ({ id: item.indikatorId, nama: item.indikatorNama }))
-})
-
-const form = ref({
+// 1. Standardized Form State
+const form = ref<Record<string, any>>({
+  id_ss: null as number | null,
   kode: '',
-  unitKerjaId: null as number | null,
-  idSs: null as number | null,
-  idIs: null as number | null,
-  sasaranText: '',
+  unit_kerja: '',
+  kode_iku: '',
+  sasaran_program_text: '',
   satuan: '',
-  targets: ['', '', '', '', ''],
-  indikatorTambahan: [] as { nama: string }[]
+  target_1: 0,
+  target_2: 0,
+  target_3: 0,
+  target_4: 0,
+  target_5: 0
 })
 
-function addIndikator() {
-  form.value.indikatorTambahan.push({ nama: '' })
-}
+// 2. Options Mapping
+const sasaranStrategisOptions = computed(() => {
+  if (!ssData.value) return []
+  const source = Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
+  const seen = new Set()
+  return source.filter((item: any) => {
+    if (!item.ssId || seen.has(item.ssId)) return false
+    seen.add(item.ssId)
+    return true
+  }).map((item: any) => ({
+    id: Number(item.ssId),
+    kode: item.kode || '-',
+    sasaranText: item.sasaranText
+  }))
+})
 
-function removeIndikator(index: number) {
-  form.value.indikatorTambahan.splice(index, 1)
-}
+const indikatorStrategisOptions = computed(() => {
+  if (!form.value.id_ss || !ssData.value) return []
+  const source = Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
+  return source
+    .filter((item: any) => Number(item.ssId) === form.value.id_ss)
+    .map((item: any) => ({
+      id: item.indikatorId,
+      nama: item.indikatorNama,
+      kode: item.indikatorKode
+    }))
+})
 
 const handleSubmit = async () => {
   if (submitting.value) return
+  
+  if (!form.value.id_ss || !form.value.unit_kerja || !form.value.sasaran_program_text) {
+    toast.error('Harap lengkapi seluruh field wajib (*)')
+    return
+  }
+
   submitting.value = true
   try {
-    // Implement save logic
+    await $fetch('/api/sasaran-program', {
+      method: 'POST',
+      body: {
+        ...form.value
+      }
+    })
+    
+    toast.success('Data master sasaran program berhasil disimpan.')
     router.push(`/${route.params.slug}/master-sasaran-program`)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error:', error)
+    toast.error(error.data?.statusMessage || 'Gagal menyimpan data master.')
   } finally {
     submitting.value = false
   }
@@ -277,8 +266,20 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-/* Table-like form refinement */
-table tr:last-child {
-  border-bottom: none;
+.field-input {
+  background-color: white;
+  border-width: 2px;
+  border-color: rgb(226 232 240);
+  border-radius: 0.75rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(51 65 85);
+  transition: all 0.2s;
+}
+.field-input:focus {
+  outline: none;
+  border-color: #2663A3;
+  box-shadow: 0 0 0 4px rgb(219 234 254);
 }
 </style>

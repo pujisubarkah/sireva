@@ -1,135 +1,91 @@
 import { db } from '../../db';
 import { sasaranKegiatan } from '../../db/schema/sasaran-kegiatan';
-import { unitKerja } from '../../db/schema/unit-kerja';
-import { indikatorKegiatan } from '../../db/schema/indikator-kegiatan';
-import { targetIndiaktorKegiatan } from '../../db/schema/target-indikator-kegiatan';
-import { eq, sql, desc } from 'drizzle-orm';
-import { defineEventHandler, readBody, createError, getQuery } from 'h3';
+import { eq, desc, sql } from 'drizzle-orm';
+import { defineEventHandler, readBody, createError, getQuery, getMethod } from 'h3';
 
 export default defineEventHandler(async (event) => {
-  const method = event.method;
+  const method = getMethod(event);
 
   try {
     if (method === 'GET') {
       const query = getQuery(event);
-      const page = Number(query.page) || 1;
-      const limit = Number(query.limit) || 20;
-      const offset = (page - 1) * limit;
+      const id = query.id;
 
-      const hasIndikatorCondition = sql`exists (
-        select 1 from sireva.indikator_kegiatan ik
-        where ik.id_sk = ${sasaranKegiatan.id}
-      )`;
+      if (id) {
+        const result = await db.select().from(sasaranKegiatan).where(eq(sasaranKegiatan.id, Number(id)));
+        return result[0];
+      }
 
-      const data = await db
-        .select({
-          id: sasaranKegiatan.id,
-          idSp: sasaranKegiatan.idSp,
-          kode: sasaranKegiatan.kode,
-          sasaranText: sasaranKegiatan.sasaranText,
-          unitKerjaId: sasaranKegiatan.unitKerjaId,
-          unitKerjaNama: unitKerja.nama,
-          indikators: sql<any[]>`
-            coalesce(
-              (
-                select jsonb_agg(
-                  jsonb_build_object(
-                    'id', ik.id,
-                    'nama', ik.nama_iku,
-                    'satuan', ik.satuan_pengukuran,
-                    'targets', coalesce(
-                      (
-                        select jsonb_agg(
-                          jsonb_build_object('tahun', tik.tahun, 'target', tik.target_nilai)
-                          order by tik.tahun
-                        )
-                        from sireva.target_indikator_kegiatan tik
-                        where tik.id_iku = ik.id
-                      ),
-                      '[]'::jsonb
-                    )
-                  )
-                  order by ik.id
-                )
-                from sireva.indikator_kegiatan ik
-                where ik.id_sk = ${sasaranKegiatan.id}
-              ),
-              '[]'::jsonb
-            )
-          `,
-        })
-        .from(sasaranKegiatan)
-        .leftJoin(unitKerja, eq(sasaranKegiatan.unitKerjaId, unitKerja.id))
-        .where(hasIndikatorCondition)
-        .orderBy(desc(sasaranKegiatan.id))
-        .limit(limit)
-        .offset(offset);
-
-      const totalResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(sasaranKegiatan)
-        .where(hasIndikatorCondition);
-      const total = Number(totalResult[0]?.count || 0);
-
-      return {
-        data,
-        meta: {
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit)
-        }
-      };
+      return await db.select().from(sasaranKegiatan).orderBy(desc(sasaranKegiatan.id)).limit(100);
     }
 
     if (method === 'POST') {
-      const body = await readBody<any>(event);
-      const { indikatorList, ...insertBody } = body ?? {};
+      const body = await readBody(event);
+      console.log('DEBUG POST SK body:', body);
 
-      const created = await db
-        .insert(sasaranKegiatan)
-        .values({
-          idSp: insertBody.idSp ?? null,
-          kode: insertBody.kode ?? null,
-          sasaranText: insertBody.sasaranText,
-          unitKerjaId: insertBody.unitKerjaId ?? null,
-        })
+      const payload = {
+        id_ss: body.id_ss ? Number(body.id_ss) : null,
+        id_is: body.id_is ? Number(body.id_is) : null,
+        id_sp: body.id_sp ? Number(body.id_sp) : null,
+        id_ip: body.id_ip ? Number(body.id_ip) : null,
+        kode: body.kode ? String(body.kode) : null,
+        unit_kerja: body.unit_kerja ? String(body.unit_kerja) : null,
+        indikator_kinerja: body.indikator_kinerja ? String(body.indikator_kinerja) : null,
+        sasaran_kegiatan_text: body.sasaran_kegiatan_text ? String(body.sasaran_kegiatan_text) : null,
+        satuan: body.satuan ? String(body.satuan) : null,
+        target_1: body.target_1 ? String(body.target_1) : '0',
+        target_2: body.target_2 ? String(body.target_2) : '0',
+        target_3: body.target_3 ? String(body.target_3) : '0',
+        target_4: body.target_4 ? String(body.target_4) : '0',
+        target_5: body.target_5 ? String(body.target_5) : '0'
+      };
+
+      console.log('DEBUG POST SK payload:', payload);
+
+      const result = await db.insert(sasaranKegiatan).values(payload).returning();
+      return result;
+    }
+
+    if (method === 'PUT') {
+      const body = await readBody(event);
+      if (!body.id) throw createError({ statusCode: 400, statusMessage: 'ID is required for update' });
+
+      const payload = {
+        id_ss: body.id_ss ? Number(body.id_ss) : null,
+        id_is: body.id_is ? Number(body.id_is) : null,
+        id_sp: body.id_sp ? Number(body.id_sp) : null,
+        id_ip: body.id_ip ? Number(body.id_ip) : null,
+        kode: body.kode ? String(body.kode) : null,
+        unit_kerja: body.unit_kerja ? String(body.unit_kerja) : null,
+        indikator_kinerja: body.indikator_kinerja ? String(body.indikator_kinerja) : null,
+        sasaran_kegiatan_text: body.sasaran_kegiatan_text ? String(body.sasaran_kegiatan_text) : null,
+        satuan: body.satuan ? String(body.satuan) : null,
+        target_1: body.target_1 ? String(body.target_1) : '0',
+        target_2: body.target_2 ? String(body.target_2) : '0',
+        target_3: body.target_3 ? String(body.target_3) : '0',
+        target_4: body.target_4 ? String(body.target_4) : '0',
+        target_5: body.target_5 ? String(body.target_5) : '0'
+      };
+
+      const result = await db.update(sasaranKegiatan)
+        .set(payload)
+        .where(eq(sasaranKegiatan.id, Number(body.id)))
         .returning();
+      return result;
+    }
 
-      const newId = created[0]?.id;
+    if (method === 'DELETE') {
+      const body = await readBody(event);
+      const id = body.id || getQuery(event).id;
+      if (!id) throw createError({ statusCode: 400, statusMessage: 'ID is required for deletion' });
 
-      if (newId && Array.isArray(indikatorList)) {
-        for (const indikator of indikatorList) {
-          if (!indikator?.nama?.trim()) continue;
-
-          const createdInd = await db.insert(indikatorKegiatan).values({
-            idSk: newId,
-            namaIku: indikator.nama.trim(),
-            satuanPengukuran: indikator.satuan ?? null,
-          }).returning({ id: indikatorKegiatan.id });
-
-          const indId = createdInd[0]?.id;
-          if (indId && Array.isArray(indikator.targets)) {
-            const targetRows = indikator.targets
-              .filter((t: any) => t && t.tahun != null && t.target !== '' && t.target != null)
-              .map((t: any) => ({
-                idIku: indId,
-                tahun: Number(t.tahun),
-                targetNilai: String(t.target),
-              }));
-
-            if (targetRows.length > 0) {
-              await db.insert(targetIndiaktorKegiatan).values(targetRows);
-            }
-          }
-        }
-      }
-
-      return created;
+      await db.delete(sasaranKegiatan).where(eq(sasaranKegiatan.id, Number(id)));
+      return { success: true };
     }
 
     throw createError({ statusCode: 405, statusMessage: 'Method Not Allowed' });
   } catch (error: any) {
+    console.error('SK API Error:', error);
     throw createError({
       statusCode: error?.statusCode || 500,
       statusMessage: error?.statusMessage || error?.message || 'Internal Server Error',

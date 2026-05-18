@@ -222,16 +222,22 @@ const displayRows = computed(() => {
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
     rows = rows.filter((r: any) => 
-      r.sasaranText?.toLowerCase().includes(q) || 
-      r.indikatorNama?.toLowerCase().includes(q) ||
-      (r.unitKerjaNames || []).some((un: string) => un.toLowerCase().includes(q))
+      r.sasaran_program_text?.toLowerCase().includes(q) || 
+      r.kode_iku?.toLowerCase().includes(q) ||
+      r.unit_kerja?.toLowerCase().includes(q)
     )
   }
 
-  return rows.map((r: any) => ({
-    ...r,
-    targetValue: r.targets?.find((t: any) => String(t.tahun) === selectedYear.value)?.target || 0
-  }))
+  return rows.map((r: any) => {
+    // Determine the target based on the selected year (assuming target_1 is 2025, target_2 is 2026, etc.)
+    const yearIndex = yearOptions.indexOf(selectedYear.value)
+    const targetKey = `target_${yearIndex + 1}`
+    
+    return {
+      ...r,
+      targetValue: r[targetKey] || 0
+    }
+  })
 })
 
 const paginatedRows = computed(() => {
@@ -242,10 +248,10 @@ const paginatedRows = computed(() => {
 const tableColumns = [
   { key: 'no', label: 'No', center: true, width: 60 },
   { key: 'kode', label: 'Kode', center: true, width: 80 },
-  { key: 'sasaranText', label: 'Sasaran Program', width: '25%' },
-  { key: 'unit', label: 'Unit Kerja', width: '20%' },
-  { key: 'indikatorNama', label: 'Indikator Kinerja', width: '25%' },
-  { key: 'target', label: 'Target', center: true, width: 140 },
+  { key: 'sasaran_program_text', label: 'Sasaran Program', width: '25%' },
+  { key: 'unit_kerja', label: 'Unit Kerja', width: '20%' },
+  { key: 'kode_iku', label: 'Indikator Kinerja', width: '25%' },
+  { key: 'targetValue', label: 'Target', center: true, width: 140 },
   { key: 'aksi', label: 'Aksi', center: true, width: 120 },
 ]
 

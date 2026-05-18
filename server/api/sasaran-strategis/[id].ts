@@ -11,7 +11,7 @@ import { indikatorKegiatan } from '../../db/schema/indikator-kegiatan';
 import { targetIndiaktorKegiatan } from '../../db/schema/target-indikator-kegiatan';
 import { laporanSasaranStrategis } from '../../db/schema/laporan-sasaran-strategis';
 import { perjanjianKinerja } from '../../db/schema/perjanjian-kinerja';
-import { eq, sql, inArray } from 'drizzle-orm';
+import { eq, sql, inArray, or } from 'drizzle-orm';
 import { defineEventHandler, readBody, createError, getMethod, getRouterParam } from 'h3';
 
 export default defineEventHandler(async (event) => {
@@ -107,8 +107,9 @@ export default defineEventHandler(async (event) => {
 
 	if (method === 'DELETE') {
 		try {
+			console.log(`[DELETE] Starting deletion for Sasaran Strategis ID: ${id}`);
 			return await db.transaction(async (tx) => {
-				// 1. Get IDs for the entire hierarchy to handle NO ACTION constraints
+				// 1. Collect all IDs for children/descendants
 				const indicators = await tx.select({ id: indikatorStrategis.id })
 					.from(indikatorStrategis)
 					.where(eq(indikatorStrategis.sasaranStrategisId, id));
@@ -120,55 +121,75 @@ export default defineEventHandler(async (event) => {
 				const spIds = sps.map(s => s.id);
 
 				let skIds: number[] = [];
-				let ikIds: number[] = [];
+				let ipIds: number[] = [];
 				if (spIds.length > 0) {
 					const sks = await tx.select({ id: sasaranKegiatan.id })
 						.from(sasaranKegiatan)
 						.where(inArray(sasaranKegiatan.idSp, spIds));
 					skIds = sks.map(s => s.id);
 
-					if (skIds.length > 0) {
-						const iks = await tx.select({ id: indikatorKegiatan.id })
-							.from(indikatorKegiatan)
-							.where(inArray(indikatorKegiatan.idSk, skIds));
-						ikIds = iks.map(i => i.id);
-					}
+					const ips = await tx.select({ id: indikatorProgram.id })
+						.from(indikatorProgram)
+						.where(inArray(indikatorProgram.sasaranProgramId, spIds));
+					ipIds = ips.map(i => i.id);
 				}
 
-				// 2. Delete Leaf Nodes (Depth 4) - The ones that usually block
+				let ikIds: number[] = [];
+				if (skIds.length > 0) {
+					const iks = await tx.select({ id: indikatorKegiatan.id })
+						.from(indikatorKegiatan)
+						.where(inArray(indikatorKegiatan.idSk, skIds));
+					ikIds = iks.map(i => i.id);
+				}
+
+				console.log(`[DELETE] Found: ${indicatorIds.length} indicators, ${spIds.length} programs, ${skIds.length} activities, ${ikIds.length} activity indicators.`);
+
+				// 2. Delete Leaf Nodes (Depth 4/5)
 				if (ikIds.length > 0) {
-					await tx.delete(targetIndiaktorKegiatan)
-						.where(inArray(targetIndiaktorKegiatan.idIku, ikIds));
+					await tx.delete(targetIndiaktorKegiatan).where(inArray(targetIndiaktorKegiatan.idIku, ikIds));
 				}
-
+				if (ipIds.length > 0) {
+					await tx.delete(targetIndikatorProgram).where(inArray(targetIndikatorProgram.indikatorId, ipIds));
+				}
 				if (indicatorIds.length > 0) {
-					await tx.delete(targetIndikatorStrategis)
-						.where(inArray(targetIndikatorStrategis.indikatorId, indicatorIds));
+					await tx.delete(targetIndikatorStrategis).where(inArray(targetIndikatorStrategis.indikatorId, indicatorIds));
 				}
 
-				// 3. Delete Junctions/Reports (Depth 3)
+				// 3. Delete Indicators & Reports (Depth 3)
+				if (ikIds.length > 0) {
+					await tx.delete(indikatorKegiatan).where(inArray(indikatorKegiatan.id, ikIds));
+				}
+				if (ipIds.length > 0) {
+					await tx.delete(indikatorProgram).where(inArray(indikatorProgram.id, ipIds));
+				}
+
 				if (indicatorIds.length > 0) {
 					await tx.delete(perjanjianKinerja)
-						.where(sql`${perjanjianKinerja.sasaranId} = ${id} OR ${perjanjianKinerja.indikatorId} IN (${sql.join(indicatorIds, sql`, `)})`);
+						.where(or(
+							eq(perjanjianKinerja.sasaranId, id),
+							inArray(perjanjianKinerja.indikatorId, indicatorIds)
+						));
 				} else {
-					await tx.delete(perjanjianKinerja)
-						.where(eq(perjanjianKinerja.sasaranId, id));
+					await tx.delete(perjanjianKinerja).where(eq(perjanjianKinerja.sasaranId, id));
 				}
 
-				await tx.delete(laporanSasaranStrategis)
-					.where(eq(laporanSasaranStrategis.sasaranId, id));
+				await tx.delete(laporanSasaranStrategis).where(eq(laporanSasaranStrategis.sasaranId, id));
 
-				// 4. Delete nested tree (Depth 2 & 1)
-				// Deleting sasaranProgram should cascade to its direct children IF DB supports it,
-				// but we manually handled the deep blockers (target_indikator_kegiatan)
+				// 4. Delete Middle Nodes (Depth 2/1)
+				if (skIds.length > 0) {
+					await tx.delete(sasaranKegiatan).where(inArray(sasaranKegiatan.idSp, spIds));
+				}
+
 				if (spIds.length > 0) {
-					await tx.delete(sasaranProgram)
-						.where(inArray(sasaranProgram.id, spIds));
+					// Also delete reports if any (though usually cascaded or handled)
+					await tx.delete(laporanSasaranProgram).where(inArray(laporanSasaranProgram.idSp, spIds));
+					await tx.delete(sasaranProgram).where(inArray(sasaranProgram.id, spIds));
 				}
 
 				// 5. Delete Indikator Strategis
-				await tx.delete(indikatorStrategis)
-					.where(eq(indikatorStrategis.sasaranStrategisId, id));
+				if (indicatorIds.length > 0) {
+					await tx.delete(indikatorStrategis).where(eq(indikatorStrategis.sasaranStrategisId, id));
+				}
 
 				// 6. Finally delete the SS record
 				const [deleted] = await tx
@@ -180,10 +201,11 @@ export default defineEventHandler(async (event) => {
 					throw createError({ statusCode: 404, statusMessage: 'Sasaran strategis tidak ditemukan.' });
 				}
 
+				console.log(`[DELETE] Successfully deleted SS ID: ${id}`);
 				return { success: true, deleted };
 			});
 		} catch (error: any) {
-			console.error('Delete Error:', error);
+			console.error('Delete Error Stack:', error);
 			throw createError({ 
 				statusCode: 500, 
 				statusMessage: `Gagal menghapus data: ${error.message || 'Kesalahan database'}` 

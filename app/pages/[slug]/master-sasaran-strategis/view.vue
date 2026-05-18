@@ -46,10 +46,6 @@
             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kode Sasaran</label>
             <div class="text-lg font-bold text-slate-800">{{ data.kode || '-' }}</div>
           </div>
-          <div class="space-y-1.5">
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Unit Kerja Pemilik</label>
-            <div class="text-lg font-bold text-slate-800">{{ data.ownerUnitName || 'Global' }}</div>
-          </div>
           <div class="col-span-full space-y-1.5 pt-4 border-t border-slate-50">
             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Teks Sasaran Strategis</label>
             <div class="text-xl font-black text-[#2663A3] leading-relaxed">{{ data.sasaranText }}</div>

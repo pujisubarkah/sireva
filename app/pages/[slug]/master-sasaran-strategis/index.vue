@@ -98,7 +98,6 @@ const columns = [
   { key: 'id', label: 'ID', className: 'text-center w-16' },
   { key: 'kode', label: 'Kode', className: 'w-32' },
   { key: 'sasaran', label: 'Sasaran Strategis' },
-  { key: 'unit_kerja', label: 'Unit Kerja', className: 'w-64' },
   { key: 'aksi', label: 'Aksi', className: 'text-center w-24' },
 ];
 
@@ -125,7 +124,7 @@ const tableRows = computed<SasaranRow[]>(() => {
         id: item.ssId,
         kode: item.kode || '-',
         sasaran: item.sasaranText || '-',
-        unit_kerja: item.ownerUnitName || 'Global / Semua Unit',
+        unit_kerja: '', // Removed
         aksi: '',
       });
     }

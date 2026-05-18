@@ -1,15 +1,15 @@
 <template>
-  <div class="max-w-5xl mx-auto pb-20 space-y-8">
+  <div class="max-w-5xl mx-auto pb-20 space-y-8 mt-4">
     <!-- Header Section -->
     <div class="flex items-center justify-between px-2">
       <div class="flex items-start gap-4">
         <div class="p-3 bg-blue-100 rounded-2xl text-[#2663A3]">
-          <IconDatabase :size="28" stroke-width="2.5" />
+          <IconPencil :size="28" stroke-width="2.5" />
         </div>
         <div>
           <h1 class="text-2xl font-black text-slate-900 tracking-tight">Master Data: Edit Sasaran Kegiatan</h1>
           <p class="text-slate-500 font-medium text-sm mt-0.5">
-            Ubah data master sasaran kegiatan beserta relasi cascading dan target renstra.
+            Perbarui data master sasaran kegiatan beserta hierarki cascading dan target periode Renstra.
           </p>
         </div>
       </div>
@@ -18,9 +18,12 @@
       </div>
     </div>
 
-    <div v-if="loading" class="p-20 text-center flex flex-col items-center gap-4">
-      <div class="w-12 h-12 border-4 border-slate-200 border-t-[#2663A3] rounded-full animate-spin"></div>
-      <p class="text-slate-500 font-medium">Memuat data master...</p>
+    <!-- Loading State -->
+    <div v-if="fetching" class="p-20 text-center bg-white rounded-3xl border border-slate-200 shadow-sm">
+      <div class="relative inline-flex mb-4">
+        <div class="w-12 h-12 rounded-full border-4 border-blue-100 border-t-[#2663A3] animate-spin"></div>
+      </div>
+      <p class="text-slate-500 font-black uppercase tracking-widest text-xs">Memuat Data Master...</p>
     </div>
 
     <form v-else @submit.prevent="handleSubmit" class="space-y-6">
@@ -41,7 +44,6 @@
                   v-model="form.kode"
                   type="text"
                   required
-                  maxlength="10"
                   class="w-full md:w-1/3 bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
                 />
               </td>
@@ -53,27 +55,30 @@
               <td class="px-8 py-5">
                 <div class="relative max-w-2xl">
                   <select
-                    v-model="form.idSs"
+                    v-model="form.id_ss"
                     required
                     class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
                   >
                     <option :value="null" disabled>-- Pilih Sasaran Strategis --</option>
-                    <option v-for="ss in uniqueSasaranStrategis" :key="ss.ssId" :value="ss.ssId">{{ ss.sasaranText }}</option>
+                    <option v-for="ss in uniqueSasaranStrategis" :key="ss.id" :value="ss.id">
+                      [{{ ss.kode }}] {{ ss.text }}
+                    </option>
                   </select>
                   <IconChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" :size="18" />
                 </div>
               </td>
             </tr>
 
-            <!-- 3. Indikator Kinerja Strategis -->
+            <!-- 3. Indikator Strategis -->
             <tr class="border-b border-slate-100">
               <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">3. Indikator Strategis <span class="text-red-500">*</span></td>
               <td class="px-8 py-5">
                 <div class="relative max-w-2xl">
                   <select
-                    v-model="form.idIs"
+                    v-model="form.id_is"
                     required
                     class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                    :disabled="!form.id_ss"
                   >
                     <option :value="null" disabled>-- Pilih Indikator Strategis --</option>
                     <option v-for="is in filteredIndikatorStrategis" :key="is.id" :value="is.id">{{ is.nama }}</option>
@@ -89,27 +94,31 @@
               <td class="px-8 py-5">
                 <div class="relative max-w-2xl">
                   <select
-                    v-model="form.idSp"
+                    v-model="form.id_sp"
                     required
                     class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                    :disabled="!form.id_ss"
                   >
                     <option :value="null" disabled>-- Pilih Sasaran Program --</option>
-                    <option v-for="sp in filteredSasaranProgram" :key="sp.id" :value="sp.id">{{ sp.sasaranText }}</option>
+                    <option v-for="sp in filteredSasaranProgram" :key="sp.id" :value="sp.id">
+                      [{{ sp.kode }}] {{ sp.text }}
+                    </option>
                   </select>
                   <IconChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" :size="18" />
                 </div>
               </td>
             </tr>
 
-            <!-- 5. Indikator Kinerja Program -->
+            <!-- 5. Indikator Program -->
             <tr class="border-b border-slate-100">
               <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">5. Indikator Program <span class="text-red-500">*</span></td>
               <td class="px-8 py-5">
                 <div class="relative max-w-2xl">
                   <select
-                    v-model="form.idIp"
+                    v-model="form.id_ip"
                     required
                     class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                    :disabled="!form.id_sp"
                   >
                     <option :value="null" disabled>-- Pilih Indikator Program --</option>
                     <option v-for="ip in filteredIndikatorProgram" :key="ip.id" :value="ip.id">{{ ip.nama }}</option>
@@ -125,12 +134,12 @@
               <td class="px-8 py-5">
                 <div class="relative max-w-xl">
                   <select
-                    v-model="form.unitKerjaId"
+                    v-model="form.unit_kerja"
                     required
                     class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
                   >
-                    <option :value="null" disabled>-- Pilih Unit Kerja --</option>
-                    <option v-for="u in unitList" :key="u.id" :value="u.id">{{ u.nama }}</option>
+                    <option value="" disabled>-- Pilih Unit Kerja --</option>
+                    <option v-for="u in unitList" :key="u.id" :value="u.nama">{{ u.nama }}</option>
                   </select>
                   <IconChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" :size="18" />
                 </div>
@@ -141,79 +150,52 @@
             <tr class="border-b border-slate-100">
               <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">7. Sasaran Kegiatan <span class="text-red-500">*</span></td>
               <td class="px-8 py-5">
-                <input
-                  v-model="form.sasaranText"
-                  type="text"
+                <textarea
+                  v-model="form.sasaran_kegiatan_text"
                   required
-                  maxlength="40"
-                  class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
-                />
+                  class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] min-h-[100px] transition-all"
+                ></textarea>
               </td>
             </tr>
 
-            <!-- 8. Indikator Kinerja -->
+            <!-- 8. Indikator Kinerja Utama -->
             <tr class="border-b border-slate-100">
               <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">8. Indikator Kinerja <span class="text-red-500">*</span></td>
               <td class="px-8 py-5">
                 <input
-                  v-model="form.indikatorUtama"
+                  v-model="form.indikator_kinerja"
                   type="text"
                   required
-                  maxlength="40"
                   class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
                 />
               </td>
             </tr>
 
-            <!-- 9. Indikator KIK -->
+            <!-- 9. Satuan -->
             <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">9. Indikator KIK (Optional)</td>
-              <td class="px-8 py-5">
-                 <div class="space-y-3">
-                  <div v-for="(ind, idx) in form.indikatorTambahan" :key="idx" class="flex gap-2">
-                    <input
-                      v-model="ind.nama"
-                      type="text"
-                      maxlength="40"
-                      class="flex-1 bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
-                    />
-                    <button @click="removeIndikator(idx)" type="button" class="p-2.5 text-red-500 bg-red-50 rounded-xl hover:bg-red-100 transition-colors">
-                      <IconTrash :size="18" />
-                    </button>
-                  </div>
-                  <button @click="addIndikator" type="button" class="text-xs font-bold text-[#2663A3] hover:underline flex items-center gap-1">
-                    <IconPlus :size="14" stroke-width="3" /> Tambah Indikator KIK
-                  </button>
-                </div>
-              </td>
-            </tr>
-
-            <!-- 10. Satuan -->
-            <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">10. Satuan <span class="text-red-500">*</span></td>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">9. Satuan <span class="text-red-500">*</span></td>
               <td class="px-8 py-5">
                 <input
                   v-model="form.satuan"
                   type="text"
                   required
-                  maxlength="20"
                   class="w-full md:w-1/2 bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
                 />
               </td>
             </tr>
 
-            <!-- 11. Target -->
+            <!-- 10. Target Renstra -->
             <tr>
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700 align-top pt-8">11. Target (5 Periode) <span class="text-red-500">*</span></td>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700 align-top pt-8">10. Target Renstra (5 Tahun) <span class="text-red-500">*</span></td>
               <td class="px-8 py-8">
                 <div class="grid grid-cols-5 gap-4">
-                  <div v-for="n in 5" :key="n" class="space-y-2 text-center">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Tahun {{ n }}</label>
+                  <div v-for="n in 5" :key="n" class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center block">Tahun {{ n }}</label>
                     <input
-                      v-model="form.targets[n-1]"
-                      type="text"
+                      v-model="form[`target_${n}`]"
+                      type="number"
+                      step="any"
                       required
-                      maxlength="10"
                       class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-2 py-2.5 text-center font-bold text-slate-700 focus:bg-white focus:border-[#2663A3] transition-all"
                     />
                   </div>
@@ -240,7 +222,7 @@
         >
           <IconDeviceFloppy v-if="!submitting" :size="18" />
           <div v-else class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-          Perbarui Data Master
+          Simpan Perubahan Master
         </button>
       </div>
     </form>
@@ -250,140 +232,142 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watchEffect } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { 
-  IconDatabase, IconFileText, IconChevronDown, IconTrash, IconPlus, IconX, IconDeviceFloppy 
+  IconPencil, IconFileText, IconChevronDown, IconTrash, IconPlus, IconX, IconDeviceFloppy 
 } from '@tabler/icons-vue'
 import useSWRV from 'swrv'
+import { useToast } from '#imports'
 
 const router = useRouter()
 const route = useRoute()
+const toast = useToast()
+const id = route.query.id
 const submitting = ref(false)
-const loading = ref(true)
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
+const { data: detail, isValidating: fetching } = useSWRV(id ? `/api/sasaran-kegiatan?id=${id}` : null, fetcher)
 const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
 const { data: ssData } = useSWRV('/api/sasaran-strategis', fetcher)
 const { data: spData } = useSWRV('/api/sasaran-program', fetcher)
 
-const form = ref({
-  id: null as number | null,
+// 1. Standardized Form State
+const form = ref<Record<string, any>>({
+  id_ss: null as number | null,
+  id_is: null as number | null,
+  id_sp: null as number | null,
+  id_ip: null as number | null,
   kode: '',
-  unitKerjaId: null as number | null,
-  idSs: null as number | null,
-  idIs: null as number | null,
-  idSp: null as number | null,
-  idIp: null as number | null,
-  sasaranText: '',
-  indikatorUtama: '',
+  unit_kerja: '',
+  indikator_kinerja: '',
+  sasaran_kegiatan_text: '',
   satuan: '',
-  indikatorTambahan: [] as { nama: string }[],
-  targets: ['', '', '', '', '']
+  target_1: 0,
+  target_2: 0,
+  target_3: 0,
+  target_4: 0,
+  target_5: 0
 })
 
-interface SSItem {
-  ssId: number;
-  sasaranText: string;
-  indikatorId: number;
-  indikatorNama: string;
-}
-
-interface SPItem {
-  id: number;
-  idSs: number;
-  sasaranText: string;
-  indikatorId: number;
-  indikatorNama: string;
-}
-
-const sasaranStrategisList = computed<SSItem[]>(() => {
-  if (!ssData.value) return []
-  return Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
+// 2. Load Data
+watchEffect(() => {
+  if (detail.value) {
+    const item = Array.isArray(detail.value) ? detail.value[0] : detail.value
+    if (item) {
+      form.value.id_ss = item.id_ss ? Number(item.id_ss) : null
+      form.value.id_is = item.id_is ? Number(item.id_is) : null
+      form.value.id_sp = item.id_sp ? Number(item.id_sp) : null
+      form.value.id_ip = item.id_ip ? Number(item.id_ip) : null
+      form.value.kode = item.kode || ''
+      form.value.unit_kerja = item.unit_kerja || ''
+      form.value.indikator_kinerja = item.indikator_kinerja || ''
+      form.value.sasaran_kegiatan_text = item.sasaran_kegiatan_text || ''
+      form.value.satuan = item.satuan || ''
+      form.value.target_1 = Number(item.target_1 || 0)
+      form.value.target_2 = Number(item.target_2 || 0)
+      form.value.target_3 = Number(item.target_3 || 0)
+      form.value.target_4 = Number(item.target_4 || 0)
+      form.value.target_5 = Number(item.target_5 || 0)
+    }
+  }
 })
 
-const sasaranProgramList = computed<SPItem[]>(() => {
-  if (!spData.value) return []
-  return Array.isArray(spData.value) ? spData.value : (spData.value.data || [])
-})
-
+// 3. Sasaran Strategis Options
 const uniqueSasaranStrategis = computed(() => {
-  const seen = new Set();
-  return sasaranStrategisList.value.filter(item => {
-    if (seen.has(item.ssId)) return false;
-    seen.add(item.ssId);
-    return true;
-  });
+  if (!ssData.value) return []
+  const source = Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
+  const seen = new Set()
+  return source.filter((item: any) => {
+    if (!item.ssId || seen.has(item.ssId)) return false
+    seen.add(item.ssId)
+    return true
+  }).map((item: any) => ({
+    id: Number(item.ssId),
+    kode: item.kode || '-',
+    text: item.sasaranText
+  }))
 })
 
+// 4. Indikator Strategis Options
 const filteredIndikatorStrategis = computed(() => {
-  if (!form.value.idSs) return []
-  return sasaranStrategisList.value
-    .filter(item => item.ssId === form.value.idSs)
-    .map(item => ({ id: item.indikatorId, nama: item.indikatorNama }))
+  if (!form.value.id_ss || !ssData.value) return []
+  const source = Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
+  return source
+    .filter((item: any) => Number(item.ssId) === form.value.id_ss)
+    .map((item: any) => ({
+      id: item.indikatorId,
+      nama: item.indikatorNama
+    }))
 })
 
+// 5. Sasaran Program Options
 const filteredSasaranProgram = computed(() => {
-  if (!form.value.idSs) return []
-  const seen = new Set();
-  return sasaranProgramList.value
-    .filter(item => item.idSs === form.value.idSs)
-    .filter(item => {
-      if (seen.has(item.id)) return false;
-      seen.add(item.id);
-      return true;
-    });
+  if (!form.value.id_ss || !spData.value) return []
+  const source = Array.isArray(spData.value) ? spData.value : (spData.value.data || [])
+  const seen = new Set()
+  return source.filter((item: any) => {
+    if (Number(item.id_ss) !== form.value.id_ss) return false
+    if (seen.has(item.id)) return false
+    seen.add(item.id)
+    return true
+  }).map((item: any) => ({
+    id: item.id,
+    kode: item.kode || '-',
+    text: item.sasaran_program_text
+  }))
 })
 
+// 6. Indikator Program Options
 const filteredIndikatorProgram = computed(() => {
-  if (!form.value.idSp) return []
-  return sasaranProgramList.value
-    .filter(item => item.id === form.value.idSp)
-    .map(item => ({ id: item.indikatorId, nama: item.indikatorNama }))
+  if (!form.value.id_sp || !spData.value) return []
+  const source = Array.isArray(spData.value) ? spData.value : (spData.value.data || [])
+  return source
+    .filter((item: any) => item.id === form.value.id_sp)
+    .map((item: any) => ({
+      id: item.id,
+      nama: item.kode_iku
+    }))
 })
-
-onMounted(async () => {
-  const id = route.query.id
-  if (!id) {
-    router.push(`/${route.params.slug}/master-sasaran-kegiatan`)
-    return
-  }
-
-  try {
-    const data = await $fetch<any>(`/api/sasaran-kegiatan/${id}`)
-    // Map data to form
-    // ... logic to fill form ...
-    loading.value = false
-  } catch (error) {
-    console.error('Error fetching data:', error)
-    loading.value = false
-  }
-})
-
-function addIndikator() {
-  form.value.indikatorTambahan.push({ nama: '' })
-}
-
-function removeIndikator(index: number) {
-  form.value.indikatorTambahan.splice(index, 1)
-}
 
 const handleSubmit = async () => {
   if (submitting.value) return
   submitting.value = true
   try {
-    // Implement update logic
+    await $fetch('/api/sasaran-kegiatan', {
+      method: 'PUT',
+      body: {
+        id,
+        ...form.value
+      }
+    })
+    toast.success('Data master berhasil diperbarui.')
     router.push(`/${route.params.slug}/master-sasaran-kegiatan`)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error:', error)
+    toast.error('Gagal memperbarui data master.')
   } finally {
     submitting.value = false
   }
 }
 </script>
-
-<style scoped>
-table tr:last-child {
-  border-bottom: none;
-}
-</style>

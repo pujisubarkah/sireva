@@ -18,7 +18,7 @@
       </div>
     </div>
 
-    <form @submit.prevent="handleSubmit" class="space-y-6">
+    <form @submit.prevent="submitData" class="space-y-6">
       <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden transition-all hover:shadow-md">
         <!-- Table Form Header -->
         <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center gap-3">
@@ -28,12 +28,12 @@
 
         <table class="w-full text-sm border-collapse">
           <tbody>
-            <!-- 1. Kode -->
+            <!-- 1. Kode Sasaran -->
             <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">1. Kode <span class="text-red-500">*</span></td>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">1. Kode Sasaran <span class="text-red-500">*</span></td>
               <td class="px-8 py-5">
                 <input
-                  v-model="form.kode"
+                  v-model="form.kode_sasaran"
                   type="text"
                   required
                   maxlength="10"
@@ -41,100 +41,100 @@
                   placeholder="Max 10 digit"
                 />
               </td>
-            </tr>            <!-- 2. Unit Kerja -->
-            <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">2. Unit Kerja <span class="text-red-500">*</span></td>
-              <td class="px-8 py-5">
-                <div class="relative max-w-xl">
-                  <select
-                    v-model="form.unitKerjaId"
-                    required
-                    class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all"
-                  >
-                    <option :value="null" disabled>-- Pilih Unit Kerja --</option>
-                    <option v-for="u in unitList" :key="u.id" :value="u.id">{{ u.nama }}</option>
-                  </select>
-                  <IconChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" :size="18" />
-                </div>
-              </td>
             </tr>
 
-            <!-- 4. Sasaran Strategis -->
+            <!-- 3. Sasaran Strategis -->
             <tr class="border-b border-slate-100">
               <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">2. Sasaran Strategis <span class="text-red-500">*</span></td>
               <td class="px-8 py-5">
                 <input
-                  v-model="form.sasaranText"
+                  v-model="form.nama_sasaran"
                   type="text"
                   required
-                  maxlength="50"
                   class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all"
-                  placeholder="Sasaran Strategis"
+                  placeholder="Masukkan Nama Sasaran Strategis"
                 />
               </td>
             </tr>
 
-            <!-- 5. Indikator Kinerja & Target -->
-            <tr v-for="(ind, idx) in form.indikatorList" :key="idx" class="border-b border-slate-100 group">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700 align-top pt-8">
-                3.{{ idx + 1 }} Indikator Kinerja <span class="text-red-500">*</span>
-              </td>
-              <td class="px-8 py-8 space-y-6">
-                <div class="flex gap-2">
-                  <input
-                    v-model="ind.nama"
-                    type="text"
-                    required
-                    maxlength="50"
-                    class="flex-1 bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
-                    placeholder="Nama Indikator Kinerja"
-                  />
-                  <button v-if="idx > 0" @click="removeIndikator(idx)" type="button" class="p-2.5 text-red-500 bg-red-50 rounded-xl hover:bg-red-100 transition-colors">
-                    <IconTrash :size="18" />
-                  </button>
-                </div>
-
-                <div class="space-y-4 pt-4 border-t border-slate-50">
-                  <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Target Capaian (5 Periode)</label>
-                  <div class="grid grid-cols-5 gap-4">
-                    <div v-for="n in 5" :key="n" class="space-y-2">
-                      <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center block">Tahun {{ n }}</label>
+            <!-- 4. Indikator Kinerja (Dinamis) -->
+            <template v-for="(ind, index) in form.indikator_kinerja" :key="index">
+              <tr class="border-b border-slate-100 bg-slate-50/30">
+                <td class="w-1/4 px-8 py-5 font-black text-[#2663A3] text-xs uppercase tracking-widest align-top pt-8">
+                  Indikator #{{ index + 1 }}
+                </td>
+                <td class="px-8 py-8 space-y-6">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Kode Unik Indikator -->
+                    <div class="space-y-2">
+                      <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Kode Unik Indikator <span class="text-red-500">*</span></label>
                       <input
-                        v-model="ind.targets[n-1]"
+                        v-model="ind.kode_indikator"
                         type="text"
                         required
-                        maxlength="10"
-                        class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-2 py-2.5 text-center font-bold text-slate-700 focus:bg-white focus:border-[#2663A3] transition-all"
-                        placeholder="0"
+                        class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                        placeholder="Contoh: IKU-1.1"
                       />
                     </div>
+                    <!-- Hapus Button (Right Aligned in grid) -->
+                    <div v-if="form.indikator_kinerja.length > 1" class="flex justify-end pt-6">
+                      <button @click="removeIndikator(index)" type="button" class="p-3 text-red-500 bg-red-50 rounded-xl hover:bg-red-100 transition-colors" title="Hapus Indikator">
+                        <IconTrash :size="18" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </td>
-            </tr>
+
+                  <!-- Nama Indikator -->
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Indikator <span class="text-red-500">*</span></label>
+                    <input
+                      v-model="ind.nama_indikator"
+                      type="text"
+                      required
+                      class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                      placeholder="Nama Indikator Kinerja"
+                    />
+                  </div>
+
+                  <!-- Row 2: Satuan -->
+                  <div class="w-full md:w-1/3 space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Satuan <span class="text-red-500">*</span></label>
+                    <input
+                      v-model="ind.satuan"
+                      type="text"
+                      required
+                      class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                      placeholder="Contoh: Persen, Dokumen, dll"
+                    />
+                  </div>
+
+                  <!-- Row 3: Target Capaian (Tahun 1 - 5) -->
+                  <div class="space-y-4 pt-4 border-t border-slate-100">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1 text-blue-600">Target Capaian Per Tahun</label>
+                    <div class="grid grid-cols-5 gap-3">
+                      <div v-for="tahunIdx in 5" :key="tahunIdx" class="space-y-2">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider text-center block">Thn {{ tahunIdx }}</label>
+                        <input
+                          v-model="ind.target_capaian[tahunIdx-1]"
+                          type="text"
+                          required
+                          class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-2 py-2.5 text-center font-bold text-slate-700 focus:bg-white focus:border-[#2663A3] transition-all"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </template>
 
             <!-- Tombol Tambah Indikator -->
             <tr class="border-b border-slate-100">
               <td class="w-1/4 px-8 py-5 bg-slate-50/50"></td>
               <td class="px-8 py-5">
-                <button @click="addIndikator" type="button" class="text-xs font-bold text-[#2663A3] hover:underline flex items-center gap-1 bg-blue-50 px-4 py-2 rounded-lg">
-                  <IconPlus :size="14" stroke-width="3" /> Tambah Indikator Kinerja Lainnya
+                <button @click="addIndikator" type="button" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-50 text-[#2663A3] rounded-xl font-bold text-xs hover:bg-blue-100 transition-all border-2 border-blue-100 border-dashed">
+                  <IconPlus :size="16" stroke-width="3" /> Tambah Indikator Kinerja Lainnya
                 </button>
-              </td>
-            </tr>
-
-            <!-- 6. Satuan -->
-            <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">4. Satuan <span class="text-red-500">*</span></td>
-              <td class="px-8 py-5">
-                <input
-                  v-model="form.satuan"
-                  type="text"
-                  required
-                  maxlength="20"
-                  class="w-full md:w-1/2 bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all"
-                  placeholder="Contoh: Persen, Dokumen, dll"
-                />
               </td>
             </tr>
           </tbody>
@@ -153,7 +153,7 @@
         <button
           type="submit"
           :disabled="submitting"
-          class="px-8 py-3.5 rounded-2xl bg-[#2663A3] text-white font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="px-10 py-3.5 rounded-2xl bg-[#2663A3] text-white font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <IconDeviceFloppy v-if="!submitting" :size="18" />
           <div v-else class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -167,7 +167,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { 
   IconDatabase, IconFileText, IconTrash, IconPlus, IconX, IconDeviceFloppy, IconChevronDown
@@ -178,84 +178,120 @@ const router = useRouter()
 const route = useRoute()
 const submitting = ref(false)
 
+// Data Fetching for Dropdown
 const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
 
-const form = ref({
-  kode: '',
-  unitKerjaId: null as number | null,
-  sasaranText: '',
-  satuan: '',
-  indikatorList: [
-    { nama: '', targets: ['', '', '', '', ''] }
+// 1. Reactive State Definition
+const form = reactive({
+  kode_sasaran: '',
+  nama_sasaran: '',
+  indikator_kinerja: [
+    {
+      kode_indikator: '',
+      nama_indikator: '',
+      satuan: '',
+      target_capaian: ['', '', '', '', ''] 
+    }
   ]
 })
 
+// 2. Fungsi Dinamis: Tambah Indikator
 function addIndikator() {
-  form.value.indikatorList.push({ nama: '', targets: ['', '', '', '', ''] })
+  form.indikator_kinerja.push({
+    kode_indikator: '',
+    nama_indikator: '',
+    satuan: '',
+    target_capaian: ['', '', '', '', '']
+  })
 }
 
+// 2. Fungsi Dinamis: Hapus Indikator
 function removeIndikator(index: number) {
-  form.value.indikatorList.splice(index, 1)
+  if (form.indikator_kinerja.length > 1) {
+    form.indikator_kinerja.splice(index, 1)
+  }
 }
 
-const handleSubmit = async () => {
+// 4. Fungsi Submit API
+const submitData = async () => {
   if (submitting.value) return
   submitting.value = true
+
   try {
-    // 1. Create Sasaran Strategis
-    const ssResult = await $fetch<any[]>('/api/sasaran-strategis', {
+    // Step 1: Insert Parent (Sasaran Strategis)
+    const ssResponse = await $fetch<any[]>('/api/sasaran-strategis', {
       method: 'POST',
       body: {
-        kode: form.value.kode,
-        sasaranText: form.value.sasaranText,
-        unitKerjaId: form.value.unitKerjaId,
+        kode: form.kode_sasaran,
+        sasaranText: form.nama_sasaran,
       }
     })
-    
-    const ssId = ssResult[0]?.id
-    if (!ssId) throw new Error('Gagal mendapatkan ID Sasaran Strategis')
 
-    // 2. Create Indicators and Targets
-    for (const ind of form.value.indikatorList) {
-      if (!ind.nama) continue
+    const ssId = ssResponse[0]?.id
+    if (!ssId) throw new Error('Gagal mendapatkan ID Sasaran Strategis baru.')
 
-      const indResult = await $fetch<any[]>('/api/indikator-strategis', {
+    // Step 2: Bulk Insert Indicators
+    const indicatorsToInsert = form.indikator_kinerja
+      .filter(ind => ind.nama_indikator)
+      .map(ind => ({
+        sasaranStrategisId: ssId,
+        kode: ind.kode_indikator,
+        nama: ind.nama_indikator,
+        satuan: ind.satuan,
+        target_capaian: ind.target_capaian // Keep for next step
+      }))
+
+    if (indicatorsToInsert.length > 0) {
+      // Remove target_capaian before sending to API
+      const body = indicatorsToInsert.map(({ target_capaian, ...rest }) => rest)
+      
+      const indResponse = await $fetch<any[]>('/api/indikator-strategis', {
         method: 'POST',
-        body: {
-          sasaranStrategisId: ssId,
-          nama: ind.nama,
-          satuan: form.value.satuan
-        }
+        body
       })
 
-      const indId = indResult[0]?.id
-      if (indId) {
-        // Create 5 years of targets
-        const startYear = 2025 // Adjusted to match DB constraint (2025-2029)
-        for (let i = 0; i < 5; i++) {
+      // Step 3: Insert Targets
+      const startYear = 2025
+      for (let i = 0; i < indResponse.length; i++) {
+        const newInd = indResponse[i]
+        const originalTargets = indicatorsToInsert[i]?.target_capaian
+
+        if (!originalTargets) continue
+
+        const targets = originalTargets.map((val, tIdx) => ({
+          indikatorId: newInd.id,
+          tahun: startYear + tIdx,
+          target: val || '0'
+        }))
+
+        for (const targetItem of targets) {
           await $fetch('/api/target-indikator-strategis', {
             method: 'POST',
-            body: {
-              indikatorId: indId,
-              tahun: startYear + i,
-              target: ind.targets[i] || '0'
-            }
+            body: targetItem
           })
         }
       }
     }
 
+    alert('Data Berhasil Disimpan!')
     router.push(`/${route.params.slug}/master-sasaran-strategis`)
   } catch (error: any) {
-    console.error('Error:', error)
-    const msg = error.data?.statusMessage || error.message || 'Terjadi kesalahan sistem'
-    alert(`Gagal menyimpan data master: ${msg}`)
+    console.error('Submission Error:', error)
+    const errorMsg = error.data?.statusMessage || error.message || 'Terjadi kesalahan internal.'
+    alert(`Gagal: ${errorMsg}`)
   } finally {
     submitting.value = false
   }
 }
 </script>
+
+<style scoped>
+/* Table-like form refinement */
+table tr:last-child {
+  border-bottom: none;
+}
+</style>
+
 
 <style scoped>
 /* Table-like form refinement */

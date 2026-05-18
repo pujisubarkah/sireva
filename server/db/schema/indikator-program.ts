@@ -1,9 +1,9 @@
-import { integer, bigserial, text, varchar, foreignKey } from "drizzle-orm/pg-core";
+import { integer, serial, text, varchar, foreignKey } from "drizzle-orm/pg-core";
 import { appSchema } from "./base";
 import { sasaranProgram } from "./sasaran-program";
 
 export const indikatorProgram = appSchema.table("indikator_program", {
-  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  id: serial("id").primaryKey().notNull(),
   sasaranProgramId: integer("sasaran_program_id"),
   kode: varchar("kode"),
   nama: text("nama"),
