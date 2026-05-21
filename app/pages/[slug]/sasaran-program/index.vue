@@ -209,7 +209,10 @@ const apiUrl = computed(() => {
   return `/api/sasaran-program/unit-kerja/${unitId}`
 })
 
-const { data: spRaw, isValidating: loading, mutate } = useSWRV(() => apiUrl.value, fetcher)
+const { data: spRaw, isValidating: loading, mutate } = useSWRV(() => apiUrl.value, fetcher, {
+  dedupingInterval: 0,
+  revalidateOnFocus: true
+})
 
 const unitOptions = computed(() => {
   const units = (unitData.value || []).map((u: any) => ({ value: u.id, label: u.nama }))

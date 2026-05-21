@@ -454,144 +454,338 @@ const printCascading = async () => {
   printLoading.value = true
   try {
     const year = selectedYear.value
-    const yearIdx = ['2025','2026','2027','2028','2029'].indexOf(year)
 
-    // ── Build SS sections HTML ──
-    const ssRows = uniqueStrategis.value.map((ss: any) => {
+    // ── Build org-chart HTML ──
+    const ssBlocks = uniqueStrategis.value.map((ss: any) => {
       const programs = getChildrenProgram(ss.id)
+      const totalSk = getTotalKegiatan(ss.id)
 
-      const spBlocks = programs.map((sp: any) => {
+      const spItems = programs.map((sp: any) => {
         const kegiatans = getChildrenKegiatan(sp.id)
+        const targets = kegiatans.flatMap((k: any) => k.indicators)
+          .map((i: any) => parseFloat(i.target || '0'))
+          .filter((v: number) => !isNaN(v))
+        const targetStr = targets.length
+          ? (targets.length === 1 ? String(targets[0]) : `${Math.min(...targets)}&ndash;${Math.max(...targets)}`)
+          : '-'
 
-        const skBlocks = kegiatans.map((sk: any) => {
-          const indHTML = sk.indicators.length
-            ? sk.indicators.map((ind: any) => `
-              <div class="ind-item">
-                <div class="ind-name">${ind.nama ?? '-'}</div>
-                <div class="ind-target">Target ${year}: <b>${ind.target ?? '-'}</b></div>
-              </div>`).join('')
-            : '<div class="ind-empty">Belum ada indikator</div>'
+        const skItems = kegiatans.map((sk: any) => {
+          const inds = sk.indicators
+          const indHTML = inds.length
+            ? inds.map((ind: any) => `
+                <div class="ik-row">
+                  <span class="ik-label">IKK:</span>
+                  <span class="ik-text">${ind.nama ?? '-'}</span>
+                </div>
+                <div class="target-row">
+                  <span class="target-badge">Target ${year}: ${ind.target ?? '-'}</span>
+                </div>`).join('<hr class="ik-hr">')
+            : '<div class="ik-empty">Belum ada indikator</div>'
 
-          return `
+          return `<li class="sk-item">
             <div class="sk-card">
-              <div class="lv-badge sk">SK</div>
-              <div class="card-title">${sk.sasaranText ?? '-'}</div>
-              <div class="ind-list">${indHTML}</div>
-              <div class="card-meta">&#128313; Pengampu: ${sk.unitKerja ?? '-'}</div>
-            </div>`
+              <div class="badge sk-badge">SK</div>
+              <div class="card-text">${sk.sasaranText ?? '-'}</div>
+              <div class="ik-section">${indHTML}</div>
+              <div class="card-pengampu">&#128100; ${sk.unitKerja ?? '-'}</div>
+            </div>
+          </li>`
         }).join('')
 
-        return `
-          <div class="sp-node">
-            <div class="sp-card">
-              <div class="lv-badge sp">SP</div>
-              <div class="card-title">${sp.sasaranText ?? '-'}</div>
-              <div class="card-meta">&#128313; Pengampu: ${sp.unitKerja ?? '-'}</div>
+        return `<li class="sp-item">
+          <div class="sp-card">
+            <div class="badge sp-badge">SP</div>
+            <div class="card-text">${sp.sasaranText ?? '-'}</div>
+            <div class="card-pengampu">&#128100; ${sp.unitKerja ?? '-'}</div>
+            <div class="card-stats">
+              <span class="stat">&#128203; SK: <b>${kegiatans.length}</b></span>
+              <span class="stat green">&#127919; Target ${year}: <b>${targetStr}</b></span>
             </div>
-            <div class="sk-row">${skBlocks || '<div class="empty-note">Belum ada Sasaran Kegiatan</div>'}</div>
-          </div>`
+          </div>
+          ${skItems ? `<ul class="sk-level">${skItems}</ul>` : ''}
+        </li>`
       }).join('')
 
-      return `
-        <div class="ss-section">
-          <div class="ss-card">
-            <div class="lv-badge ss">SS</div>
-            <div class="card-title">${ss.sasaranText ?? '-'}</div>
-            <div class="card-meta">&#128313; Pengampu: ${ss.unitKerja || 'Kepala Lembaga'}</div>
+      return `<div class="ss-block">
+        <div class="ss-card">
+          <div class="badge ss-badge">SS</div>
+          <div class="ss-title">${ss.sasaranText ?? '-'}</div>
+          <div class="ss-sub">&#128100; Pengampu: ${ss.unitKerja || 'Kepala Lembaga'}</div>
+          <div class="ss-stats">
+            <span class="stat light">SP: <b>${programs.length}</b></span>
+            <span class="stat light">SK: <b>${totalSk}</b></span>
           </div>
-          <div class="sp-row">${spBlocks || '<div class="empty-note">Belum ada Sasaran Program</div>'}</div>
-        </div>`
+        </div>
+        ${spItems ? `<ul class="sp-level">${spItems}</ul>` : '<p class="empty-msg">Belum ada Sasaran Program</p>'}
+      </div>`
     }).join('')
 
-    const printDate = new Date().toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
+    const printDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
     const html = `<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Peta Cascading Kinerja — ${year}</title>
-  <style>
-    @page { size: A3 landscape; margin: 12mm 10mm; }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
-    body { background: #fff; color: #111; font-size: 7.5pt; }
+<meta charset="UTF-8">
+<title>Peta Cascading Kinerja — ${year}</title>
+<style>
+  @page { size: A3 landscape; margin: 8mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #fff; color: #1e293b; font-size: 6.5pt;
+  }
 
-    .print-header { text-align: center; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 3px solid #1d4ed8; }
-    .print-header h1 { font-size: 14pt; font-weight: 900; color: #1e3a8a; text-transform: uppercase; letter-spacing: 2px; }
-    .print-header p  { font-size: 8pt; color: #64748b; margin-top: 3px; }
+  /* ── HEADER ── */
+  .hdr {
+    background: linear-gradient(135deg,#1e3a8a,#2563eb);
+    color:#fff; text-align:center; padding:8px 16px; border-radius:8px; margin-bottom:10px;
+  }
+  .hdr h1 { font-size:12pt; font-weight:900; letter-spacing:1px; text-transform:uppercase; }
+  .hdr p  { font-size:7pt; color:#bfdbfe; margin-top:2px; }
 
-    /* ── Level Badges ── */
-    .lv-badge { display: inline-block; font-size: 6pt; font-weight: 900; padding: 1px 5px; border-radius: 3px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .lv-badge.ss { background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; }
-    .lv-badge.sp { background: #ede9fe; color: #4c1d95; border: 1px solid #c4b5fd; }
-    .lv-badge.sk { background: #dcfce7; color: #14532d; border: 1px solid #86efac; }
+  /* ── LEGEND ── */
+  .legend { display:flex; gap:14px; justify-content:center; margin-bottom:10px; }
+  .legend-item { display:flex; align-items:center; gap:4px; font-size:6pt; font-weight:700; }
+  .dot { width:9px; height:9px; border-radius:2px; }
+  .dot.ss { background:#1e3a8a; }
+  .dot.sp { background:#7c3aed; }
+  .dot.sk { background:#059669; }
 
-    .card-title { font-weight: 700; line-height: 1.4; margin-bottom: 5px; }
-    .card-meta  { font-size: 6.5pt; color: #555; margin-top: 4px; }
+  /* ── BADGES ── */
+  .badge {
+    display:inline-block; font-size:5pt; font-weight:900; padding:1px 4px;
+    border-radius:3px; margin-bottom:3px; letter-spacing:.3px; text-transform:uppercase;
+  }
+  .ss-badge { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; }
+  .sp-badge { background:#ede9fe; color:#4c1d95; border:1px solid #a78bfa; }
+  .sk-badge { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
 
-    /* ── SS ── */
-    .ss-section { margin-bottom: 24px; page-break-inside: avoid; }
-    .ss-card {
-      background: #1e3a8a; color: #fff;
-      border-left: 5px solid #fbbf24;
-      border-radius: 6px;
-      padding: 10px 14px;
-      margin-bottom: 10px;
-    }
-    .ss-card .card-meta { color: #bfdbfe; }
+  /* ── SS CARD ── */
+  .ss-block { display:flex; flex-direction:column; align-items:center; margin-bottom:16px; }
+  .ss-card {
+    background:linear-gradient(135deg,#1e3a8a,#1d4ed8);
+    color:#fff; border-radius:8px; padding:9px 14px;
+    min-width:240px; max-width:320px;
+    border-left:4px solid #fbbf24;
+    box-shadow:0 3px 10px rgba(30,58,138,.25);
+  }
+  .ss-title { font-size:8.5pt; font-weight:800; line-height:1.35; margin-bottom:4px; }
+  .ss-sub   { font-size:6pt; color:#bfdbfe; }
+  .ss-stats { display:flex; gap:8px; margin-top:5px; }
 
-    /* ── SP Row ── */
-    .sp-row { display: flex; flex-wrap: wrap; gap: 10px; padding-left: 18px; border-left: 3px solid #818cf8; }
-    .sp-node { flex: 1 1 220px; }
+  /* ── SP CARD ── */
+  .sp-card {
+    background:#fff; border:1.5px solid #7c3aed; border-radius:7px;
+    padding:7px 9px; min-width:150px; max-width:200px;
+    box-shadow:0 2px 6px rgba(124,58,237,.1);
+  }
+  .card-text     { font-size:6.5pt; font-weight:700; line-height:1.4; color:#1e293b; margin-bottom:4px; }
+  .card-pengampu { font-size:5pt; color:#64748b; margin-top:3px; }
+  .card-stats    { display:flex; gap:5px; margin-top:5px; padding-top:4px; border-top:1px solid #e2e8f0; flex-wrap:wrap; }
+  .stat          { font-size:5pt; color:#475569; }
+  .stat.green    { color:#059669; font-weight:700; }
+  .stat.light    { color:#bfdbfe; }
 
-    .sp-card {
-      background: #eef2ff;
-      border: 1.5px solid #6366f1;
-      border-radius: 5px;
-      padding: 8px 10px;
-      margin-bottom: 8px;
-    }
+  /* ── SK CARD ── */
+  .sk-card {
+    background:#fff; border:1.5px solid #059669; border-radius:6px;
+    padding:6px 8px; min-width:130px; max-width:175px;
+    box-shadow:0 1px 4px rgba(5,150,105,.09);
+  }
 
-    /* ── SK Row ── */
-    .sk-row { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 14px; border-left: 2px solid #34d399; }
-    .sk-card {
-      flex: 1 1 160px;
-      max-width: 210px;
-      background: #f0fdf4;
-      border: 1px solid #6ee7b7;
-      border-radius: 4px;
-      padding: 6px 8px;
-    }
+  /* ── IK SECTION ── */
+  .ik-section   { margin-top:4px; padding-top:3px; border-top:1px dashed #a7f3d0; }
+  .ik-row       { display:flex; gap:2px; align-items:flex-start; }
+  .ik-label     { font-size:5pt; font-weight:900; color:#065f46; flex-shrink:0; }
+  .ik-text      { font-size:5pt; color:#374151; line-height:1.3; }
+  .target-badge { display:inline-block; font-size:5pt; font-weight:700; color:#065f46; background:#d1fae5; border-radius:3px; padding:0 3px; margin-top:2px; }
+  .ik-hr        { border:none; border-top:1px dashed #d1fae5; margin:2px 0; }
+  .ik-empty     { font-size:5pt; color:#94a3b8; font-style:italic; }
 
-    /* ── Indicators ── */
-    .ind-list { margin: 5px 0 3px; }
-    .ind-item {
-      background: #fff;
-      border: 1px solid #a7f3d0;
-      border-radius: 3px;
-      padding: 3px 5px;
-      margin-bottom: 2px;
-    }
-    .ind-name   { font-weight: 600; font-size: 6.5pt; color: #374151; line-height: 1.3; }
-    .ind-target { font-size: 6pt; color: #059669; font-weight: 700; margin-top: 1px; }
-    .ind-empty  { font-size: 6pt; color: #9ca3af; font-style: italic; padding: 3px 0; }
-    .empty-note { font-size: 6.5pt; color: #9ca3af; font-style: italic; padding: 6px; }
+  /* ════════════════════════════════════════
+     ORTHOGONAL TREE CONNECTORS
+     Technique: ::before/::after on <li> draw
+     the horizontal arms; ::before on <ul>
+     draws the vertical drop from parent;
+     margin-top on card + negative ::before
+     creates the vertical stub up to the bar.
+  ════════════════════════════════════════ */
 
-    .print-btn-wrap { text-align: center; margin-top: 20px; }
-    .print-btn { padding: 10px 28px; background: #1e3a8a; color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 11pt; cursor: pointer; }
-    @media print { .print-btn-wrap { display: none; } }
-  </style>
+  /* ── SP level (children of SS) ── */
+  .sp-level {
+    display: flex;
+    list-style: none;
+    padding-top: 24px;   /* room for the vertical drop line from SS */
+    position: relative;
+    gap: 0;
+  }
+
+  /* Vertical line dropping from SS card bottom to the horizontal bar */
+  .sp-level::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 1.5px; height: 24px;
+    background: #7c3aed;
+  }
+
+  /* Each SP item */
+  .sp-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 0 8px;
+  }
+
+  /* Left horizontal arm (toward left sibling) */
+  .sp-item::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 50%;
+    width: 50%; height: 1.5px;
+    background: #7c3aed;
+  }
+  /* Right horizontal arm (toward right sibling) */
+  .sp-item::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    width: 50%; height: 1.5px;
+    background: #7c3aed;
+  }
+  /* Single child — no horizontal arms */
+  .sp-item:only-child::before,
+  .sp-item:only-child::after  { display: none; }
+  /* First child — no left arm */
+  .sp-item:first-child::before { display: none; }
+  /* Last child  — no right arm */
+  .sp-item:last-child::after   { display: none; }
+
+  /* SP card — vertical stub from horizontal bar down to card top */
+  .sp-card {
+    margin-top: 24px;   /* space for stub */
+    position: relative;
+  }
+  .sp-card::before {
+    content: '';
+    position: absolute;
+    top: -24px; left: 50%;
+    transform: translateX(-50%);
+    width: 1.5px; height: 24px;
+    background: #7c3aed;
+  }
+
+  /* ── SK level (children of SP) ── */
+  .sk-level {
+    display: flex;
+    list-style: none;
+    padding-top: 18px;
+    position: relative;
+    gap: 0;
+    margin-top: 0;
+  }
+
+  /* Vertical drop from SP card bottom */
+  .sk-level::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 1.5px; height: 18px;
+    background: #059669;
+  }
+
+  .sk-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 0 6px;
+  }
+
+  .sk-item::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 50%;
+    width: 50%; height: 1.5px;
+    background: #059669;
+  }
+  .sk-item::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    width: 50%; height: 1.5px;
+    background: #059669;
+  }
+  .sk-item:only-child::before,
+  .sk-item:only-child::after  { display: none; }
+  .sk-item:first-child::before { display: none; }
+  .sk-item:last-child::after   { display: none; }
+
+  .sk-card {
+    margin-top: 18px;
+    position: relative;
+  }
+  .sk-card::before {
+    content: '';
+    position: absolute;
+    top: -18px; left: 50%;
+    transform: translateX(-50%);
+    width: 1.5px; height: 18px;
+    background: #059669;
+  }
+
+  .empty-msg { color:#94a3b8; font-style:italic; font-size:6pt; margin-top:8px; }
+
+  /* ── PRINT BUTTON ── */
+  .btn-wrap { text-align:center; margin-top:20px; padding-bottom:12px; }
+  .btn-print {
+    padding:8px 24px; background:#1e3a8a; color:#fff; border:none;
+    border-radius:7px; font-weight:700; font-size:9pt; cursor:pointer;
+  }
+  @media print {
+    .btn-wrap { display:none; }
+    body { background:white; }
+  }
+</style>
 </head>
 <body>
-  <div class="print-header">
-    <h1>Peta Cascading Kinerja</h1>
-    <p>Tahun ${year} &nbsp;&bull;&nbsp; Dicetak: ${printDate}</p>
-  </div>
-  <div class="cascade-tree">
-    ${ssRows || '<p style="text-align:center;color:#9ca3af;padding:40px;">Tidak ada data untuk ditampilkan.</p>'}
-  </div>
-  <div class="print-btn-wrap">
-    <button class="print-btn" onclick="window.print()">🖨️ Cetak / Simpan sebagai PDF</button>
-  </div>
+<div class="hdr">
+  <h1>&#127979; Peta Cascading Kinerja</h1>
+  <p>Tahun ${year} &nbsp;&bull;&nbsp; Dicetak: ${printDate}</p>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="dot ss"></div> Sasaran Strategis (SS)</div>
+  <div class="legend-item"><div class="dot sp"></div> Sasaran Program (SP)</div>
+  <div class="legend-item"><div class="dot sk"></div> Sasaran Kegiatan (SK)</div>
+</div>
+
+<div id="cascade-tree">
+  ${ssBlocks || '<p style="text-align:center;color:#94a3b8;padding:40px;">Tidak ada data untuk ditampilkan.</p>'}
+</div>
+
+<div class="btn-wrap">
+  <button class="btn-print" onclick="window.print()">&#128424; Cetak / Simpan PDF</button>
+</div>
+
+<script>
+// Auto-scale the tree to fit page width
+window.addEventListener('load', function () {
+  var tree = document.getElementById('cascade-tree');
+  if (!tree) return;
+  var tw = tree.scrollWidth;
+  var pw = document.documentElement.clientWidth;
+  if (tw > pw) {
+    var scale = pw / tw;
+    tree.style.transformOrigin = 'top center';
+    tree.style.transform = 'scale(' + scale + ')';
+    tree.style.marginBottom = ((scale - 1) * tree.scrollHeight) + 'px';
+  }
+});
+<\/script>
 </body>
 </html>`
 
@@ -606,6 +800,10 @@ const printCascading = async () => {
     printLoading.value = false
   }
 }
+
+
+
+
 </script>
 
 <style scoped>

@@ -72,15 +72,11 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
-            <div class="space-y-1">
-              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pengampu</span>
-              <p class="text-base font-bold text-slate-700">{{ detail?.unit_kerja || detail?.unitKerjaNama || detail?.pengampu || '-' }}</p>
-            </div>
 
+          <div class="pt-4 border-t border-slate-100">
             <div class="space-y-1">
-              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Instansi Terkait</span>
-              <p class="text-base font-bold text-slate-700">{{ detail?.instansiTerkait || '-' }}</p>
+              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Unit Kerja Pengampu</span>
+              <p class="text-base font-bold text-slate-700">{{ detail?.unit_kerja || detail?.unitKerjaNama || detail?.pengampu || '-' }}</p>
             </div>
           </div>
         </div>

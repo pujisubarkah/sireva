@@ -88,6 +88,7 @@ interface SasaranStrategisApi {
 
 interface SasaranRow {
   id: number;
+  nomor: number;
   kode: string;
   sasaran: string;
   unit_kerja: string;
@@ -95,7 +96,7 @@ interface SasaranRow {
 }
 
 const columns = [
-  { key: 'id', label: 'ID', className: 'text-center w-16' },
+  { key: 'nomor', label: 'No.', className: 'text-center w-12' },
   { key: 'kode', label: 'Kode', className: 'w-32' },
   { key: 'sasaran', label: 'Sasaran Strategis' },
   { key: 'aksi', label: 'Aksi', className: 'text-center w-24' },
@@ -114,10 +115,17 @@ const errorMessage = computed(() => {
 const tableRows = computed<SasaranRow[]>(() => {
   if (!data.value) return [];
   const source = Array.isArray(data.value) ? data.value : [];
-  return source.map((item: any) => ({
-    id: item.id,
-    kode: item.kodeSs || '-',
-    sasaran: item.namaSs || '-',
+  const seen = new Set<number>();
+  const unique = source.filter((item: any) => {
+    if (seen.has(item.ssId || item.id)) return false;
+    seen.add(item.ssId || item.id);
+    return true;
+  });
+  return unique.map((item: any, index: number) => ({
+    id: item.ssId || item.id,
+    nomor: index + 1,
+    kode: item.kode || item.kodeSs || '-',
+    sasaran: item.sasaranText || item.namaSs || '-',
     unit_kerja: '',
     aksi: '',
   }));

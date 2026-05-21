@@ -31,7 +31,20 @@ export default defineEventHandler(async (event) => {
         conditions.push(eq(indikatorKinerja.skId, skId));
       }
 
-      return await db.select()
+      // Include target per tahun via subquery when listing by sk_id
+      return await db.select({
+        id: indikatorKinerja.id,
+        skId: indikatorKinerja.skId,
+        nomorUrut: indikatorKinerja.nomorUrut,
+        kodeIku: indikatorKinerja.kodeIku,
+        namaIku: indikatorKinerja.namaIku,
+        satuan: indikatorKinerja.satuan,
+        target_1: sql<string>`(select target_nilai from sireva.target_indikator_kegiatan tik where tik.id_iku = ${indikatorKinerja.id} and tik.tahun = 2025 limit 1)`,
+        target_2: sql<string>`(select target_nilai from sireva.target_indikator_kegiatan tik where tik.id_iku = ${indikatorKinerja.id} and tik.tahun = 2026 limit 1)`,
+        target_3: sql<string>`(select target_nilai from sireva.target_indikator_kegiatan tik where tik.id_iku = ${indikatorKinerja.id} and tik.tahun = 2027 limit 1)`,
+        target_4: sql<string>`(select target_nilai from sireva.target_indikator_kegiatan tik where tik.id_iku = ${indikatorKinerja.id} and tik.tahun = 2028 limit 1)`,
+        target_5: sql<string>`(select target_nilai from sireva.target_indikator_kegiatan tik where tik.id_iku = ${indikatorKinerja.id} and tik.tahun = 2029 limit 1)`,
+      })
         .from(indikatorKinerja)
         .where(and(...conditions))
         .orderBy(indikatorKinerja.nomorUrut);

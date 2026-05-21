@@ -307,7 +307,8 @@ const handleSubmit = async () => {
   submitting.value = true
   try {
     const spId = Number(id)
-    // Update Sasaran Program (nama_sp & pengampu)
+
+    // 1. Update Sasaran Program (nama_sp & pengampu)
     const spRes = await $fetch<any>(`/api/sasaran-program/${spId}`, {
       method: 'PUT',
       body: {
@@ -319,6 +320,19 @@ const handleSubmit = async () => {
       toast.error(spRes.message || 'Gagal memperbarui sasaran program.')
       return
     }
+
+    // 2. Update Indikator Program (kode_iku & satuan) jika ada
+    if (form.value.id_is) {
+      await $fetch('/api/indikator-program', {
+        method: 'PUT',
+        body: {
+          id: form.value.id_is,
+          kode: form.value.kode_iku || null,
+          satuan: form.value.satuan || null,
+        }
+      })
+    }
+
     toast.success('Data master sasaran program berhasil diperbarui.')
     router.push(`/${route.params.slug}/master-sasaran-program`)
   } catch (error: any) {

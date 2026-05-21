@@ -214,31 +214,34 @@ const handleSubmit = async () => {
 }
 
 const handleDelete = async () => {
-  if (!confirm('Apakah Anda yakin ingin menghapus target capaian ini? Teks Sasaran Kegiatan aslinya tidak akan terhapus.')) return
-  
+  if (!confirm('Apakah Anda yakin ingin menghapus keterkaitan target ini? Data target capaian akan dihapus dari database.')) return
+
   if (!targetRecord.value) {
     toast.error('Data tidak valid.')
     return
   }
 
-  try {
-    const yearIdx = ['2025', '2026', '2027', '2028', '2029'].indexOf(currentYear.toString())
-    const updateBody = {
-      ...targetRecord.value,
-    }
-    if (yearIdx !== -1) {
-      updateBody[`target_${yearIdx + 1}`] = '0'
-    }
+  const indikatorId = targetRecord.value.indikatorId
+  if (!indikatorId) {
+    toast.error('Indikator Kinerja tidak ditemukan.')
+    return
+  }
 
-    await $fetch('/api/sasaran-kegiatan', {
-      method: 'PUT',
-      body: updateBody
+  try {
+    // Hapus semua target tahun berjalan untuk IKU ini
+    const deleted = await $fetch('/api/target-indikator', {
+      method: 'DELETE',
+      body: {
+        id_iku: indikatorId,
+        tahun: currentYear
+      }
     })
-    toast.success('Target capaian dihapus.')
+
+    toast.success('Keterkaitan target berhasil dihapus dari database.')
     router.push(`/${route.params.slug}/sasaran-kegiatan`)
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
-    toast.error('Gagal menghapus target.')
+    toast.error(err?.data?.message || err?.message || 'Gagal menghapus keterkaitan target.')
   }
 }
 </script>

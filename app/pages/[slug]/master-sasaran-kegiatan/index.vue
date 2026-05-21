@@ -100,8 +100,9 @@ const tableRows = computed(() => {
     seen.add(item.id);
     return true;
   });
-  return unique.map((item: any) => ({
+  return unique.map((item: any, index: number) => ({
     id: item.id,
+    nomor: index + 1,
     kode: item.kode || item.kodeSk || '-',
     sasaran: item.sasaranText || item.sasaran_kegiatan_text || item.namaSk || '-',
     aksi: '',
@@ -109,7 +110,7 @@ const tableRows = computed(() => {
 });
 
 const columns = [
-  { key: 'id', label: 'ID', className: 'text-center w-16' },
+  { key: 'nomor', label: 'No.', className: 'text-center w-12' },
   { key: 'kode', label: 'Kode', className: 'w-32' },
   { key: 'sasaran', label: 'Sasaran Kegiatan' },
   { key: 'aksi', label: 'Aksi', className: 'text-center w-32' },
