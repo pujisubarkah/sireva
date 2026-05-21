@@ -9,7 +9,7 @@
       <!-- Branding -->
       <div class="flex flex-col items-center mb-8 shrink-0">
         <img src="/logolanwhite.png" alt="Logo LAN RI" width="120" height="120" class="object-contain mb-3" />
-        <div class="text-[15px] text-yellow-400 font-bold mt-1 tracking-widest bg-yellow-400/10 px-2.5 py-0.5 rounded-full border border-yellow-400/20">SI-REVA NG</div>
+        <div class="text-[15px] text-yellow-400 font-bold mt-1 tracking-widest px-2.5 py-0.5 rounded-full border border-yellow-400/20">SI-REVA</div>
       </div>
 
       <!-- Navigation -->

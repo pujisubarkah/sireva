@@ -30,7 +30,7 @@
         <button
           v-if="isSuperAdmin"
           @click="router.push(`/${$route.params.slug}/visi-misi/add`)"
-          class="w-full sm:w-auto px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-blue-600 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-slate-900/10 flex items-center justify-center gap-2"
+          class="w-full sm:w-auto px-6 py-2.5 bg-[#2663A3] hover:bg-[#1F4F85] text-white font-bold rounded-xl text-sm shadow-lg shadow-blue-100 transition-all active:scale-95 flex items-center justify-center gap-2"
         >
           <IconPlus :size="18" :stroke-width="3" />
           Update Data Strategis
@@ -63,8 +63,8 @@
             </div>
             <div class="flex-1">
               <span class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-2 block">Visi Utama</span>
-              <h2 class="text-2xl md:text-3xl font-black text-slate-900 leading-tight italic">
-                "{{ visi.visiText }}"
+              <h2 class="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
+                {{ visi.visiText }}
               </h2>
             </div>
           </div>
