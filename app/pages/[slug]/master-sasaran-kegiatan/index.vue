@@ -93,13 +93,15 @@ const errorMessage = computed(() => {
 const tableRows = computed(() => {
   if (!data.value) return [];
   const source = Array.isArray(data.value) ? data.value : (data.value?.data || []);
-  // Deduplicate by id (leftJoin indikator can produce multiple rows per SK)
+  // Deduplicate by id
   const seen = new Set<number>();
   const unique = source.filter((item: any) => {
     if (seen.has(item.id)) return false;
     seen.add(item.id);
     return true;
   });
+  // Sort by id ascending
+  unique.sort((a: any, b: any) => a.id - b.id);
   return unique.map((item: any, index: number) => ({
     id: item.id,
     nomor: index + 1,
@@ -110,11 +112,12 @@ const tableRows = computed(() => {
 });
 
 const columns = [
-  { key: 'nomor', label: 'No.', className: 'text-center w-12' },
-  { key: 'kode', label: 'Kode', className: 'w-32' },
-  { key: 'sasaran', label: 'Sasaran Kegiatan' },
-  { key: 'aksi', label: 'Aksi', className: 'text-center w-32' },
+  { key: 'nomor',  label: 'No.',             className: 'text-center w-12' },
+  { key: 'kode',   label: 'Kode',            className: 'w-32' },
+  { key: 'sasaran',label: 'Sasaran Kegiatan' },
+  { key: 'aksi',   label: 'Aksi',            className: 'text-center w-32' },
 ];
+
 
 const handleDelete = async (id: number) => {
   if (!confirm('Apakah Anda yakin ingin menghapus data master sasaran kegiatan ini?')) return

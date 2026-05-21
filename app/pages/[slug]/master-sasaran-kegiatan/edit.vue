@@ -306,6 +306,7 @@ const addIndikator = () => {
 
 const markDelete = (index: number) => {
   const ind = indikators.value[index]
+  if (!ind) return
   if (!ind.id) {
     // New (unsaved) → remove immediately
     indikators.value.splice(index, 1)

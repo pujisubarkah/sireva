@@ -90,9 +90,7 @@
         :columns="tableColumns"
         :data="displayRows"
         :page-size="pageSize"
-        :current-page="currentPage"
         :show-pagination="true"
-        @page-change="currentPage = $event"
         row-key="id"
         class="border-0"
       >
@@ -185,22 +183,27 @@ const fetcher = (url: string) => fetch(url).then(r => r.json())
 const searchQuery = ref('')
 const selectedYear = ref('2026')
 const selectedUnitId = ref<number | null>(null)
-const currentPage = ref(1)
 const pageSize = ref(10)
 
 // Options
-const yearOptions = ['2025', '2026', '2027', '2028', '2029']
+const yearOptions = [
+  { value: '2025', label: 'Tahun 2025' },
+  { value: '2026', label: 'Tahun 2026' },
+  { value: '2027', label: 'Tahun 2027' },
+  { value: '2028', label: 'Tahun 2028' },
+  { value: '2029', label: 'Tahun 2029' },
+]
 
 // Data Fetching
 const { role, authUser } = useAuthUser()
-const { data: unitData } = useSWRV('/api/unit-kerja', fetcher)
+const { data: unitData } = useSWRV('/api/unit-kerja', fetcher, { dedupingInterval: 0 })
 
 // Role Checks Normalized
 const normalizedRole = computed(() => String(role.value || '').toLowerCase().replace(/\s+/g, '_'))
 const isSuperAdmin = computed(() => normalizedRole.value === 'super_admin')
 const isAdmin = computed(() => normalizedRole.value === 'admin')
 const isUser = computed(() => normalizedRole.value === 'user')
-const canInputAdd = computed(() => isSuperAdmin.value || isUser.value) // User can input in Sasaran Kegiatan
+const canInputAdd = computed(() => isSuperAdmin.value || isUser.value)
 
 const loggedUnitKerjaName = computed(() => String(authUser.value?.unit_kerja || '').trim())
 const userUnitKerjaId = computed(() => {
@@ -209,17 +212,19 @@ const userUnitKerjaId = computed(() => {
   return found?.id || null
 })
 
-const apiUrl = computed(() => {
-  if (isSuperAdmin.value) {
-    if (selectedUnitId.value) return `/api/sasaran-kegiatan/unit-kerja/${selectedUnitId.value}`
-    return '/api/sasaran-kegiatan'
-  }
-  const unitId = userUnitKerjaId.value
-  if (!unitId) return null
-  return `/api/sasaran-kegiatan/unit-kerja/${unitId}`
-})
+// Always fetch all data — filter client-side to avoid SWRV reactive URL issues
+const { data: skRaw, isValidating: loading, mutate } = useSWRV(
+  '/api/sasaran-kegiatan',
+  fetcher,
+  { dedupingInterval: 0, revalidateOnFocus: false }
+)
 
-const { data: skRaw, isValidating: loading, mutate } = useSWRV(() => apiUrl.value, fetcher)
+// Resolve selected unit name from ID for client-side filtering
+const selectedUnitName = computed(() => {
+  if (!selectedUnitId.value || !unitData.value) return null
+  const found = unitData.value.find((u: any) => u.id === selectedUnitId.value)
+  return found?.nama || null
+})
 
 const unitOptions = computed(() => {
   const units = (unitData.value || []).map((u: any) => ({ value: u.id, label: u.nama }))
@@ -230,39 +235,43 @@ const displayRows = computed(() => {
   let rows = (skRaw.value || []) as any[]
   if (skRaw.value?.data) rows = skRaw.value.data
 
-  const normalized = rows.map((r: any) => {
-    // Determine target value for the selected year (2025-2029 maps to target_1 - target_5)
-    let targetValue = '0'
-    const yearIdx = ['2025', '2026', '2027', '2028', '2029'].indexOf(selectedYear.value)
-    if (yearIdx !== -1) {
-      targetValue = r[`target_${yearIdx + 1}`] ?? '0'
-    }
+  // If not super admin, filter to own unit kerja only
+  if (!isSuperAdmin.value && loggedUnitKerjaName.value) {
+    rows = rows.filter((r: any) => {
+      const uk = r.unit_kerja || r.unitKerjaNama || r.pengampu || ''
+      return uk.toLowerCase().includes(loggedUnitKerjaName.value.toLowerCase())
+    })
+  }
 
+  // Super admin: filter by selected unit kerja
+  if (isSuperAdmin.value && selectedUnitName.value) {
+    rows = rows.filter((r: any) => {
+      const uk = r.unit_kerja || r.unitKerjaNama || r.pengampu || ''
+      return uk.toLowerCase().includes(selectedUnitName.value!.toLowerCase())
+    })
+  }
+
+  const yearIdx = ['2025', '2026', '2027', '2028', '2029'].indexOf(selectedYear.value)
+
+  const normalized = rows.map((r: any) => {
+    const targetValue = yearIdx !== -1 ? (r[`target_${yearIdx + 1}`] ?? '0') : '0'
     return {
       ...r,
       sasaranText: r.sasaran_kegiatan_text || r.sasaranText || '-',
       indikatorNama: r.indikator_kinerja || r.indikatorNama || '-',
       indikatorSatuan: r.satuan || r.indikatorSatuan || '',
       unitKerjaNames: r.unit_kerja ? [r.unit_kerja] : (r.unitKerjaNama ? [r.unitKerjaNama] : []),
-      targetValue: targetValue
+      targetValue
     }
   })
 
-  if (searchQuery.value) {
-    const q = searchQuery.value.toLowerCase()
-    return normalized.filter((r: any) => 
-      r.sasaranText?.toLowerCase().includes(q) || 
-      r.kode?.toLowerCase().includes(q) ||
-      r.indikatorNama?.toLowerCase().includes(q)
-    )
-  }
-
-  return normalized
-})
-
-const paginatedRows = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  return displayRows.value.slice(start, start + pageSize.value)
+  if (!searchQuery.value) return normalized
+  const q = searchQuery.value.toLowerCase()
+  return normalized.filter((r: any) =>
+    r.sasaranText?.toLowerCase().includes(q) ||
+    r.kode?.toLowerCase().includes(q) ||
+    r.indikatorNama?.toLowerCase().includes(q)
+  )
 })
 
 const tableColumns = [
@@ -290,5 +299,7 @@ async function handleDelete(item: any) {
   }
 }
 
-watch([searchQuery, selectedYear, selectedUnitId], () => { currentPage.value = 1 })
+watch([searchQuery, selectedYear, selectedUnitId], () => {
+  // Reset handled by Table internally
+})
 </script>
