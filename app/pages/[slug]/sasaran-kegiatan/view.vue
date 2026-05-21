@@ -150,33 +150,33 @@ onMounted(async () => {
   try {
     fetching.value = true;
     
-    // We can fetch from the index.ts GET API endpoint which supports single ID fetch?
-    // Wait, GET /api/sasaran-kegiatan/[id] returns an array of joined rows!
-    const detailRows = await $fetch<any[]>(`/api/sasaran-kegiatan/${id}`);
-    
-    const first = (detailRows ?? [])[0];
-    if (!first) throw new Error('Data tidak ditemukan');
+    // Fetch single record by ID
+    const detail = await $fetch<any>(`/api/sasaran-kegiatan?id=${id}`);
+    if (!detail) throw new Error('Data tidak ditemukan');
 
-    // Aggregate indicators manually from the rows returned by [id].ts
-    const indikatorMap = new Map<number, any>();
-    for (const row of (detailRows ?? [])) {
-      if (!row.indikatorId) continue;
-      if (!indikatorMap.has(row.indikatorId)) {
-        indikatorMap.set(row.indikatorId, {
-          id: row.indikatorId,
-          nama: row.indikatorNama,
-          satuan: row.indikatorSatuan,
-          targets: row.targets || []
-        });
-      }
-    }
+    // Fetch all related records sharing the same kode to extract all indicators
+    const allSasarans = await $fetch<any[]>('/api/sasaran-kegiatan');
+    const related = (allSasarans ?? []).filter((s: any) => s.kode === detail.kode);
+
+    const indicators = related.map((row: any) => ({
+      id: row.id,
+      nama: row.indikator_kinerja,
+      satuan: row.satuan,
+      targets: [
+        { tahun: 2025, target: row.target_1 },
+        { tahun: 2026, target: row.target_2 },
+        { tahun: 2027, target: row.target_3 },
+        { tahun: 2028, target: row.target_4 },
+        { tahun: 2029, target: row.target_5 }
+      ]
+    }));
 
     sasaranData.value = {
-      id: first.id,
-      kode: first.kode,
-      sasaranText: first.sasaranText,
-      unitKerjaNama: first.unitKerjaNama,
-      indikators: Array.from(indikatorMap.values())
+      id: detail.id,
+      kode: detail.kode,
+      sasaranText: detail.sasaran_kegiatan_text,
+      unitKerjaNama: detail.unit_kerja || 'Global / Semua Unit',
+      indikators: indicators
     };
 
   } catch (error: any) {

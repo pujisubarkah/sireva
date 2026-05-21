@@ -87,19 +87,21 @@
               </td>
             </tr>
 
-            <!-- 4. Indikator Kinerja (Kode IKU) -->
+
+
+            <!-- 4. Indikator Strategis -->
             <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">4. Indikator Kinerja <span class="text-red-500">*</span></td>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">4. Indikator Strategis <span class="text-red-500">*</span></td>
               <td class="px-8 py-5">
                 <div class="relative max-w-2xl">
                   <select
-                    v-model="form.kode_iku"
+                    v-model="form.id_is"
                     required
                     class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
                     :disabled="!form.id_ss"
                   >
-                    <option value="" disabled>-- Pilih Indikator Strategis --</option>
-                    <option v-for="is in indikatorStrategisOptions" :key="is.id" :value="is.kode || is.nama">
+                    <option :value="null" disabled>-- Pilih Indikator Strategis --</option>
+                    <option v-for="is in indikatorStrategisOptions" :key="is.id" :value="is.id">
                       {{ is.nama }}
                     </option>
                   </select>
@@ -120,9 +122,23 @@
               </td>
             </tr>
 
-            <!-- 6. Satuan -->
+            <!-- 6. Indikator Kinerja -->
             <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">6. Satuan <span class="text-red-500">*</span></td>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">6. Indikator Kinerja <span class="text-red-500">*</span></td>
+              <td class="px-8 py-5">
+                <input
+                  v-model="form.kode_iku"
+                  type="text"
+                  required
+                  class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                  placeholder="Masukkan Indikator Kinerja Utama (IKU) Sasaran Program..."
+                />
+              </td>
+            </tr>
+
+            <!-- 7. Satuan -->
+            <tr class="border-b border-slate-100">
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">7. Satuan <span class="text-red-500">*</span></td>
               <td class="px-8 py-5">
                 <input
                   v-model="form.satuan"
@@ -133,9 +149,9 @@
               </td>
             </tr>
 
-            <!-- 7. Target Renstra -->
+            <!-- 8. Target Renstra -->
             <tr>
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700 align-top pt-8">7. Target Renstra (5 Tahun) <span class="text-red-500">*</span></td>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700 align-top pt-8">8. Target Renstra (5 Tahun) <span class="text-red-500">*</span></td>
               <td class="px-8 py-8">
                 <div class="grid grid-cols-5 gap-4">
                   <div v-for="n in 5" :key="n" class="space-y-2">
@@ -196,13 +212,18 @@ const id = route.query.id
 const submitting = ref(false)
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: detail, isValidating: fetching } = useSWRV(id ? `/api/sasaran-program/${id}` : null, fetcher)
+const { data: detail, isValidating: fetching } = useSWRV(
+  id ? `/api/sasaran-program?id=${id}` : null,
+  fetcher,
+  { dedupingInterval: 0 }
+)
 const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
 const { data: ssData } = useSWRV('/api/sasaran-strategis', fetcher)
 
 // 1. Standardized Form State
 const form = ref<Record<string, any>>({
   id_ss: null as number | null,
+  id_is: null as number | null,
   kode: '',
   unit_kerja: '',
   kode_iku: '',
@@ -215,17 +236,20 @@ const form = ref<Record<string, any>>({
   target_5: 0
 })
 
-// 2. Load Data
+// 2. Load Data — populate sekali saja
+const initialized = ref(false)
 watchEffect(() => {
-  if (detail.value) {
+  if (detail.value && !initialized.value) {
     const item = Array.isArray(detail.value) ? detail.value[0] : detail.value
     if (item) {
-      form.value.id_ss = item.id_ss ? Number(item.id_ss) : null
-      form.value.kode = item.kode || ''
-      form.value.unit_kerja = item.unit_kerja || ''
-      form.value.kode_iku = item.kode_iku || ''
-      form.value.sasaran_program_text = item.sasaran_program_text || ''
-      form.value.satuan = item.satuan || ''
+      initialized.value = true
+      form.value.id_ss = item.ssId || item.id_ss ? Number(item.ssId || item.id_ss) : null
+      form.value.id_is = item.indikatorId ? Number(item.indikatorId) : null
+      form.value.kode = item.kode || item.kodeSp || ''
+      form.value.unit_kerja = item.unit_kerja || item.unitKerjaNama || ''
+      form.value.kode_iku = item.kode_iku || item.kode_iku || ''
+      form.value.sasaran_program_text = item.sasaran_program_text || item.namaSp || ''
+      form.value.satuan = item.satuan || item.indikatorSatuan || ''
       form.value.target_1 = Number(item.target_1 || 0)
       form.value.target_2 = Number(item.target_2 || 0)
       form.value.target_3 = Number(item.target_3 || 0)
@@ -254,33 +278,52 @@ const sasaranStrategisOptions = computed(() => {
 const indikatorStrategisOptions = computed(() => {
   if (!form.value.id_ss || !ssData.value) return []
   const source = Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
+  const seen = new Set()
   return source
-    .filter((item: any) => Number(item.ssId) === form.value.id_ss)
+    .filter((item: any) => Number(item.ssId) === Number(form.value.id_ss) && item.indikatorId)
+    .filter((item: any) => {
+      if (seen.has(item.indikatorId)) return false
+      seen.add(item.indikatorId)
+      return true
+    })
     .map((item: any) => ({
       id: item.indikatorId,
-      nama: item.indikatorNama,
-      kode: item.indikatorKode
+      nama: item.indikatorNama
     }))
 })
 
+watchEffect(() => {
+  if (indikatorStrategisOptions.value.length > 0 && !indikatorStrategisOptions.value.find(i => i.id === form.value.id_is)) {
+    if (!fetching.value && form.value.id_is !== null) {
+      form.value.id_is = null
+    }
+  }
+})
+
+
+
 const handleSubmit = async () => {
   if (submitting.value) return
-  
   submitting.value = true
   try {
-    await $fetch('/api/sasaran-program', {
+    const spId = Number(id)
+    // Update Sasaran Program (nama_sp & pengampu)
+    const spRes = await $fetch<any>(`/api/sasaran-program/${spId}`, {
       method: 'PUT',
       body: {
-        id: id,
-        ...form.value
+        nama_sp: form.value.sasaran_program_text,
+        pengampu: form.value.unit_kerja || null,
       }
     })
-    
+    if (spRes?.success === false) {
+      toast.error(spRes.message || 'Gagal memperbarui sasaran program.')
+      return
+    }
     toast.success('Data master sasaran program berhasil diperbarui.')
     router.push(`/${route.params.slug}/master-sasaran-program`)
   } catch (error: any) {
     console.error('Error:', error)
-    toast.error(error.data?.statusMessage || 'Gagal menyimpan perubahan.')
+    toast.error(error?.data?.message || error?.message || 'Gagal menyimpan perubahan.')
   } finally {
     submitting.value = false
   }

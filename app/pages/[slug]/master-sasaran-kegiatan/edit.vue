@@ -49,55 +49,15 @@
               </td>
             </tr>
 
-            <!-- 2. Sasaran Strategis -->
+            <!-- 2. Sasaran Program -->
             <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">2. Sasaran Strategis <span class="text-red-500">*</span></td>
-              <td class="px-8 py-5">
-                <div class="relative max-w-2xl">
-                  <select
-                    v-model="form.id_ss"
-                    required
-                    class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
-                  >
-                    <option :value="null" disabled>-- Pilih Sasaran Strategis --</option>
-                    <option v-for="ss in uniqueSasaranStrategis" :key="ss.id" :value="ss.id">
-                      [{{ ss.kode }}] {{ ss.text }}
-                    </option>
-                  </select>
-                  <IconChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" :size="18" />
-                </div>
-              </td>
-            </tr>
-
-            <!-- 3. Indikator Strategis -->
-            <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">3. Indikator Strategis <span class="text-red-500">*</span></td>
-              <td class="px-8 py-5">
-                <div class="relative max-w-2xl">
-                  <select
-                    v-model="form.id_is"
-                    required
-                    class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
-                    :disabled="!form.id_ss"
-                  >
-                    <option :value="null" disabled>-- Pilih Indikator Strategis --</option>
-                    <option v-for="is in filteredIndikatorStrategis" :key="is.id" :value="is.id">{{ is.nama }}</option>
-                  </select>
-                  <IconChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" :size="18" />
-                </div>
-              </td>
-            </tr>
-
-            <!-- 4. Sasaran Program -->
-            <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">4. Sasaran Program <span class="text-red-500">*</span></td>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">2. Sasaran Program <span class="text-red-500">*</span></td>
               <td class="px-8 py-5">
                 <div class="relative max-w-2xl">
                   <select
                     v-model="form.id_sp"
                     required
                     class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
-                    :disabled="!form.id_ss"
                   >
                     <option :value="null" disabled>-- Pilih Sasaran Program --</option>
                     <option v-for="sp in filteredSasaranProgram" :key="sp.id" :value="sp.id">
@@ -109,28 +69,23 @@
               </td>
             </tr>
 
-            <!-- 5. Indikator Program -->
+            <!-- 3. Indikator Program -->
             <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">5. Indikator Program <span class="text-red-500">*</span></td>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">3. Indikator Program</td>
               <td class="px-8 py-5">
-                <div class="relative max-w-2xl">
-                  <select
-                    v-model="form.id_ip"
-                    required
-                    class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
-                    :disabled="!form.id_sp"
-                  >
-                    <option :value="null" disabled>-- Pilih Indikator Program --</option>
-                    <option v-for="ip in filteredIndikatorProgram" :key="ip.id" :value="ip.id">{{ ip.nama }}</option>
-                  </select>
-                  <IconChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" :size="18" />
-                </div>
+                <input
+                  type="text"
+                  disabled
+                  :value="selectedProgramIndicatorName"
+                  class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-500 cursor-not-allowed"
+                  placeholder="Akan terisi otomatis setelah memilih Sasaran Program"
+                />
               </td>
             </tr>
 
-            <!-- 6. Unit Kerja -->
+            <!-- 4. Unit Kerja -->
             <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">6. Unit Kerja <span class="text-red-500">*</span></td>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">4. Unit Kerja <span class="text-red-500">*</span></td>
               <td class="px-8 py-5">
                 <div class="relative max-w-xl">
                   <select
@@ -146,9 +101,9 @@
               </td>
             </tr>
 
-            <!-- 7. Sasaran Kegiatan -->
+            <!-- 5. Sasaran Kegiatan -->
             <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">7. Sasaran Kegiatan <span class="text-red-500">*</span></td>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">5. Sasaran Kegiatan <span class="text-red-500">*</span></td>
               <td class="px-8 py-5">
                 <textarea
                   v-model="form.sasaran_kegiatan_text"
@@ -158,56 +113,74 @@
               </td>
             </tr>
 
-            <!-- 8. Indikator Kinerja Utama -->
-            <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">8. Indikator Kinerja <span class="text-red-500">*</span></td>
-              <td class="px-8 py-5">
-                <input
-                  v-model="form.indikator_kinerja"
-                  type="text"
-                  required
-                  class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
-                />
-              </td>
-            </tr>
-
-            <!-- 9. Satuan -->
-            <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">9. Satuan <span class="text-red-500">*</span></td>
-              <td class="px-8 py-5">
-                <input
-                  v-model="form.satuan"
-                  type="text"
-                  required
-                  class="w-full md:w-1/2 bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
-                />
-              </td>
-            </tr>
-
-            <!-- 10. Target Renstra -->
-            <tr>
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700 align-top pt-8">10. Target Renstra (5 Tahun) <span class="text-red-500">*</span></td>
-              <td class="px-8 py-8">
-                <div class="grid grid-cols-5 gap-4">
-                  <div v-for="n in 5" :key="n" class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center block">Tahun {{ n }}</label>
-                    <input
-                      v-model="form[`target_${n}`]"
-                      type="number"
-                      step="any"
-                      required
-                      class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-2 py-2.5 text-center font-bold text-slate-700 focus:bg-white focus:border-[#2663A3] transition-all"
-                    />
-                  </div>
-                </div>
-              </td>
-            </tr>
           </tbody>
         </table>
       </div>
 
+      <!-- Section: Indikator Kinerja -->
+      <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-100/50 p-8 space-y-6 mt-6">
+        <div class="flex items-center gap-2 border-b border-slate-100 pb-4 mb-4">
+          <span class="text-xs font-black text-slate-400 uppercase tracking-widest">INDIKATOR KINERJA</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Kode Unik Indikator -->
+          <div class="space-y-2">
+            <label class="block text-xs font-black text-slate-400 uppercase tracking-widest">Kode Unik Indikator <span class="text-red-500">*</span></label>
+            <input
+              v-model="form.kode_indikator"
+              type="text"
+              required
+              class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all"
+              placeholder="Contoh: IKU-1.1"
+            />
+          </div>
+
+          <!-- Satuan -->
+          <div class="space-y-2">
+            <label class="block text-xs font-black text-slate-400 uppercase tracking-widest">Satuan <span class="text-red-500">*</span></label>
+            <input
+              v-model="form.satuan"
+              type="text"
+              required
+              class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all"
+              placeholder="Contoh: Persen, Dokumen, dll"
+            />
+          </div>
+
+          <!-- Nama Indikator -->
+          <div class="col-span-1 md:col-span-2 space-y-2">
+            <label class="block text-xs font-black text-slate-400 uppercase tracking-widest">Nama Indikator <span class="text-red-500">*</span></label>
+            <input
+              v-model="form.nama_indikator"
+              type="text"
+              required
+              class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] focus:ring-4 focus:ring-blue-100 transition-all"
+              placeholder="Nama Indikator Kinerja"
+            />
+          </div>
+        </div>
+
+        <!-- Target Capaian per Tahun -->
+        <div class="space-y-4 pt-4 border-t border-slate-100">
+          <label class="block text-xs font-black text-slate-400 uppercase tracking-widest">Target Capaian Per Tahun <span class="text-red-500">*</span></label>
+          <div class="grid grid-cols-5 gap-4">
+            <div v-for="n in 5" :key="n" class="space-y-2">
+              <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center block">Tahun {{ n }}</label>
+              <input
+                v-model="form[`target_${n}`]"
+                type="number"
+                step="any"
+                required
+                class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-2 py-2.5 text-center font-bold text-slate-700 focus:bg-white focus:border-[#2663A3] transition-all"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Action Buttons -->
-      <div class="flex items-center justify-end gap-4 pt-4">
+      <div class="flex items-center justify-end gap-4 pt-6">
         <button
           type="button"
           @click="router.push(`/${route.params.slug}/master-sasaran-kegiatan`)"
@@ -232,7 +205,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-import { ref, computed, watchEffect } from 'vue'
+import { ref, computed, watchEffect, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { 
   IconPencil, IconFileText, IconChevronDown, IconTrash, IconPlus, IconX, IconDeviceFloppy 
@@ -249,7 +222,6 @@ const submitting = ref(false)
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 const { data: detail, isValidating: fetching } = useSWRV(id ? `/api/sasaran-kegiatan?id=${id}` : null, fetcher)
 const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
-const { data: ssData } = useSWRV('/api/sasaran-strategis', fetcher)
 const { data: spData } = useSWRV('/api/sasaran-program', fetcher)
 
 // 1. Standardized Form State
@@ -260,7 +232,8 @@ const form = ref<Record<string, any>>({
   id_ip: null as number | null,
   kode: '',
   unit_kerja: '',
-  indikator_kinerja: '',
+  kode_indikator: '',
+  nama_indikator: '',
   sasaran_kegiatan_text: '',
   satuan: '',
   target_1: 0,
@@ -270,20 +243,33 @@ const form = ref<Record<string, any>>({
   target_5: 0
 })
 
-// 2. Load Data
+// 2. Load Data — hanya populate sekali, tidak reset saat SWRV revalidate
+const initialized = ref(false)
 watchEffect(() => {
-  if (detail.value) {
+  if (detail.value && !initialized.value) {
     const item = Array.isArray(detail.value) ? detail.value[0] : detail.value
     if (item) {
-      form.value.id_ss = item.id_ss ? Number(item.id_ss) : null
-      form.value.id_is = item.id_is ? Number(item.id_is) : null
-      form.value.id_sp = item.id_sp ? Number(item.id_sp) : null
-      form.value.id_ip = item.id_ip ? Number(item.id_ip) : null
+      initialized.value = true
+      form.value.id_ss = item.ssId || item.id_ss ? Number(item.ssId || item.id_ss) : null
+      form.value.id_is = item.isId || item.id_is ? Number(item.isId || item.id_is) : null
+      form.value.id_sp = item.spId || item.id_sp ? Number(item.spId || item.id_sp) : null
+      form.value.id_ip = item.ipId || item.id_ip ? Number(item.ipId || item.id_ip) : null
       form.value.kode = item.kode || ''
-      form.value.unit_kerja = item.unit_kerja || ''
-      form.value.indikator_kinerja = item.indikator_kinerja || ''
-      form.value.sasaran_kegiatan_text = item.sasaran_kegiatan_text || ''
-      form.value.satuan = item.satuan || ''
+      form.value.unit_kerja = item.unit_kerja || item.pengampu || ''
+      
+      // Parse combined indicator format: [IKU-1.1] Nama Indikator Kinerja
+      const indicatorText = item.indikatorNama || item.indikator_kinerja || ''
+      const match = indicatorText.match(/^\[(.*?)\]\s*(.*)$/)
+      if (match) {
+        form.value.kode_indikator = match[1]
+        form.value.nama_indikator = match[2]
+      } else {
+        form.value.kode_indikator = ''
+        form.value.nama_indikator = indicatorText
+      }
+
+      form.value.sasaran_kegiatan_text = item.sasaran_kegiatan_text || item.sasaranText || ''
+      form.value.satuan = item.satuan || item.indikatorSatuan || ''
       form.value.target_1 = Number(item.target_1 || 0)
       form.value.target_2 = Number(item.target_2 || 0)
       form.value.target_3 = Number(item.target_3 || 0)
@@ -293,41 +279,12 @@ watchEffect(() => {
   }
 })
 
-// 3. Sasaran Strategis Options
-const uniqueSasaranStrategis = computed(() => {
-  if (!ssData.value) return []
-  const source = Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
-  const seen = new Set()
-  return source.filter((item: any) => {
-    if (!item.ssId || seen.has(item.ssId)) return false
-    seen.add(item.ssId)
-    return true
-  }).map((item: any) => ({
-    id: Number(item.ssId),
-    kode: item.kode || '-',
-    text: item.sasaranText
-  }))
-})
-
-// 4. Indikator Strategis Options
-const filteredIndikatorStrategis = computed(() => {
-  if (!form.value.id_ss || !ssData.value) return []
-  const source = Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
-  return source
-    .filter((item: any) => Number(item.ssId) === form.value.id_ss)
-    .map((item: any) => ({
-      id: item.indikatorId,
-      nama: item.indikatorNama
-    }))
-})
-
-// 5. Sasaran Program Options
+// 3. Sasaran Program Options
 const filteredSasaranProgram = computed(() => {
-  if (!form.value.id_ss || !spData.value) return []
+  if (!spData.value) return []
   const source = Array.isArray(spData.value) ? spData.value : (spData.value.data || [])
   const seen = new Set()
   return source.filter((item: any) => {
-    if (Number(item.id_ss) !== form.value.id_ss) return false
     if (seen.has(item.id)) return false
     seen.add(item.id)
     return true
@@ -338,34 +295,83 @@ const filteredSasaranProgram = computed(() => {
   }))
 })
 
-// 6. Indikator Program Options
-const filteredIndikatorProgram = computed(() => {
-  if (!form.value.id_sp || !spData.value) return []
+// Indikator Program display helper
+const selectedProgramIndicatorName = computed(() => {
+  if (!form.value.id_sp || !spData.value) return ''
   const source = Array.isArray(spData.value) ? spData.value : (spData.value.data || [])
-  return source
-    .filter((item: any) => item.id === form.value.id_sp)
-    .map((item: any) => ({
-      id: item.id,
-      nama: item.kode_iku
-    }))
+  const selectedSp = source.find((item: any) => Number(item.id) === Number(form.value.id_sp))
+  return selectedSp ? selectedSp.kode_iku || '-' : ''
+})
+
+// Watch Sasaran Program to auto-populate id_ss, id_is, and id_ip
+watch(() => form.value.id_sp, (newVal) => {
+  if (newVal && spData.value) {
+    const source = Array.isArray(spData.value) ? spData.value : (spData.value.data || [])
+    const selectedSp = source.find((item: any) => Number(item.id) === Number(newVal))
+    if (selectedSp) {
+      form.value.id_ss = selectedSp.id_ss ? Number(selectedSp.id_ss) : null
+      form.value.id_is = selectedSp.id_is ? Number(selectedSp.id_is) : null
+      form.value.id_ip = selectedSp.id ? Number(selectedSp.id) : null
+    }
+  } else {
+    form.value.id_ss = null
+    form.value.id_is = null
+    form.value.id_ip = null
+  }
 })
 
 const handleSubmit = async () => {
   if (submitting.value) return
   submitting.value = true
+
   try {
-    await $fetch('/api/sasaran-kegiatan', {
+    const skId = Number(id)
+    const combinedName = form.value.kode_indikator
+      ? `[${form.value.kode_indikator}] ${form.value.nama_indikator}`
+      : form.value.nama_indikator
+
+    // 1. Update Sasaran Kegiatan (nama & pengampu/unit)
+    const skRes = await $fetch<any>(`/api/sasaran-kegiatan/${skId}`, {
       method: 'PUT',
       body: {
-        id,
-        ...form.value
+        nama_sk: form.value.sasaran_kegiatan_text,
+        pengampu: form.value.unit_kerja || null,
       }
     })
+    if (skRes?.success === false) {
+      toast.error(skRes.message || 'Gagal memperbarui sasaran kegiatan.')
+      return
+    }
+
+    // 2. Update Indikator Kinerja jika ada
+    const indikatorId = Number(detail.value?.indikatorId || (Array.isArray(detail.value) ? detail.value[0]?.indikatorId : null))
+    if (indikatorId) {
+      const ikuRes = await $fetch<any>(`/api/indikator-kinerja/${indikatorId}`, {
+        method: 'PUT',
+        body: {
+          nama_iku: combinedName,
+          satuan: form.value.satuan,
+          targets: {
+            '2025': form.value.target_1,
+            '2026': form.value.target_2,
+            '2027': form.value.target_3,
+            '2028': form.value.target_4,
+            '2029': form.value.target_5
+          }
+        }
+      })
+      if (ikuRes?.success === false) {
+        toast.error(ikuRes.message || 'Gagal memperbarui indikator kinerja.')
+        return
+      }
+    }
+
     toast.success('Data master berhasil diperbarui.')
     router.push(`/${route.params.slug}/master-sasaran-kegiatan`)
   } catch (error: any) {
     console.error('Error:', error)
-    toast.error('Gagal memperbarui data master.')
+    const msg = error?.data?.message || error?.message || 'Gagal memperbarui data master.'
+    toast.error(msg)
   } finally {
     submitting.value = false
   }

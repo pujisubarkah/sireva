@@ -1,117 +1,145 @@
 import { db } from '../../db';
 import { sasaranProgram } from '../../db/schema/sasaran-program';
-import { eq } from 'drizzle-orm';
+import { sasaranStrategis } from '../../db/schema/sasaran-strategis';
+import { indikatorProgram } from '../../db/schema/indikator-program';
+import { eq, and, isNull, sql } from 'drizzle-orm';
+import { defineEventHandler, readBody, getMethod, getQuery, createError } from 'h3';
+import { generateKodeSP } from '../../utils/kode-helper';
 
 export default defineEventHandler(async (event) => {
-  const method = event.method;
+  const method = getMethod(event);
 
-  try {
-    if (method === 'GET') {
+  if (method === 'GET') {
+    try {
       const query = getQuery(event);
-      const id = query.id;
+      const ssId = query.ss_id ? Number(query.ss_id) : null;
+      const id = query.id ? Number(query.id) : null;
 
-      if (id) {
-        const result = await db.select().from(sasaranProgram).where(eq(sasaranProgram.id, Number(id)));
-        return result[0];
+      const selectFields = {
+        id: sasaranProgram.id,
+        ssId: sasaranProgram.ssId,
+        nomorUrut: sasaranProgram.nomorUrut,
+        kode: sasaranProgram.kodeSp,
+        sasaran_program_text: sasaranProgram.namaSp,
+        unit_kerja: sasaranProgram.pengampu,
+        unitKerjaNama: sasaranProgram.pengampu,
+        indikatorId: indikatorProgram.id,
+        kode_iku: indikatorProgram.kode,
+        indikatorNama: indikatorProgram.nama,
+        satuan: indikatorProgram.satuan,
+        indikatorSatuan: indikatorProgram.satuan,
+        target_1: sql<string>`(select target from sireva.target_indikator_program tip where tip.indikator_id = ${indikatorProgram.id} and tip.tahun = 2025 limit 1)`,
+        target_2: sql<string>`(select target from sireva.target_indikator_program tip where tip.indikator_id = ${indikatorProgram.id} and tip.tahun = 2026 limit 1)`,
+        target_3: sql<string>`(select target from sireva.target_indikator_program tip where tip.indikator_id = ${indikatorProgram.id} and tip.tahun = 2027 limit 1)`,
+        target_4: sql<string>`(select target from sireva.target_indikator_program tip where tip.indikator_id = ${indikatorProgram.id} and tip.tahun = 2028 limit 1)`,
+        target_5: sql<string>`(select target from sireva.target_indikator_program tip where tip.indikator_id = ${indikatorProgram.id} and tip.tahun = 2029 limit 1)`,
+      };
+
+      if (id && !isNaN(id)) {
+        const result = await db.select(selectFields)
+          .from(sasaranProgram)
+          .leftJoin(indikatorProgram, eq(sasaranProgram.id, indikatorProgram.sasaranProgramId))
+          .where(
+            and(
+              eq(sasaranProgram.id, id),
+              isNull(sasaranProgram.deletedAt)
+            )
+          );
+        return result[0] || null;
       }
 
-      return await db.select().from(sasaranProgram).orderBy(sasaranProgram.id).limit(Number(query.limit || 100));
+      const conditions = [isNull(sasaranProgram.deletedAt)];
+      if (ssId && !isNaN(ssId)) {
+        conditions.push(eq(sasaranProgram.ssId, ssId));
+      }
+
+      return await db.select(selectFields)
+        .from(sasaranProgram)
+        .leftJoin(indikatorProgram, eq(sasaranProgram.id, indikatorProgram.sasaranProgramId))
+        .where(and(...conditions))
+        .orderBy(sasaranProgram.nomorUrut);
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || 'Internal Server Error'
+      };
     }
+  }
 
-    if (method === 'POST') {
-      const body = await readBody<any>(event);
-      console.log('DEBUG: Received POST body:', JSON.stringify(body, null, 2));
+  if (method === 'POST') {
+    try {
+      const body = await readBody(event);
 
-      const id_ss = body.id_ss ? Number(body.id_ss) : null;
-      if (!id_ss) {
-        throw new Error('id_ss is required and cannot be null');
+      // Validation
+      if (!body.ss_id) {
+        throw createError({ statusCode: 400, statusMessage: 'ss_id wajib diisi' });
+      }
+      if (!body.nama_sp) {
+        throw createError({ statusCode: 400, statusMessage: 'nama_sp wajib diisi' });
+      }
+      if (body.kode_sp || body.nomor_urut || body.kodeSp || body.nomorUrut) {
+        throw createError({ statusCode: 400, statusMessage: 'Kode and nomor_urut tidak boleh dikirim dari frontend' });
       }
 
-      // Prepare target values from either flat keys or targets array
-      const t1 = body.target_1 != null ? String(body.target_1) : (body.targets?.[0] != null ? String(body.targets[0]) : '0');
-      const t2 = body.target_2 != null ? String(body.target_2) : (body.targets?.[1] != null ? String(body.targets[1]) : '0');
-      const t3 = body.target_3 != null ? String(body.target_3) : (body.targets?.[2] != null ? String(body.targets[2]) : '0');
-      const t4 = body.target_4 != null ? String(body.target_4) : (body.targets?.[3] != null ? String(body.targets[3]) : '0');
-      const t5 = body.target_5 != null ? String(body.target_5) : (body.targets?.[4] != null ? String(body.targets[4]) : '0');
+      const parentId = Number(body.ss_id);
 
-      return await db.transaction(async (tx) => {
-        // Main insert
-        const [sp] = await tx.insert(sasaranProgram).values({
-          id_ss: id_ss,
-          kode: body.kode || null,
-          unit_kerja: body.unit_kerja || null,
-          kode_iku: body.kode_iku || null,
-          sasaran_program_text: body.sasaran_program_text || null,
-          satuan: body.satuan || null,
-          target_1: t1,
-          target_2: t2,
-          target_3: t3,
-          target_4: t4,
-          target_5: t5,
-        }).returning();
-
-        // Handle Additional Indicators if any
-        if (Array.isArray(body.indikatorTambahan) && body.indikatorTambahan.length > 0) {
-          for (const ind of body.indikatorTambahan) {
-            if (ind.nama) {
-              await tx.insert(sasaranProgram).values({
-                id_ss: id_ss,
-                kode: body.kode || null,
-                unit_kerja: body.unit_kerja || null,
-                kode_iku: ind.nama, // Use the additional indicator text here
-                sasaran_program_text: body.sasaran_program_text || null,
-                satuan: body.satuan || null,
-                target_1: t1,
-                target_2: t2,
-                target_3: t3,
-                target_4: t4,
-                target_5: t5,
-              });
-            }
-          }
+      // Concurrency locking and code generation in a transaction
+      const result = await db.transaction(async (tx) => {
+        // SELECT ... FOR UPDATE on parent to make it transaction-safe
+        const parentResult = await tx.execute(
+          sql`SELECT id, kode_ss FROM sireva.sasaran_strategis WHERE id = ${parentId} AND deleted_at IS NULL FOR UPDATE`
+        );
+        const parent = parentResult.rows[0];
+        if (!parent) {
+          throw createError({ statusCode: 404, statusMessage: 'Parent Sasaran Strategis tidak ditemukan' });
         }
 
-        return { id: sp?.id };
-      });
+        const kodeSs = parent.kode_ss as string;
+ 
+         // Calculate MAX(nomor_urut) for this ssId
+         const maxResult = await tx.execute(
+           sql`SELECT coalesce(max(nomor_urut), 0) as max_val FROM sireva.sasaran_program WHERE ss_id = ${parentId}`
+         );
+         const maxVal = Number(maxResult.rows[0]?.max_val || 0);
+         const nextNomorUrut = maxVal + 1;
+         const generatedCode = generateKodeSP(kodeSs, nextNomorUrut);
+ 
+         const inserted = await tx.insert(sasaranProgram)
+           .values({
+             ssId: parentId,
+             nomorUrut: nextNomorUrut,
+             kodeSp: generatedCode,
+             namaSp: body.nama_sp,
+             pengampu: body.pengampu || null,
+             instansiTerkait: body.instansi_terkait || null,
+           })
+           .returning();
+ 
+         return inserted[0];
+       });
+ 
+       if (!result) {
+         throw createError({ statusCode: 500, statusMessage: 'Gagal menambahkan data' });
+       }
+ 
+       return {
+         success: true,
+         message: 'Data berhasil ditambahkan',
+         data: {
+           id: result.id,
+           kode: result.kodeSp,
+           nama: result.namaSp
+         }
+       };
+
+    } catch (error: any) {
+      console.error('Error in POST /api/sasaran-program:', error);
+      return {
+        success: false,
+        message: error.statusMessage || error.message || 'Internal Server Error'
+      };
     }
-
-    if (method === 'PUT') {
-      const body = await readBody<any>(event);
-      if (!body.id) throw new Error('ID is required');
-
-      const t1 = body.target_1 != null ? String(body.target_1) : (body.targets?.[0] != null ? String(body.targets[0]) : '0');
-      const t2 = body.target_2 != null ? String(body.target_2) : (body.targets?.[1] != null ? String(body.targets[1]) : '0');
-      const t3 = body.target_3 != null ? String(body.target_3) : (body.targets?.[2] != null ? String(body.targets[2]) : '0');
-      const t4 = body.target_4 != null ? String(body.target_4) : (body.targets?.[3] != null ? String(body.targets[3]) : '0');
-      const t5 = body.target_5 != null ? String(body.target_5) : (body.targets?.[4] != null ? String(body.targets[4]) : '0');
-
-      const updated = await db.update(sasaranProgram).set({
-        id_ss: body.id_ss ? Number(body.id_ss) : null,
-        kode: body.kode || null,
-        unit_kerja: body.unit_kerja || null,
-        kode_iku: body.kode_iku || null,
-        sasaran_program_text: body.sasaran_program_text || null,
-        satuan: body.satuan || null,
-        target_1: t1,
-        target_2: t2,
-        target_3: t3,
-        target_4: t4,
-        target_5: t5,
-      }).where(eq(sasaranProgram.id, Number(body.id))).returning();
-
-      return { success: true, data: updated[0] };
-    }
-
-    if (method === 'DELETE') {
-      const body = await readBody(event);
-      if (!body.id) throw new Error('ID is required');
-      return await db.delete(sasaranProgram).where(eq(sasaranProgram.id, body.id)).returning();
-    }
-  } catch (error: any) {
-    console.error('API Error:', error);
-    throw createError({
-      statusCode: 500,
-      statusMessage: error.message || 'Internal Server Error'
-    });
   }
+
+  throw createError({ statusCode: 405, statusMessage: 'Method Not Allowed' });
 });

@@ -13,8 +13,8 @@ async function testInsert() {
     returning "id"
   `;
   const params = [
-    27, 
-    'SP-TEST-' + Date.now(), 
+    29, 
+    'SP.TEST2', 
     'Direktorat Strategi Peningkatan Kualitas Kebijakan Administrasi Negara', 
     'Presentase instansi pemerintah yang menerapkan tata kelola kualitas kebijakan yang baik', 
     'nyoba', 

@@ -1,6 +1,7 @@
 export * from './base'
 export * from './users'
 export * from './indikator-kegiatan'
+export * from './indikator-kinerja'
 export * from './indikator-program'
 export * from './indikator-strategis'
 export * from './kegiatan-unit'

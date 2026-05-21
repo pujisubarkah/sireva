@@ -1,6 +1,6 @@
 import { db } from '../../db';
 import { targetIndiaktorKegiatan as targetIndikator } from '../../db/schema/target-indikator-kegiatan';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { defineEventHandler, readBody, getQuery } from 'h3';
 
 export default defineEventHandler(async (event) => {

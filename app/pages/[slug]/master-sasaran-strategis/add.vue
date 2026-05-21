@@ -219,15 +219,16 @@ const submitData = async () => {
 
   try {
     // Step 1: Insert Parent (Sasaran Strategis)
-    const ssResponse = await $fetch<any[]>('/api/sasaran-strategis', {
+    const ssResponse = await $fetch<any>('/api/sasaran-strategis', {
       method: 'POST',
       body: {
         kode: form.kode_sasaran,
         sasaranText: form.nama_sasaran,
+        tahun: '2026'
       }
     })
 
-    const ssId = ssResponse[0]?.id
+    const ssId = ssResponse.data?.id || ssResponse.id
     if (!ssId) throw new Error('Gagal mendapatkan ID Sasaran Strategis baru.')
 
     // Step 2: Bulk Insert Indicators

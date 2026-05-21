@@ -1,217 +1,224 @@
 import { db } from '../../db';
 import { sasaranStrategis } from '../../db/schema/sasaran-strategis';
+import { sasaranProgram } from '../../db/schema/sasaran-program';
 import { indikatorStrategis } from '../../db/schema/indikator-strategis';
 import { targetIndikatorStrategis } from '../../db/schema/target-indikator-strategis';
-import { sasaranProgram } from '../../db/schema/sasaran-program';
-import { laporanSasaranProgram } from '../../db/schema/laporan-sasaran-program';
-import { indikatorProgram } from '../../db/schema/indikator-program';
-import { targetIndikatorProgram } from '../../db/schema/target-indikator-program';
-import { sasaranKegiatan } from '../../db/schema/sasaran-kegiatan';
-import { indikatorKegiatan } from '../../db/schema/indikator-kegiatan';
-import { targetIndiaktorKegiatan } from '../../db/schema/target-indikator-kegiatan';
-import { laporanSasaranStrategis } from '../../db/schema/laporan-sasaran-strategis';
-import { perjanjianKinerja } from '../../db/schema/perjanjian-kinerja';
-import { eq, sql, inArray, or } from 'drizzle-orm';
-import { defineEventHandler, readBody, createError, getMethod, getRouterParam } from 'h3';
+import { eq, and, isNull, sql, inArray } from 'drizzle-orm';
+import { defineEventHandler, readBody, getMethod, createError, getRouterParam } from 'h3';
 
 export default defineEventHandler(async (event) => {
-	const method = getMethod(event);
-	const rawId = getRouterParam(event, 'id');
-	const id = Number(rawId);
+  const id = Number(getRouterParam(event, 'id'));
+  if (!id || isNaN(id)) {
+    event.node.res.statusCode = 400;
+    return {
+      success: false,
+      message: 'ID tidak valid'
+    };
+  }
 
-	if (!rawId || Number.isNaN(id)) {
-		throw createError({ statusCode: 400, statusMessage: 'Parameter "id" harus berupa angka.' });
-	}
+  const method = getMethod(event);
 
-	if (method === 'GET') {
-		const [row] = await db.select({
-			id: sasaranStrategis.id,
-			kode: sasaranStrategis.kode,
-			sasaranText: sasaranStrategis.sasaranText,
-			unitKerjaId: sasaranStrategis.unitKerjaId,
-			tujuanId: sasaranStrategis.tujuanId,
-			ownerUnitName: sql<string>`(select nama from sireva.unit_kerja where id = ${sasaranStrategis.unitKerjaId})`,
-			indikatorStrategis: sql<any[]>`
-				coalesce(
-					jsonb_agg(
-						jsonb_build_object(
-							'id', ${indikatorStrategis.id},
-							'nama', ${indikatorStrategis.nama},
-							'satuan', ${indikatorStrategis.satuan},
-							'targets', coalesce(
-								(
-									select jsonb_agg(
-										jsonb_build_object(
-											'tahun', tis.tahun,
-											'target', tis.target
-										)
-										order by tis.tahun
-									)
-									from sireva.target_indikator_strategis tis
-									where tis.indikator_id = ${indikatorStrategis.id}
-								),
-								'[]'::jsonb
-							)
-						)
-						order by ${indikatorStrategis.nama}
-					) filter (where ${indikatorStrategis.id} is not null),
-					'[]'::jsonb
-				)
-			`,
-		})
-			.from(sasaranStrategis)
-			.leftJoin(indikatorStrategis, eq(sasaranStrategis.id, indikatorStrategis.sasaranStrategisId))
-			.where(eq(sasaranStrategis.id, id))
-			.groupBy(
-				sasaranStrategis.id,
-				sasaranStrategis.kode,
-				sasaranStrategis.sasaranText,
-				sasaranStrategis.unitKerjaId,
-				sasaranStrategis.tujuanId,
-			)
-			.limit(1);
+  if (method === 'GET') {
+    try {
+      const result = await db.select()
+        .from(sasaranStrategis)
+        .where(
+          and(
+            eq(sasaranStrategis.id, id),
+            isNull(sasaranStrategis.deletedAt)
+          )
+        );
 
-		if (!row) {
-			throw createError({ statusCode: 404, statusMessage: 'Sasaran strategis tidak ditemukan.' });
-		}
+      if (result.length === 0) {
+        event.node.res.statusCode = 404;
+        return {
+          success: false,
+          message: 'Data tidak ditemukan'
+        };
+      }
 
-		return row;
-	}
+      const item = result[0];
 
-	if (method === 'PUT') {
-		const body = await readBody(event);
-		const { kode, sasaranText, unitKerjaId, tujuanId } = body ?? {};
+      // Fetch indicators for this sasaran
+      const ssIndikators = await db.select()
+        .from(indikatorStrategis)
+        .where(eq(indikatorStrategis.sasaranStrategisId, id));
 
-		if (sasaranText !== undefined && (typeof sasaranText !== 'string' || sasaranText.trim() === '')) {
-			throw createError({ statusCode: 400, statusMessage: 'Field "sasaranText" tidak boleh kosong.' });
-		}
+      // Fetch targets for these indicators
+      const indIds = ssIndikators.map(ind => ind.id);
+      let ssTargets: any[] = [];
+      if (indIds.length > 0) {
+        ssTargets = await db.select()
+          .from(targetIndikatorStrategis)
+          .where(inArray(targetIndikatorStrategis.indikatorId, indIds));
+      }
 
-		const updateData: Record<string, unknown> = {};
-		if (kode !== undefined) updateData.kode = kode;
-		if (sasaranText !== undefined) updateData.sasaranText = sasaranText.trim();
-		if (unitKerjaId !== undefined) updateData.unitKerjaId = unitKerjaId;
-		if (tujuanId !== undefined) updateData.tujuanId = tujuanId;
+      // Group targets by indicator id
+      const targetsByInd = new Map<number, { tahun: number; target: number }[]>();
+      ssTargets.forEach((t) => {
+        if (t.indikatorId && t.tahun !== null && t.target !== null) {
+          const list = targetsByInd.get(t.indikatorId) || [];
+          list.push({
+            tahun: Number(t.tahun),
+            target: Number(t.target)
+          });
+          targetsByInd.set(t.indikatorId, list);
+        }
+      });
 
-		const [updated] = await db
-			.update(sasaranStrategis)
-			.set(updateData)
-			.where(eq(sasaranStrategis.id, id))
-			.returning();
+      const formattedIndikators = ssIndikators.map((ind) => ({
+        id: ind.id,
+        nama: ind.nama,
+        satuan: ind.satuan,
+        targets: targetsByInd.get(ind.id) || []
+      }));
 
-		if (!updated) {
-			throw createError({ statusCode: 404, statusMessage: 'Sasaran strategis tidak ditemukan.' });
-		}
+      return {
+        success: true,
+        data: {
+          id: item.id,
+          tahun: item.tahun,
+          nomor_urut: item.nomorUrut,
+          kode_ss: item.kodeSs,
+          nama_ss: item.namaSs,
+          pengampu: item.pengampu,
+          instansi_terkait: item.instansiTerkait
+        },
+        id: item.id,
+        ssId: item.id,
+        kode: item.kodeSs,
+        kodeSs: item.kodeSs,
+        sasaranText: item.namaSs,
+        namaSs: item.namaSs,
+        tahun: item.tahun,
+        nomorUrut: item.nomorUrut,
+        pengampu: item.pengampu,
+        instansiTerkait: item.instansiTerkait,
+        indikatorStrategis: formattedIndikators
+      };
+    } catch (error: any) {
+      event.node.res.statusCode = error.statusCode || 500;
+      return {
+        success: false,
+        message: error.statusMessage || error.message || 'Internal Server Error'
+      };
+    }
+  }
 
-		return updated;
-	}
+  if (method === 'PUT') {
+    try {
+      const body = await readBody(event);
 
-	if (method === 'DELETE') {
-		try {
-			console.log(`[DELETE] Starting deletion for Sasaran Strategis ID: ${id}`);
-			return await db.transaction(async (tx) => {
-				// 1. Collect all IDs for children/descendants
-				const indicators = await tx.select({ id: indikatorStrategis.id })
-					.from(indikatorStrategis)
-					.where(eq(indikatorStrategis.sasaranStrategisId, id));
-				const indicatorIds = indicators.map(i => i.id);
+      const existing = await db.select()
+        .from(sasaranStrategis)
+        .where(
+          and(
+            eq(sasaranStrategis.id, id),
+            isNull(sasaranStrategis.deletedAt)
+          )
+        );
 
-				const sps = await tx.select({ id: sasaranProgram.id })
-					.from(sasaranProgram)
-					.where(eq(sasaranProgram.idSs, id));
-				const spIds = sps.map(s => s.id);
+      if (existing.length === 0) {
+        throw createError({ statusCode: 404, statusMessage: 'Data tidak ditemukan' });
+      }
 
-				let skIds: number[] = [];
-				let ipIds: number[] = [];
-				if (spIds.length > 0) {
-					const sks = await tx.select({ id: sasaranKegiatan.id })
-						.from(sasaranKegiatan)
-						.where(inArray(sasaranKegiatan.idSp, spIds));
-					skIds = sks.map(s => s.id);
+      const updateFields: any = {};
+      const newNama = body.nama_ss !== undefined ? body.nama_ss : (body.sasaranText !== undefined ? body.sasaranText : body.namaSs);
+      if (newNama !== undefined) updateFields.namaSs = newNama;
 
-					const ips = await tx.select({ id: indikatorProgram.id })
-						.from(indikatorProgram)
-						.where(inArray(indikatorProgram.sasaranProgramId, spIds));
-					ipIds = ips.map(i => i.id);
-				}
+      const newKode = body.kode_ss !== undefined ? body.kode_ss : (body.kode !== undefined ? body.kode : body.kodeSs);
+      if (newKode !== undefined) updateFields.kodeSs = newKode;
 
-				let ikIds: number[] = [];
-				if (skIds.length > 0) {
-					const iks = await tx.select({ id: indikatorKegiatan.id })
-						.from(indikatorKegiatan)
-						.where(inArray(indikatorKegiatan.idSk, skIds));
-					ikIds = iks.map(i => i.id);
-				}
+      if (body.pengampu !== undefined) updateFields.pengampu = body.pengampu;
+      if (body.instansi_terkait !== undefined) updateFields.instansiTerkait = body.instansi_terkait;
+      if (body.is_active !== undefined) updateFields.isActive = !!body.is_active;
 
-				console.log(`[DELETE] Found: ${indicatorIds.length} indicators, ${spIds.length} programs, ${skIds.length} activities, ${ikIds.length} activity indicators.`);
+      updateFields.updatedAt = new Date();
 
-				// 2. Delete Leaf Nodes (Depth 4/5)
-				if (ikIds.length > 0) {
-					await tx.delete(targetIndiaktorKegiatan).where(inArray(targetIndiaktorKegiatan.idIku, ikIds));
-				}
-				if (ipIds.length > 0) {
-					await tx.delete(targetIndikatorProgram).where(inArray(targetIndikatorProgram.indikatorId, ipIds));
-				}
-				if (indicatorIds.length > 0) {
-					await tx.delete(targetIndikatorStrategis).where(inArray(targetIndikatorStrategis.indikatorId, indicatorIds));
-				}
+      const updated = await db.update(sasaranStrategis)
+        .set(updateFields)
+        .where(eq(sasaranStrategis.id, id))
+        .returning();
 
-				// 3. Delete Indicators & Reports (Depth 3)
-				if (ikIds.length > 0) {
-					await tx.delete(indikatorKegiatan).where(inArray(indikatorKegiatan.id, ikIds));
-				}
-				if (ipIds.length > 0) {
-					await tx.delete(indikatorProgram).where(inArray(indikatorProgram.id, ipIds));
-				}
+      const first = updated?.[0];
+      if (!first) {
+        throw createError({ statusCode: 500, statusMessage: 'Gagal memperbarui data' });
+      }
 
-				if (indicatorIds.length > 0) {
-					await tx.delete(perjanjianKinerja)
-						.where(or(
-							eq(perjanjianKinerja.sasaranId, id),
-							inArray(perjanjianKinerja.indikatorId, indicatorIds)
-						));
-				} else {
-					await tx.delete(perjanjianKinerja).where(eq(perjanjianKinerja.sasaranId, id));
-				}
+      return {
+        success: true,
+        message: 'Data berhasil diperbarui',
+        data: {
+          id: first.id,
+          kode: first.kodeSs,
+          nama: first.namaSs
+        }
+      };
 
-				await tx.delete(laporanSasaranStrategis).where(eq(laporanSasaranStrategis.sasaranId, id));
+    } catch (error: any) {
+      console.error('Error in PUT /api/sasaran-strategis/:id:', error);
+      return {
+        success: false,
+        message: error.statusMessage || error.message || 'Internal Server Error'
+      };
+    }
+  }
 
-				// 4. Delete Middle Nodes (Depth 2/1)
-				if (skIds.length > 0) {
-					await tx.delete(sasaranKegiatan).where(inArray(sasaranKegiatan.idSp, spIds));
-				}
+  if (method === 'DELETE') {
+    try {
+      const existing = await db.select()
+        .from(sasaranStrategis)
+        .where(
+          and(
+            eq(sasaranStrategis.id, id),
+            isNull(sasaranStrategis.deletedAt)
+          )
+        );
 
-				if (spIds.length > 0) {
-					// Also delete reports if any (though usually cascaded or handled)
-					await tx.delete(laporanSasaranProgram).where(inArray(laporanSasaranProgram.idSp, spIds));
-					await tx.delete(sasaranProgram).where(inArray(sasaranProgram.id, spIds));
-				}
+      if (existing.length === 0) {
+        throw createError({ statusCode: 404, statusMessage: 'Data tidak ditemukan' });
+      }
 
-				// 5. Delete Indikator Strategis
-				if (indicatorIds.length > 0) {
-					await tx.delete(indikatorStrategis).where(eq(indikatorStrategis.sasaranStrategisId, id));
-				}
+      // ON DELETE RESTRICT Check: Any active children?
+      const children = await db.select({ count: sql`count(*)` })
+        .from(sasaranProgram)
+        .where(
+          and(
+            eq(sasaranProgram.ssId, id),
+            isNull(sasaranProgram.deletedAt)
+          )
+        );
 
-				// 6. Finally delete the SS record
-				const [deleted] = await tx
-					.delete(sasaranStrategis)
-					.where(eq(sasaranStrategis.id, id))
-					.returning();
+      const childrenCount = Number(children[0]?.count || 0);
+      if (childrenCount > 0) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'Tidak dapat menghapus data parent karena masih memiliki data turunan.'
+        });
+      }
 
-				if (!deleted) {
-					throw createError({ statusCode: 404, statusMessage: 'Sasaran strategis tidak ditemukan.' });
-				}
+      // Soft delete
+      await db.update(sasaranStrategis)
+        .set({
+          isActive: false,
+          deletedAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(sasaranStrategis.id, id));
 
-				console.log(`[DELETE] Successfully deleted SS ID: ${id}`);
-				return { success: true, deleted };
-			});
-		} catch (error: any) {
-			console.error('Delete Error Stack:', error);
-			throw createError({ 
-				statusCode: 500, 
-				statusMessage: `Gagal menghapus data: ${error.message || 'Kesalahan database'}` 
-			});
-		}
-	}
+      return {
+        success: true,
+        message: 'Data berhasil dihapus'
+      };
 
-	throw createError({ statusCode: 405, statusMessage: 'Method Not Allowed' });
+    } catch (error: any) {
+      console.error('Error in DELETE /api/sasaran-strategis/:id:', error);
+      return {
+        success: false,
+        message: error.statusMessage || error.message || 'Internal Server Error'
+      };
+    }
+  }
+
+  throw createError({ statusCode: 405, statusMessage: 'Method Not Allowed' });
 });

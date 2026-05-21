@@ -70,9 +70,9 @@ const superAdminMenuItems: SidebarMenuItem[] = [
       { label: 'Master Unit Kerja', href: SIDEBAR_MENU_ROUTES.masterUnitKerja, icon: 'IconSitemap' },
       { label: 'Master User', href: SIDEBAR_MENU_ROUTES.masterUser, icon: 'IconUser' },
       { label: 'Master Visi, Misi, Tujuan', href: SIDEBAR_MENU_ROUTES.masterVisiMisiTujuan, icon: 'IconFlag' },
-      { label: 'Target Renstra - Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.masterSasaranStrategis, icon: 'IconTargetArrow' },
-      { label: 'Target Renstra - Sasaran Program', href: SIDEBAR_MENU_ROUTES.masterSasaranProgram, icon: 'IconFocus2' },
-      { label: 'Target Renstra - Sasaran Kegiatan', href: SIDEBAR_MENU_ROUTES.masterSasaranKegiatan, icon: 'IconListDetails' },
+      { label: 'Master Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.masterSasaranStrategis, icon: 'IconTargetArrow' },
+      { label: 'Master Sasaran Program', href: SIDEBAR_MENU_ROUTES.masterSasaranProgram, icon: 'IconFocus2' },
+      { label: 'Master Sasaran Kegiatan', href: SIDEBAR_MENU_ROUTES.masterSasaranKegiatan, icon: 'IconListDetails' },
     ],
   },
 ];

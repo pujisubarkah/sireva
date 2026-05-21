@@ -93,10 +93,17 @@ const errorMessage = computed(() => {
 const tableRows = computed(() => {
   if (!data.value) return [];
   const source = Array.isArray(data.value) ? data.value : (data.value?.data || []);
-  return source.map((item: any) => ({
+  // Deduplicate by id (leftJoin indikator can produce multiple rows per SK)
+  const seen = new Set<number>();
+  const unique = source.filter((item: any) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+  return unique.map((item: any) => ({
     id: item.id,
-    kode: item.kode || '-',
-    sasaran: item.sasaran_kegiatan_text || '-',
+    kode: item.kode || item.kodeSk || '-',
+    sasaran: item.sasaranText || item.sasaran_kegiatan_text || item.namaSk || '-',
     aksi: '',
   }));
 });
@@ -111,14 +118,16 @@ const columns = [
 const handleDelete = async (id: number) => {
   if (!confirm('Apakah Anda yakin ingin menghapus data master sasaran kegiatan ini?')) return
   try {
-    await $fetch('/api/sasaran-kegiatan', {
-      method: 'DELETE',
-      body: { id }
-    })
+    const res = await $fetch<any>(`/api/sasaran-kegiatan/${id}`, { method: 'DELETE' })
+    if (res?.success === false) {
+      toast.error(res.message || 'Gagal menghapus data master.')
+      return
+    }
     toast.success('Data master berhasil dihapus.')
     mutate()
   } catch (error: any) {
-    toast.error('Gagal menghapus data master.')
+    const msg = error?.data?.message || error?.message || 'Gagal menghapus data master.'
+    toast.error(msg)
   }
 }
 </script>

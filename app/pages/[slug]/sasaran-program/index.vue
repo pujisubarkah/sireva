@@ -80,7 +80,7 @@
     <div v-else class="mx-2 bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
       <UiTable
         :columns="tableColumns"
-        :data="paginatedRows"
+        :data="displayRows"
         :page-size="pageSize"
         :current-page="currentPage"
         :show-pagination="true"
@@ -194,7 +194,7 @@ const canInput = computed(() => isSuperAdmin.value || isAdmin.value)
 
 const loggedUnitKerjaName = computed(() => String(authUser.value?.unit_kerja || '').trim())
 const userUnitKerjaId = computed(() => {
-  if (!isAdmin.value || !unitData.value) return null
+  if (!unitData.value) return null
   const found = unitData.value.find((u: any) => u.nama === loggedUnitKerjaName.value)
   return found?.id || null
 })

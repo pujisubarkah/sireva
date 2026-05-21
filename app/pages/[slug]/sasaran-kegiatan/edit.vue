@@ -118,8 +118,14 @@ const currentYear = new Date().getFullYear()
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 const { data: sasaranRaw } = useSWRV('/api/sasaran-kegiatan?limit=1000', fetcher)
 
+const targetRecord = ref<any>(null)
+
 const sasaranOptions = computed(() => {
-  return sasaranRaw.value?.data || sasaranRaw.value || []
+  const raw = sasaranRaw.value?.data || sasaranRaw.value || []
+  return raw.map((s: any) => ({
+    ...s,
+    sasaranText: s.sasaran_kegiatan_text || s.sasaranText || '-'
+  }))
 })
 
 const form = ref({
@@ -131,19 +137,18 @@ const form = ref({
 const indikatorOptions = computed(() => {
   if (!form.value.sasaranId) return []
   const sasaran = sasaranOptions.value.find((s: any) => s.id === form.value.sasaranId)
-  return sasaran?.indikators || []
+  if (!sasaran) return []
+  return [{
+    id: sasaran.id,
+    nama: sasaran.indikator_kinerja || sasaran.indikatorNama || '-'
+  }]
 })
 
 watch(() => form.value.indikatorId, (newIndId) => {
-  if (newIndId) {
-    const ind = indikatorOptions.value.find((i: any) => i.id === newIndId)
-    if (ind && ind.targets) {
-      const existingTarget = ind.targets.find((t: any) => Number(t.tahun) === currentYear)
-      if (existingTarget) {
-        form.value.target = existingTarget.target?.toString() || ''
-      } else {
-        form.value.target = ''
-      }
+  if (newIndId && targetRecord.value) {
+    const yearIdx = ['2025', '2026', '2027', '2028', '2029'].indexOf(currentYear.toString())
+    if (yearIdx !== -1) {
+      form.value.target = targetRecord.value[`target_${yearIdx + 1}`]?.toString() || ''
     }
   }
 })
@@ -158,24 +163,16 @@ onMounted(async () => {
   try {
     fetching.value = true
     
-    // Tunggu sampai SWRV memuat data
-    // Dalam kasus nyata, kita mungkin ingin fetch sasaran spesifik saja
-    const detail = await $fetch<any[]>(`/api/sasaran-kegiatan/${sasaranId}`)
-    const first = (detail ?? [])[0]
+    const detail = await $fetch<any>(`/api/sasaran-kegiatan?id=${sasaranId}`)
+    if (!detail) throw new Error('Data tidak ditemukan')
     
-    if (!first) throw new Error('Data tidak ditemukan')
-    
-    // Prefill sasaranId
+    targetRecord.value = detail
     form.value.sasaranId = sasaranId
+    form.value.indikatorId = sasaranId
     
-    // Prefill indikator jika hanya ada satu, jika lebih biarkan user memilih
-    // Kami butuh data indikatornya
-    const iks = (detail ?? []).map(r => ({ id: r.indikatorId, nama: r.indikatorNama }))
-    if (iks.length > 0 && iks[0]?.id) {
-       // Biarkan user pilih, atau set otomatis jika length 1
-       if (iks.length === 1) {
-         form.value.indikatorId = iks[0].id
-       }
+    const yearIdx = ['2025', '2026', '2027', '2028', '2029'].indexOf(currentYear.toString())
+    if (yearIdx !== -1) {
+      form.value.target = detail[`target_${yearIdx + 1}`]?.toString() || ''
     }
   } catch (err: any) {
     console.error('Error fetching details:', err)
@@ -186,21 +183,24 @@ onMounted(async () => {
   }
 })
 
-const isValid = computed(() => !!form.value.sasaranId && !!form.value.indikatorId && !!form.value.target)
+const isValid = computed(() => !!form.value.sasaranId && !!form.value.indikatorId && form.value.target !== '')
 
 const handleSubmit = async () => {
-  if (!isValid.value) return
+  if (!isValid.value || !targetRecord.value) return
 
   submitting.value = true
   try {
-    // Karena target.post.ts melakukan upsert, kita bisa menggunakan endpoint yang sama dengan add.vue
-    await $fetch('/api/sasaran-kegiatan/target', {
-      method: 'POST',
-      body: {
-        idIku: form.value.indikatorId,
-        tahun: currentYear,
-        targetNilai: form.value.target
-      }
+    const yearIdx = ['2025', '2026', '2027', '2028', '2029'].indexOf(currentYear.toString())
+    const updateBody = {
+      ...targetRecord.value,
+    }
+    if (yearIdx !== -1) {
+      updateBody[`target_${yearIdx + 1}`] = form.value.target
+    }
+
+    await $fetch('/api/sasaran-kegiatan', {
+      method: 'PUT',
+      body: updateBody
     })
     
     toast.success('Perubahan target capaian berhasil disimpan!')
@@ -214,21 +214,25 @@ const handleSubmit = async () => {
 }
 
 const handleDelete = async () => {
-  // Dalam workflow baru, menghapus kaitan/target mungkin berbeda dari menghapus sasaran
   if (!confirm('Apakah Anda yakin ingin menghapus target capaian ini? Teks Sasaran Kegiatan aslinya tidak akan terhapus.')) return
   
-  if (!form.value.indikatorId) {
-    toast.error('Pilih Indikator Kinerja terlebih dahulu.')
+  if (!targetRecord.value) {
+    toast.error('Data tidak valid.')
     return
   }
 
   try {
-    await $fetch(`/api/sasaran-kegiatan/target`, {
-      method: 'DELETE',
-      body: {
-        idIku: form.value.indikatorId,
-        tahun: currentYear
-      }
+    const yearIdx = ['2025', '2026', '2027', '2028', '2029'].indexOf(currentYear.toString())
+    const updateBody = {
+      ...targetRecord.value,
+    }
+    if (yearIdx !== -1) {
+      updateBody[`target_${yearIdx + 1}`] = '0'
+    }
+
+    await $fetch('/api/sasaran-kegiatan', {
+      method: 'PUT',
+      body: updateBody
     })
     toast.success('Target capaian dihapus.')
     router.push(`/${route.params.slug}/sasaran-kegiatan`)

@@ -88,7 +88,7 @@
     <div v-else class="mx-2 bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
       <UiTable
         :columns="tableColumns"
-        :data="paginatedRows"
+        :data="displayRows"
         :page-size="pageSize"
         :current-page="currentPage"
         :show-pagination="true"
@@ -106,7 +106,7 @@
           </span>
         </template>
 
-        <template #cell-sasaran="{ value }">
+        <template #cell-sasaranText="{ value }">
           <p class="text-[13px] font-bold text-slate-800 leading-tight">{{ value }}</p>
         </template>
 
@@ -119,7 +119,7 @@
           </div>
         </template>
 
-        <template #cell-indikator="{ value }">
+        <template #cell-indikatorNama="{ value }">
           <p class="text-[12px] font-black text-slate-700 uppercase tracking-tight">{{ value || '-' }}</p>
         </template>
 
@@ -204,7 +204,7 @@ const canInputAdd = computed(() => isSuperAdmin.value || isUser.value) // User c
 
 const loggedUnitKerjaName = computed(() => String(authUser.value?.unit_kerja || '').trim())
 const userUnitKerjaId = computed(() => {
-  if (!isAdmin.value || !unitData.value) return null
+  if (!unitData.value) return null
   const found = unitData.value.find((u: any) => u.nama === loggedUnitKerjaName.value)
   return found?.id || null
 })
@@ -230,19 +230,34 @@ const displayRows = computed(() => {
   let rows = (skRaw.value || []) as any[]
   if (skRaw.value?.data) rows = skRaw.value.data
 
+  const normalized = rows.map((r: any) => {
+    // Determine target value for the selected year (2025-2029 maps to target_1 - target_5)
+    let targetValue = '0'
+    const yearIdx = ['2025', '2026', '2027', '2028', '2029'].indexOf(selectedYear.value)
+    if (yearIdx !== -1) {
+      targetValue = r[`target_${yearIdx + 1}`] ?? '0'
+    }
+
+    return {
+      ...r,
+      sasaranText: r.sasaran_kegiatan_text || r.sasaranText || '-',
+      indikatorNama: r.indikator_kinerja || r.indikatorNama || '-',
+      indikatorSatuan: r.satuan || r.indikatorSatuan || '',
+      unitKerjaNames: r.unit_kerja ? [r.unit_kerja] : (r.unitKerjaNama ? [r.unitKerjaNama] : []),
+      targetValue: targetValue
+    }
+  })
+
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
-    rows = rows.filter((r: any) => 
+    return normalized.filter((r: any) => 
       r.sasaranText?.toLowerCase().includes(q) || 
       r.kode?.toLowerCase().includes(q) ||
       r.indikatorNama?.toLowerCase().includes(q)
     )
   }
 
-  return rows.map((r: any) => ({
-    ...r,
-    targetValue: r.targets?.find((t: any) => Number(t.tahun) === Number(selectedYear.value))?.target || 0
-  }))
+  return normalized
 })
 
 const paginatedRows = computed(() => {
@@ -263,10 +278,15 @@ const tableColumns = [
 async function handleDelete(item: any) {
   if (!confirm(`Hapus sasaran kegiatan "${item.sasaranText}"?`)) return
   try {
-    await $fetch(`/api/sasaran-kegiatan/${item.id}`, { method: 'DELETE' })
+    const res = await $fetch<any>(`/api/sasaran-kegiatan/${item.id}`, { method: 'DELETE' })
+    if (res?.success === false) {
+      alert(res.message || 'Gagal menghapus data.')
+      return
+    }
     mutate()
-  } catch (error) {
-    alert('Gagal menghapus data.')
+  } catch (error: any) {
+    const msg = error?.data?.message || error?.message || 'Gagal menghapus data.'
+    alert(msg)
   }
 }
 

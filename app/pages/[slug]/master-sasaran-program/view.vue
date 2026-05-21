@@ -9,7 +9,7 @@
         <div>
           <h1 class="text-2xl font-black text-slate-900 tracking-tight">Master Data: Detail Sasaran Program</h1>
           <p class="text-slate-500 font-medium text-sm mt-0.5">
-            Informasi lengkap data master sasaran program beserta hierarki cascading dan target periode Renstra.
+            Informasi lengkap data master sasaran program beserta hierarki cascading.
           </p>
         </div>
       </div>
@@ -45,11 +45,11 @@
         <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="space-y-1">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kode Sasaran</span>
-            <p class="text-lg font-bold text-slate-700">{{ detail?.kode || '-' }}</p>
+            <p class="text-lg font-bold text-slate-700">{{ detail?.kode || detail?.kodeSp || '-' }}</p>
           </div>
           <div class="space-y-1">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Unit Kerja Pemilik</span>
-            <p class="text-lg font-bold text-slate-700">{{ detail?.unit_kerja || 'Global / Semua Unit' }}</p>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nomor Urut</span>
+            <p class="text-lg font-bold text-slate-700">{{ detail?.nomorUrut || '-' }}</p>
           </div>
           <div class="md:col-span-2 space-y-1">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sasaran Strategis Induk</span>
@@ -64,41 +64,22 @@
           <IconFileText :size="20" class="text-slate-500" stroke-width="2.5" />
           <h2 class="text-slate-700 font-bold text-sm uppercase tracking-wider">Rincian Sasaran Program Master</h2>
         </div>
-        <div class="p-8 space-y-8">
-          <div class="space-y-2">
+        <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="md:col-span-2 space-y-2">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pernyataan Sasaran</span>
             <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-              <p class="text-slate-700 font-bold leading-relaxed text-lg">"{{ detail?.sasaran_program_text || '-' }}"</p>
+              <p class="text-slate-700 font-bold leading-relaxed text-lg">"{{ detail?.sasaran_program_text || detail?.namaSp || '-' }}"</p>
             </div>
           </div>
 
-          <div class="space-y-2">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Indikator Kinerja Utama</span>
-            <p class="font-bold text-slate-700 p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">{{ detail?.kode_iku || '-' }}</p>
+          <div class="space-y-1">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pengampu</span>
+            <p class="text-base font-bold text-slate-700">{{ detail?.unit_kerja || detail?.pengampu || '-' }}</p>
           </div>
-        </div>
-      </div>
 
-      <!-- Section 3: Pengukuran & Target (Periode Renstra) -->
-      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden transition-all hover:shadow-md">
-        <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center gap-3">
-          <IconTarget :size="20" class="text-slate-500" stroke-width="2.5" />
-          <h2 class="text-slate-700 font-bold text-sm uppercase tracking-wider">Pengukuran & Target (Periode Renstra)</h2>
-        </div>
-        <div class="p-8 space-y-8">
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <label class="text-sm font-bold text-slate-700">Target Master (Tahun 1 s.d. Tahun 5)</label>
-              <span class="text-xs font-bold text-[#2663A3] bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
-                Satuan: {{ detail?.satuan || '-' }}
-              </span>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div v-for="n in 5" :key="n" class="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center space-y-1">
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tahun {{ n }}</span>
-                <p class="text-xl font-black text-[#2663A3]">{{ detail?.[`target_${n}`] || 0 }}</p>
-              </div>
-            </div>
+          <div class="space-y-1">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Instansi Terkait</span>
+            <p class="text-base font-bold text-slate-700">{{ detail?.instansiTerkait || '-' }}</p>
           </div>
         </div>
       </div>
@@ -120,9 +101,9 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { IconEye, IconSitemap, IconFileText, IconTarget, IconArrowLeft, IconPencil } from '@tabler/icons-vue'
+import { IconEye, IconSitemap, IconFileText, IconArrowLeft, IconPencil } from '@tabler/icons-vue'
 import useSWRV from 'swrv'
 
 const router = useRouter()
@@ -130,14 +111,20 @@ const route = useRoute()
 const id = route.query.id
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: detail, isValidating: fetching } = useSWRV(id ? `/api/sasaran-program?id=${id}` : null, fetcher)
+const { data: detail, isValidating: fetching, mutate } = useSWRV(
+  id ? `/api/sasaran-program?id=${id}` : null,
+  fetcher,
+  { dedupingInterval: 0, revalidateOnFocus: true }
+)
 const { data: ssData } = useSWRV('/api/sasaran-strategis', fetcher)
+
+onMounted(() => mutate())
 
 const ssName = computed(() => {
   if (!detail.value || !ssData.value) return '-'
   const item = Array.isArray(detail.value) ? detail.value[0] : detail.value
   const source = Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
-  const found = source.find((s: any) => Number(s.ssId) === Number(item?.id_ss))
-  return found ? `[${found.kode}] ${found.sasaranText}` : '-'
+  const found = source.find((s: any) => Number(s.id) === Number(item?.ssId))
+  return found ? `[${found.kode_ss || found.kode}] ${found.nama_ss || found.sasaranText}` : '-'
 })
 </script>

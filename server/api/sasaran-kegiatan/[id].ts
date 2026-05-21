@@ -1,135 +1,150 @@
 import { db } from '../../db';
 import { sasaranKegiatan } from '../../db/schema/sasaran-kegiatan';
-import { unitKerja } from '../../db/schema/unit-kerja';
-import { indikatorKegiatan } from '../../db/schema/indikator-kegiatan';
-import { targetIndiaktorKegiatan } from '../../db/schema/target-indikator-kegiatan';
-import { eq, inArray, sql, desc, asc } from 'drizzle-orm';
-import { defineEventHandler, readBody, createError } from 'h3';
+import { indikatorKinerja } from '../../db/schema/indikator-kinerja';
+import { eq, and, isNull } from 'drizzle-orm';
+import { defineEventHandler, readBody, getMethod, createError } from 'h3';
 
 export default defineEventHandler(async (event) => {
-  const method = event.method;
-  const id = event.context.params?.id;
-
-  if (!id || isNaN(Number(id))) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid ID' });
+  const id = Number(event.context.params?.id);
+  if (!id || isNaN(id)) {
+    throw createError({ statusCode: 400, statusMessage: 'ID tidak valid' });
   }
 
-  const numericId = Number(id);
+  const method = getMethod(event);
 
-  try {
-    if (method === 'GET') {
-      const data = await db
-        .select({
-          id: sasaranKegiatan.id,
-          idSp: sasaranKegiatan.idSp,
-          kode: sasaranKegiatan.kode,
-          sasaranText: sasaranKegiatan.sasaranText,
-          unitKerjaId: sasaranKegiatan.unitKerjaId,
-          unitKerjaNama: unitKerja.nama,
-          indikatorId: indikatorKegiatan.id,
-          indikatorNama: indikatorKegiatan.namaIku,
-          indikatorSatuan: indikatorKegiatan.satuanPengukuran,
-          targets: sql<any[]>`
-            coalesce(
-              (
-                select jsonb_agg(
-                  jsonb_build_object(
-                    'tahun', tik.tahun,
-                    'target', tik.target_nilai
-                  )
-                  order by tik.tahun
-                )
-                from sireva.target_indikator_kegiatan tik
-                where tik.id_iku = ${indikatorKegiatan.id}
-              ),
-              '[]'::jsonb
-            )
-          `,
-        })
+  if (method === 'GET') {
+    try {
+      const result = await db.select()
         .from(sasaranKegiatan)
-        .leftJoin(unitKerja, eq(sasaranKegiatan.unitKerjaId, unitKerja.id))
-        .leftJoin(indikatorKegiatan, eq(sasaranKegiatan.id, indikatorKegiatan.idSk))
-        .where(eq(sasaranKegiatan.id, numericId))
-        .orderBy(desc(sasaranKegiatan.id), desc(indikatorKegiatan.id));
+        .where(
+          and(
+            eq(sasaranKegiatan.id, id),
+            isNull(sasaranKegiatan.deletedAt)
+          )
+        );
 
-      return data;
-    }
-
-    if (method === 'PUT') {
-      const body = await readBody<any>(event);
-      const { indikatorList, ...updateBody } = body ?? {};
-
-      const updated = await db
-        .update(sasaranKegiatan)
-        .set({
-          idSp: updateBody.idSp ?? null,
-          kode: updateBody.kode ?? null,
-          sasaranText: updateBody.sasaranText,
-          unitKerjaId: updateBody.unitKerjaId ?? null,
-        })
-        .where(eq(sasaranKegiatan.id, numericId))
-        .returning();
-      
-      if (Array.isArray(indikatorList)) {
-        // Find existing indicators
-        const existingIndikator = await db
-          .select({ id: indikatorKegiatan.id })
-          .from(indikatorKegiatan)
-          .where(eq(indikatorKegiatan.idSk, numericId));
-
-        const existingIds = existingIndikator.map((r) => r.id).filter(Boolean) as number[];
-        
-        if (existingIds.length > 0) {
-          await db
-            .delete(targetIndiaktorKegiatan)
-            .where(inArray(targetIndiaktorKegiatan.idIku, existingIds));
-        }
-
-        await db.delete(indikatorKegiatan).where(eq(indikatorKegiatan.idSk, numericId));
-
-        for (const indikator of indikatorList) {
-          if (!indikator?.nama || typeof indikator.nama !== 'string' || indikator.nama.trim() === '') continue;
-
-          const createdInd = await db.insert(indikatorKegiatan).values({
-            idSk: numericId,
-            namaIku: indikator.nama.trim(),
-            satuanPengukuran: indikator.satuan ?? null,
-          }).returning({ id: indikatorKegiatan.id });
-
-          const indId = createdInd[0]?.id;
-          if (!indId || !Array.isArray(indikator.targets)) continue;
-
-          const targetRows = indikator.targets
-            .filter((t: any) => t && t.tahun != null && t.target !== '' && t.target != null)
-            .map((t: any) => ({
-              idIku: indId,
-              tahun: Number(t.tahun),
-              targetNilai: String(t.target),
-            }));
-
-          if (targetRows.length > 0) {
-            await db.insert(targetIndiaktorKegiatan).values(targetRows);
-          }
-        }
+      if (result.length === 0) {
+        throw createError({ statusCode: 404, statusMessage: 'Data tidak ditemukan' });
       }
 
-      return updated[0] || null;
+      return result[0];
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.statusMessage || error.message || 'Internal Server Error'
+      };
     }
-
-    if (method === 'DELETE') {
-      const deleted = await db
-        .delete(sasaranKegiatan)
-        .where(eq(sasaranKegiatan.id, numericId))
-        .returning();
-      
-      return deleted[0] || null;
-    }
-
-    throw createError({ statusCode: 405, statusMessage: 'Method Not Allowed' });
-  } catch (error: any) {
-    throw createError({
-      statusCode: error?.statusCode || 500,
-      statusMessage: error?.statusMessage || error?.message || 'Internal Server Error',
-    });
   }
+
+  if (method === 'PUT') {
+    try {
+      const body = await readBody(event);
+
+      // Validation: immutable fields
+      if (body.kode_sk || body.nomor_urut || body.kodeSk || body.nomorUrut || body.sp_id || body.spId) {
+        throw createError({ statusCode: 400, statusMessage: 'Kode, nomor_urut, dan sp_id tidak boleh diubah' });
+      }
+
+      const existing = await db.select()
+        .from(sasaranKegiatan)
+        .where(
+          and(
+            eq(sasaranKegiatan.id, id),
+            isNull(sasaranKegiatan.deletedAt)
+          )
+        );
+
+      if (existing.length === 0) {
+        throw createError({ statusCode: 404, statusMessage: 'Data tidak ditemukan' });
+      }
+
+      const updateFields: any = {};
+      if (body.nama_sk !== undefined) updateFields.namaSk = body.nama_sk;
+      if (body.pengampu !== undefined) updateFields.pengampu = body.pengampu;
+      if (body.instansi_terkait !== undefined) updateFields.instansiTerkait = body.instansi_terkait;
+      if (body.is_active !== undefined) updateFields.isActive = !!body.is_active;
+
+      updateFields.updatedAt = new Date();
+
+      const updated = await db.update(sasaranKegiatan)
+        .set(updateFields)
+        .where(eq(sasaranKegiatan.id, id))
+        .returning();
+
+      const first = updated?.[0];
+      if (!first) {
+        throw createError({ statusCode: 500, statusMessage: 'Gagal memperbarui data' });
+      }
+
+      return {
+        success: true,
+        message: 'Data berhasil diperbarui',
+        data: {
+          id: first.id,
+          kode: first.kodeSk,
+          nama: first.namaSk
+        }
+      };
+
+    } catch (error: any) {
+      console.error('Error in PUT /api/sasaran-kegiatan/:id:', error);
+      return {
+        success: false,
+        message: error.statusMessage || error.message || 'Internal Server Error'
+      };
+    }
+  }
+
+  if (method === 'DELETE') {
+    try {
+      const existing = await db.select()
+        .from(sasaranKegiatan)
+        .where(
+          and(
+            eq(sasaranKegiatan.id, id),
+            isNull(sasaranKegiatan.deletedAt)
+          )
+        );
+
+      if (existing.length === 0) {
+        throw createError({ statusCode: 404, statusMessage: 'Data tidak ditemukan' });
+      }
+
+      // Cascade soft-delete: hapus semua indikator kinerja terkait terlebih dahulu
+      await db.update(indikatorKinerja)
+        .set({
+          deletedAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(indikatorKinerja.skId, id),
+            isNull(indikatorKinerja.deletedAt)
+          )
+        );
+
+      // Soft delete SK
+      await db.update(sasaranKegiatan)
+        .set({
+          isActive: false,
+          deletedAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(sasaranKegiatan.id, id));
+
+      return {
+        success: true,
+        message: 'Data berhasil dihapus'
+      };
+
+    } catch (error: any) {
+      console.error('Error in DELETE /api/sasaran-kegiatan/:id:', error);
+      return {
+        success: false,
+        message: error.statusMessage || error.message || 'Internal Server Error'
+      };
+    }
+  }
+
+  throw createError({ statusCode: 405, statusMessage: 'Method Not Allowed' });
 });

@@ -9,7 +9,7 @@
         <div>
           <h1 class="text-2xl font-black text-slate-900 tracking-tight">Master Data: Detail Sasaran Kegiatan</h1>
           <p class="text-slate-500 font-medium text-sm mt-0.5">
-            Informasi lengkap data master sasaran kegiatan beserta hierarki cascading dan target periode Renstra.
+            Informasi lengkap data master sasaran kegiatan beserta hierarki cascading.
           </p>
         </div>
       </div>
@@ -44,12 +44,12 @@
         </div>
         <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="space-y-1">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kode Sasaran</span>
-            <p class="text-lg font-bold text-slate-700">{{ detail?.kode || '-' }}</p>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kode Sasaran Kegiatan</span>
+            <p class="text-lg font-bold text-slate-700">{{ detail?.kode || detail?.kodeSk || '-' }}</p>
           </div>
           <div class="space-y-1">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Unit Kerja Pemilik</span>
-            <p class="text-lg font-bold text-slate-700">{{ detail?.unit_kerja || 'Global / Semua Unit' }}</p>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nomor Urut</span>
+            <p class="text-lg font-bold text-slate-700">{{ detail?.nomorUrut || '-' }}</p>
           </div>
           <div class="md:col-span-2 space-y-1">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sasaran Program Induk</span>
@@ -68,35 +68,48 @@
           <div class="space-y-2">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pernyataan Sasaran</span>
             <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-              <p class="text-slate-700 font-bold leading-relaxed text-lg">"{{ detail?.sasaran_kegiatan_text || '-' }}"</p>
+              <p class="text-slate-700 font-bold leading-relaxed text-lg">"{{ detail?.sasaranText || detail?.sasaran_kegiatan_text || detail?.namaSk || '-' }}"</p>
             </div>
           </div>
 
-          <div class="space-y-2">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Indikator Kinerja Utama</span>
-            <p class="font-bold text-slate-700 p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">{{ detail?.indikator_kinerja || '-' }}</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+            <div class="space-y-1">
+              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pengampu</span>
+              <p class="text-base font-bold text-slate-700">{{ detail?.unit_kerja || detail?.unitKerjaNama || detail?.pengampu || '-' }}</p>
+            </div>
+
+            <div class="space-y-1">
+              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Instansi Terkait</span>
+              <p class="text-base font-bold text-slate-700">{{ detail?.instansiTerkait || '-' }}</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Section 3: Pengukuran & Target (Periode Renstra) -->
+      <!-- Section 3: Indikator Kinerja -->
       <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden transition-all hover:shadow-md">
         <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center gap-3">
-          <IconTarget :size="20" class="text-slate-500" stroke-width="2.5" />
-          <h2 class="text-slate-700 font-bold text-sm uppercase tracking-wider">Pengukuran & Target (Periode Renstra)</h2>
+          <IconFileText :size="20" class="text-slate-500" stroke-width="2.5" />
+          <h2 class="text-slate-700 font-bold text-sm uppercase tracking-wider">Indikator Kinerja</h2>
         </div>
-        <div class="p-8 space-y-8">
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <label class="text-sm font-bold text-slate-700">Target Master (Tahun 1 s.d. Tahun 5)</label>
-              <span class="text-xs font-bold text-[#2663A3] bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
-                Satuan: {{ detail?.satuan || '-' }}
-              </span>
+        <div class="p-8 space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-1">
+              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nama Indikator</span>
+              <p class="text-lg font-bold text-slate-700">{{ detail?.indikator_kinerja || detail?.indikatorNama || '-' }}</p>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div v-for="n in 5" :key="n" class="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center space-y-1">
+            <div class="space-y-1">
+              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Satuan</span>
+              <p class="text-lg font-bold text-slate-700">{{ detail?.satuan || detail?.indikatorSatuan || '-' }}</p>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-slate-100">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 block">Target Capaian Per Tahun</span>
+            <div class="grid grid-cols-5 gap-4">
+              <div v-for="n in 5" :key="n" class="space-y-1 bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tahun {{ n }}</span>
-                <p class="text-xl font-black text-[#2663A3]">{{ detail?.[`target_${n}`] || 0 }}</p>
+                <p class="text-xl font-black text-[#2663A3]">{{ detail?.[`target_${n}`] || '0' }}</p>
               </div>
             </div>
           </div>
@@ -120,9 +133,9 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { IconEye, IconSitemap, IconFileText, IconTarget, IconArrowLeft, IconPencil } from '@tabler/icons-vue'
+import { IconEye, IconSitemap, IconFileText, IconArrowLeft, IconPencil } from '@tabler/icons-vue'
 import useSWRV from 'swrv'
 
 const router = useRouter()
@@ -130,14 +143,20 @@ const route = useRoute()
 const id = route.query.id
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: detail, isValidating: fetching } = useSWRV(id ? `/api/sasaran-kegiatan?id=${id}` : null, fetcher)
+const { data: detail, isValidating: fetching, mutate } = useSWRV(
+  id ? `/api/sasaran-kegiatan?id=${id}` : null,
+  fetcher,
+  { dedupingInterval: 0, revalidateOnFocus: true }
+)
 const { data: spData } = useSWRV('/api/sasaran-program', fetcher)
+
+onMounted(() => mutate())
 
 const spName = computed(() => {
   if (!detail.value || !spData.value) return '-'
   const item = Array.isArray(detail.value) ? detail.value[0] : detail.value
   const source = Array.isArray(spData.value) ? spData.value : (spData.value.data || [])
-  const found = source.find((s: any) => Number(s.id) === Number(item?.id_sp))
-  return found ? `[${found.kode}] ${found.sasaran_program_text}` : '-'
+  const found = source.find((s: any) => Number(s.id) === Number(item?.spId))
+  return found ? `[${found.kodeSp || found.kode}] ${found.namaSp || found.sasaran_program_text}` : '-'
 })
 </script>

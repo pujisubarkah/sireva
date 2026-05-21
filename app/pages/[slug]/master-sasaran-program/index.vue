@@ -112,8 +112,8 @@ const tableRows = computed(() => {
   const source = Array.isArray(data.value?.data) ? data.value.data : (Array.isArray(data.value) ? data.value : []);
   return source.map((item: any) => ({
     id: item.id,
-    kode: item.kode || '-',
-    sasaran: item.sasaran_program_text || '-',
+    kode: item.kode || item.kodeSp || '-',
+    sasaran: item.sasaran_program_text || item.namaSp || '-',
     aksi: '',
   }));
 });

@@ -113,24 +113,14 @@ const errorMessage = computed(() => {
 
 const tableRows = computed<SasaranRow[]>(() => {
   if (!data.value) return [];
-  
-  // The API returns one row per indicator, so we need to group by ssId for the master list
   const source = Array.isArray(data.value) ? data.value : [];
-  const uniqueMap = new Map<number, SasaranRow>();
-
-  source.forEach((item: any) => {
-    if (!uniqueMap.has(item.ssId)) {
-      uniqueMap.set(item.ssId, {
-        id: item.ssId,
-        kode: item.kode || '-',
-        sasaran: item.sasaranText || '-',
-        unit_kerja: '', // Removed
-        aksi: '',
-      });
-    }
-  });
-  
-  return Array.from(uniqueMap.values());
+  return source.map((item: any) => ({
+    id: item.id,
+    kode: item.kodeSs || '-',
+    sasaran: item.namaSs || '-',
+    unit_kerja: '',
+    aksi: '',
+  }));
 });
 
 const handleDelete = async (id: number) => {
