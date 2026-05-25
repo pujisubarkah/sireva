@@ -32,8 +32,10 @@ export default defineEventHandler(async (event) => {
     try {
       const body = await readBody(event);
       if (!body.id) throw new Error('ID is required');
-      console.log('PUT /api/indikator-strategis body:', body);
-      const result = await db.update(indikatorStrategis).set(body).where(eq(indikatorStrategis.id, body.id)).returning();
+      // Destructure id out so it does NOT appear in SET clause (can't update PK)
+      const { id, ...updateData } = body;
+      console.log('PUT /api/indikator-strategis body:', { id, ...updateData });
+      const result = await db.update(indikatorStrategis).set(updateData).where(eq(indikatorStrategis.id, id)).returning();
       console.log('PUT /api/indikator-strategis result:', result);
       return result;
     } catch (err: any) {

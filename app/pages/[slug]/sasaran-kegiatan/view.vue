@@ -150,24 +150,22 @@ onMounted(async () => {
   try {
     fetching.value = true;
     
-    // Fetch single record by ID
+    // Fetch single sasaran kegiatan record
     const detail = await $fetch<any>(`/api/sasaran-kegiatan?id=${id}`);
     if (!detail) throw new Error('Data tidak ditemukan');
 
-    // Fetch all related records sharing the same kode to extract all indicators
-    const allSasarans = await $fetch<any[]>('/api/sasaran-kegiatan');
-    const related = (allSasarans ?? []).filter((s: any) => s.kode === detail.kode);
-
-    const indicators = related.map((row: any) => ({
-      id: row.id,
-      nama: row.indikator_kinerja,
-      satuan: row.satuan,
+    // Fetch all indicators for this sasaran kegiatan directly (correct approach)
+    const ikList = await $fetch<any[]>(`/api/indikator-kinerja?sk_id=${id}`);
+    const indicators = (ikList ?? []).map((ik: any) => ({
+      id: ik.id,
+      nama: ik.namaIku,
+      satuan: ik.satuan,
       targets: [
-        { tahun: 2025, target: row.target_1 },
-        { tahun: 2026, target: row.target_2 },
-        { tahun: 2027, target: row.target_3 },
-        { tahun: 2028, target: row.target_4 },
-        { tahun: 2029, target: row.target_5 }
+        { tahun: 2025, target: ik.target_1 },
+        { tahun: 2026, target: ik.target_2 },
+        { tahun: 2027, target: ik.target_3 },
+        { tahun: 2028, target: ik.target_4 },
+        { tahun: 2029, target: ik.target_5 }
       ]
     }));
 

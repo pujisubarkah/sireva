@@ -23,7 +23,8 @@ export default defineEventHandler(async (event) => {
   if (method === 'PUT') {
     const body = await readBody(event);
     if (!body.id) throw new Error('ID is required');
-    return await db.update(targetIndikatorProgram).set(body).where(eq(targetIndikatorProgram.id, body.id)).returning();
+    const { id: _pkId, ...updateData } = body;
+    return await db.update(targetIndikatorProgram).set(updateData).where(eq(targetIndikatorProgram.id, _pkId)).returning();
   }
 
   if (method === 'DELETE') {

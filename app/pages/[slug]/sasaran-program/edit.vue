@@ -220,13 +220,19 @@ const fetcher = (url: string) => fetch(url).then(r => r.json())
 const { data: detail, isValidating: fetching } = useSWRV(id ? `/api/sasaran-program?id=${id}` : null, fetcher)
 const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
 const { data: ssData } = useSWRV('/api/sasaran-strategis', fetcher)
+// Fetch indikator strategis berdasarkan SS yang dipilih
+const { data: indikatorStrategisData } = useSWRV(
+  () => form.value.id_ss ? `/api/indikator-strategis?sasaranStrategisId=${form.value.id_ss}` : null,
+  fetcher
+)
 
 // Load existing data into form
 watchEffect(() => {
   if (detail.value) {
     const item = Array.isArray(detail.value) ? detail.value[0] : detail.value
     if (item) {
-      form.value.id_ss = item.id_ss ? Number(item.id_ss) : null
+      // API returns ssId (camelCase), fallback to id_ss (snake_case) for safety
+      form.value.id_ss = item.ssId ? Number(item.ssId) : (item.id_ss ? Number(item.id_ss) : null)
       form.value.kode = item.kode || ''
       form.value.unit_kerja = item.unit_kerja || ''
       form.value.kode_iku = item.kode_iku || ''
@@ -247,26 +253,25 @@ const sasaranStrategisOptions = computed(() => {
   const source = Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
   const seen = new Set()
   return source.filter((item: any) => {
-    if (!item.ssId || seen.has(item.ssId)) return false
-    seen.add(item.ssId)
+    const itemId = item.id || item.ssId
+    if (!itemId || seen.has(itemId)) return false
+    seen.add(itemId)
     return true
   }).map((item: any) => ({
-    id: Number(item.ssId),
-    kode: item.kode || '-',
-    sasaranText: item.sasaranText
+    id: Number(item.id || item.ssId),
+    kode: item.kodeSs || item.kode || '-',
+    sasaranText: item.namaSs || item.sasaranText
   }))
 })
 
 const indikatorStrategisOptions = computed(() => {
-  if (!form.value.id_ss || !ssData.value) return []
-  const source = Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
-  return source
-    .filter((item: any) => item.ssId === form.value.id_ss)
-    .map((item: any) => ({
-      id: item.indikatorId,
-      nama: item.indikatorNama,
-      kode: item.indikatorKode
-    }))
+  if (!indikatorStrategisData.value) return []
+  const source = Array.isArray(indikatorStrategisData.value) ? indikatorStrategisData.value : []
+  return source.map((item: any) => ({
+    id: item.id,
+    nama: item.nama,
+    kode: item.kode || item.nama
+  }))
 })
 
 // 4. Fungsi Submit

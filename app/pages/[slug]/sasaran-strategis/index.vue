@@ -86,16 +86,14 @@
     <div v-else class="mx-2 bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
       <UiTable
         :columns="tableColumns"
-        :data="paginatedRows"
+        :data="displayRows"
         :page-size="pageSize"
-        :current-page="currentPage"
         :show-pagination="true"
-        @page-change="currentPage = $event"
         row-key="id"
         class="border-0"
       >
-        <template #cell-no="{ index }">
-          <span class="text-xs font-black text-slate-400">{{ (currentPage - 1) * pageSize + Number(index) + 1 }}</span>
+        <template #cell-no="{ absoluteIndex }">
+          <span class="text-xs font-black text-slate-400">{{ absoluteIndex + 1 }}</span>
         </template>
 
         <template #cell-kode="{ value }">
@@ -182,7 +180,6 @@ const fetcher = (url: string) => fetch(url).then(r => r.json())
 // State
 const searchQuery = ref('')
 const selectedYear = ref('2026')
-const currentPage = ref(1)
 const pageSize = ref(10)
 const loadingDeleteId = ref<number | null>(null)
 
@@ -227,10 +224,7 @@ const displayRows = computed(() => {
   }))
 })
 
-const paginatedRows = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  return displayRows.value.slice(start, start + pageSize.value)
-})
+// (paginatedRows removed since Table.vue handles pagination internally)
 
 const tableColumns = [
   { key: 'no', label: 'No', center: true, width: 60 },
@@ -267,5 +261,7 @@ async function handleDelete(item: any) {
   }
 }
 
-watch([searchQuery, selectedYear], () => { currentPage.value = 1 })
+watch([searchQuery, selectedYear], () => { 
+  // Reset handled internally by Table.vue
+})
 </script>

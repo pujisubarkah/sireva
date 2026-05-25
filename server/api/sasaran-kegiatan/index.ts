@@ -29,18 +29,35 @@ export default defineEventHandler(async (event) => {
         indikator_kinerja: indikatorKinerja.namaIku,
         satuan: indikatorKinerja.satuan,
         indikatorSatuan: indikatorKinerja.satuan,
-        target_1: sql<string>`(select target_nilai from sireva.target_indikator_kegiatan tik where tik.id_iku = ${indikatorKinerja.id} and tik.tahun = 2025 limit 1)`,
-        target_2: sql<string>`(select target_nilai from sireva.target_indikator_kegiatan tik where tik.id_iku = ${indikatorKinerja.id} and tik.tahun = 2026 limit 1)`,
-        target_3: sql<string>`(select target_nilai from sireva.target_indikator_kegiatan tik where tik.id_iku = ${indikatorKinerja.id} and tik.tahun = 2027 limit 1)`,
-        target_4: sql<string>`(select target_nilai from sireva.target_indikator_kegiatan tik where tik.id_iku = ${indikatorKinerja.id} and tik.tahun = 2028 limit 1)`,
-        target_5: sql<string>`(select target_nilai from sireva.target_indikator_kegiatan tik where tik.id_iku = ${indikatorKinerja.id} and tik.tahun = 2029 limit 1)`,
+        // Optimized: conditional aggregation replaces 5 correlated subqueries
+        // Before: 5 subqueries × N rows = very expensive
+        // After: 1 LEFT JOIN grouped aggregation
+        target_1: sql<string>`MAX(CASE WHEN tik.tahun = 2025 THEN tik.target_nilai END)`,
+        target_2: sql<string>`MAX(CASE WHEN tik.tahun = 2026 THEN tik.target_nilai END)`,
+        target_3: sql<string>`MAX(CASE WHEN tik.tahun = 2027 THEN tik.target_nilai END)`,
+        target_4: sql<string>`MAX(CASE WHEN tik.tahun = 2028 THEN tik.target_nilai END)`,
+        target_5: sql<string>`MAX(CASE WHEN tik.tahun = 2029 THEN tik.target_nilai END)`,
       };
+
 
       if (id && !isNaN(id)) {
         const result = await db.select(selectFields)
           .from(sasaranKegiatan)
           .leftJoin(indikatorKinerja, and(eq(sasaranKegiatan.id, indikatorKinerja.skId), isNull(indikatorKinerja.deletedAt)))
-          .where(and(eq(sasaranKegiatan.id, id), isNull(sasaranKegiatan.deletedAt)));
+          .leftJoin(sql`sireva.target_indikator_kegiatan tik`, sql`tik.id_iku = ${indikatorKinerja.id}`)
+          .where(and(eq(sasaranKegiatan.id, id), isNull(sasaranKegiatan.deletedAt)))
+          .groupBy(
+            sasaranKegiatan.id,
+            sasaranKegiatan.spId,
+            sasaranKegiatan.nomorUrut,
+            sasaranKegiatan.kodeSk,
+            sasaranKegiatan.namaSk,
+            sasaranKegiatan.pengampu,
+            sasaranKegiatan.instansiTerkait,
+            indikatorKinerja.id,
+            indikatorKinerja.namaIku,
+            indikatorKinerja.satuan
+          );
         return result[0] || null;
       }
 
@@ -52,7 +69,20 @@ export default defineEventHandler(async (event) => {
       return await db.select(selectFields)
         .from(sasaranKegiatan)
         .leftJoin(indikatorKinerja, and(eq(sasaranKegiatan.id, indikatorKinerja.skId), isNull(indikatorKinerja.deletedAt)))
+        .leftJoin(sql`sireva.target_indikator_kegiatan tik`, sql`tik.id_iku = ${indikatorKinerja.id}`)
         .where(and(...conditions))
+        .groupBy(
+          sasaranKegiatan.id,
+          sasaranKegiatan.spId,
+          sasaranKegiatan.nomorUrut,
+          sasaranKegiatan.kodeSk,
+          sasaranKegiatan.namaSk,
+          sasaranKegiatan.pengampu,
+          sasaranKegiatan.instansiTerkait,
+          indikatorKinerja.id,
+          indikatorKinerja.namaIku,
+          indikatorKinerja.satuan
+        )
         .orderBy(sasaranKegiatan.nomorUrut);
     } catch (error: any) {
       return {

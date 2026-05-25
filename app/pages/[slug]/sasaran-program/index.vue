@@ -82,14 +82,12 @@
         :columns="tableColumns"
         :data="displayRows"
         :page-size="pageSize"
-        :current-page="currentPage"
         :show-pagination="true"
-        @page-change="currentPage = $event"
         row-key="id"
         class="border-0"
       >
-        <template #cell-no="{ index }">
-          <span class="text-sm font-black text-slate-400">{{ (currentPage - 1) * pageSize + Number(index) + 1 }}</span>
+        <template #cell-no="{ absoluteIndex }">
+          <span class="text-sm font-black text-slate-400">{{ absoluteIndex + 1 }}</span>
         </template>
 
         <template #cell-kode="{ value }">
@@ -110,7 +108,7 @@
           </div>
         </template>
 
-        <template #cell-indikator="{ value }">
+        <template #cell-indikatorNama="{ value }">
           <p class="text-[12px] font-black text-slate-700 uppercase tracking-tight">{{ value || '-' }}</p>
         </template>
 
@@ -176,7 +174,6 @@ const fetcher = (url: string) => fetch(url).then(r => r.json())
 const searchQuery = ref('')
 const selectedYear = ref('2026')
 const selectedUnitId = ref<number | null>(null)
-const currentPage = ref(1)
 const pageSize = ref(10)
 
 // Options
@@ -226,7 +223,7 @@ const displayRows = computed(() => {
     const q = searchQuery.value.toLowerCase()
     rows = rows.filter((r: any) => 
       r.sasaran_program_text?.toLowerCase().includes(q) || 
-      r.kode_iku?.toLowerCase().includes(q) ||
+      r.indikatorNama?.toLowerCase().includes(q) ||
       r.unit_kerja?.toLowerCase().includes(q)
     )
   }
@@ -243,17 +240,14 @@ const displayRows = computed(() => {
   })
 })
 
-const paginatedRows = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  return displayRows.value.slice(start, start + pageSize.value)
-})
+// (paginatedRows removed since Table.vue handles pagination internally)
 
 const tableColumns = [
   { key: 'no', label: 'No', center: true, width: 60 },
   { key: 'kode', label: 'Kode', center: true, width: 80 },
   { key: 'sasaran_program_text', label: 'Sasaran Program', width: '25%' },
   { key: 'unit_kerja', label: 'Unit Kerja', width: '20%' },
-  { key: 'kode_iku', label: 'Indikator Kinerja', width: '25%' },
+  { key: 'indikatorNama', label: 'Indikator Kinerja', width: '25%' },
   { key: 'targetValue', label: 'Target', center: true, width: 140 },
   { key: 'aksi', label: 'Aksi', center: true, width: 120 },
 ]
@@ -268,7 +262,9 @@ async function handleDelete(item: any) {
   }
 }
 
-watch([searchQuery, selectedYear, selectedUnitId], () => { currentPage.value = 1 })
+watch([searchQuery, selectedYear, selectedUnitId], () => {
+  // Reset handled internally by Table.vue
+})
 </script>
 
 <style scoped>

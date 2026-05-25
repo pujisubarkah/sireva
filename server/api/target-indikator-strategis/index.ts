@@ -38,8 +38,9 @@ export default defineEventHandler(async (event) => {
     try {
       const body = await readBody(event);
       if (!body.id) throw new Error('ID is required');
-      console.log('PUT /api/target-indikator-strategis body:', body);
-      const result = await db.update(targetIndikatorStrategis).set(body).where(eq(targetIndikatorStrategis.id, body.id)).returning();
+      const { id: _pkId, ...updateData } = body;
+      console.log('PUT /api/target-indikator-strategis body:', { id: _pkId, ...updateData });
+      const result = await db.update(targetIndikatorStrategis).set(updateData).where(eq(targetIndikatorStrategis.id, _pkId)).returning();
       console.log('PUT /api/target-indikator-strategis result:', result);
       return result;
     } catch (err: any) {

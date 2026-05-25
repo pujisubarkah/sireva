@@ -141,5 +141,34 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  if (method === 'DELETE') {
+    try {
+      const body = await readBody(event);
+      const id = Number(body.id);
+      if (!id || isNaN(id)) {
+        throw createError({ statusCode: 400, statusMessage: 'id wajib diisi' });
+      }
+
+      // Soft delete
+      const result = await db
+        .update(sasaranProgram)
+        .set({ deletedAt: new Date() })
+        .where(eq(sasaranProgram.id, id))
+        .returning();
+
+      if (!result.length) {
+        throw createError({ statusCode: 404, statusMessage: 'Data tidak ditemukan' });
+      }
+
+      return { success: true, message: 'Data berhasil dihapus' };
+    } catch (error: any) {
+      console.error('Error in DELETE /api/sasaran-program:', error);
+      throw createError({
+        statusCode: error.statusCode || 500,
+        statusMessage: error.statusMessage || error.message || 'Gagal menghapus data'
+      });
+    }
+  }
+
   throw createError({ statusCode: 405, statusMessage: 'Method Not Allowed' });
 });

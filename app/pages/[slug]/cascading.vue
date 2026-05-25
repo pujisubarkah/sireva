@@ -17,13 +17,26 @@
           <template v-if="selectedSS">
             <IconChevronRight :size="14" class="text-slate-300 shrink-0" />
             <button
-              @click="drillTo('sp', null)"
+              @click="drillTo('is', null)"
               :class="[
                 'text-sm font-bold transition-colors truncate max-w-xs',
-                selectedSP ? 'text-blue-700 hover:text-blue-900' : 'text-slate-700 cursor-default'
+                selectedIS ? 'text-blue-700 hover:text-blue-900' : 'text-slate-700 cursor-default'
               ]"
             >
               {{ selectedSS.sasaranText }}
+            </button>
+          </template>
+
+          <template v-if="selectedIS">
+            <IconChevronRight :size="14" class="text-slate-300 shrink-0" />
+            <button
+              @click="drillTo('sp', null)"
+              :class="[
+                'text-sm font-bold transition-colors truncate max-w-xs',
+                selectedSP ? 'text-amber-600 hover:text-amber-800' : 'text-slate-700 cursor-default'
+              ]"
+            >
+              {{ selectedIS.nama }}
             </button>
           </template>
 
@@ -52,11 +65,15 @@
 
       <!-- Level Indicator Pills -->
       <div class="px-6 pb-3 flex items-center gap-2">
-        <span :class="['px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider transition-all', !selectedSS ? 'bg-blue-700 text-white shadow-md shadow-blue-700/30' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 cursor-pointer']" @click="drillTo('ss', null)">
+        <span :class="['px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer', !selectedSS ? 'bg-blue-700 text-white shadow-md shadow-blue-700/30' : 'bg-slate-100 text-slate-500 hover:bg-slate-200']" @click="drillTo('ss', null)">
           Sasaran Strategis
         </span>
         <IconChevronRight :size="12" class="text-slate-300" />
-        <span :class="['px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider transition-all', (selectedSS && !selectedSP) ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'bg-slate-100 text-slate-400']">
+        <span :class="['px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider transition-all', (selectedSS && !selectedIS) ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30' : 'bg-slate-100 text-slate-400']">
+          Indikator Strategis
+        </span>
+        <IconChevronRight :size="12" class="text-slate-300" />
+        <span :class="['px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider transition-all', (selectedIS && !selectedSP) ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'bg-slate-100 text-slate-400']">
           Sasaran Program
         </span>
         <IconChevronRight :size="12" class="text-slate-300" />
@@ -89,7 +106,7 @@
               <div
                 v-for="ss in uniqueStrategis"
                 :key="ss.id"
-                @click="drillTo('sp', ss)"
+                @click="drillTo('is', ss)"
                 class="group relative bg-white rounded-2xl border-2 border-slate-200 hover:border-blue-500 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer overflow-hidden"
               >
                 <!-- Top accent bar -->
@@ -138,9 +155,9 @@
           </div>
         </Transition>
 
-        <!-- ===== LEVEL 2: SASARAN PROGRAM ===== -->
+        <!-- ===== LEVEL 2: INDIKATOR STRATEGIS ===== -->
         <Transition name="slide-up" mode="out-in">
-          <div v-if="selectedSS && !selectedSP" key="level-sp">
+          <div v-if="selectedSS && !selectedIS" key="level-is">
             <!-- Parent SS Summary Card -->
             <div class="mb-6 bg-blue-700 text-white rounded-2xl p-5 flex items-start gap-4">
               <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
@@ -154,11 +171,85 @@
 
             <div class="mb-4 flex items-center justify-between">
               <div>
-                <h3 class="text-base font-black text-slate-800">Sasaran Program ({{ programDrilled.length }})</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Klik program untuk melihat Sasaran Kegiatan di bawahnya.</p>
+                <h3 class="text-base font-black text-slate-800">Indikator Strategis ({{ isDrilled.length }})</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Klik indikator untuk melihat Sasaran Program di bawahnya.</p>
               </div>
               <button @click="drillTo('ss', null)" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors">
                 <IconChevronLeft :size="14" /> Kembali
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              <div
+                v-for="is in isDrilled"
+                :key="is.id"
+                @click="drillTo('sp', is)"
+                class="group bg-white rounded-2xl border-2 border-slate-200 hover:border-amber-400 shadow-sm hover:shadow-xl hover:shadow-amber-400/10 transition-all duration-300 cursor-pointer overflow-hidden"
+              >
+                <div class="h-1.5 bg-gradient-to-r from-amber-400 to-orange-400"></div>
+
+                <div class="p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <span class="px-2.5 py-1 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-black rounded-lg uppercase tracking-wider">
+                      Indikator Strategis
+                    </span>
+                    <div class="w-8 h-8 rounded-xl bg-amber-500 group-hover:scale-110 transition-transform flex items-center justify-center shadow-lg shadow-amber-500/30">
+                      <IconChartBar :size="15" class="text-white" />
+                    </div>
+                  </div>
+
+                  <p class="font-bold text-slate-800 leading-snug text-sm mb-3 min-h-[3rem] group-hover:text-amber-700 transition-colors line-clamp-3">
+                    {{ is.nama }}
+                  </p>
+
+                  <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
+                    <div v-if="is.satuan" class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg border border-amber-100">
+                      {{ is.satuan }}
+                    </div>
+                    <div v-if="is.kode" class="text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
+                      {{ is.kode }}
+                    </div>
+                    <div class="ml-auto flex items-center gap-1 text-xs font-bold text-amber-600 group-hover:translate-x-1 transition-transform">
+                      <IconChevronRight :size="14" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="isDrilled.length === 0" class="col-span-3 py-16 text-center text-slate-400">
+                <IconChartBar :size="36" class="mx-auto mb-3 text-slate-300" />
+                <p class="font-bold">Belum ada Indikator Strategis untuk Sasaran Strategis ini</p>
+              </div>
+            </div>
+          </div>
+        </Transition>
+
+        <!-- ===== LEVEL 3: SASARAN PROGRAM ===== -->
+        <Transition name="slide-up" mode="out-in">
+          <div v-if="selectedIS && !selectedSP" key="level-sp">
+            <!-- Parent SS + IS Summary -->
+            <div class="mb-4 bg-blue-700 text-white rounded-2xl p-4 flex items-center gap-3">
+              <IconStar :size="16" class="text-yellow-300 shrink-0" />
+              <span class="text-blue-200 text-xs font-bold truncate">{{ selectedSS?.sasaranText }}</span>
+            </div>
+            <div class="mb-6 bg-amber-500 text-white rounded-2xl p-5 flex items-start gap-4">
+              <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                <IconChartBar :size="20" class="text-white" />
+              </div>
+              <div class="min-w-0">
+                <p class="text-amber-100 text-[11px] font-black uppercase tracking-widest mb-1">Indikator Strategis</p>
+                <h2 class="font-black text-base leading-snug">{{ selectedIS.nama }}</h2>
+                <span v-if="selectedIS.satuan" class="text-amber-200 text-xs">Satuan: {{ selectedIS.satuan }}</span>
+              </div>
+            </div>
+
+            <div class="mb-4 flex items-center justify-between">
+              <div>
+                <h3 class="text-base font-black text-slate-800">Sasaran Program ({{ programDrilled.length }})</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Klik program untuk melihat Sasaran Kegiatan di bawahnya.</p>
+              </div>
+              <button @click="drillTo('is', null)" class="text-xs font-bold text-amber-600 hover:text-amber-800 flex items-center gap-1 transition-colors">
+                <IconChevronLeft :size="14" /> Kembali ke Indikator
               </button>
             </div>
 
@@ -203,14 +294,14 @@
               </div>
 
               <div v-if="programDrilled.length === 0" class="col-span-3 py-16 text-center text-slate-400">
-                <IconBuildingBank :size="36" class="mx-auto mb-3 text-slate-300" />
-                <p class="font-bold">Belum ada Sasaran Program untuk Sasaran Strategis ini</p>
+                <IconBuilding :size="36" class="mx-auto mb-3 text-slate-300" />
+                <p class="font-bold">Belum ada Sasaran Program untuk Indikator ini</p>
               </div>
             </div>
           </div>
         </Transition>
 
-        <!-- ===== LEVEL 3: SASARAN KEGIATAN ===== -->
+        <!-- ===== LEVEL 4: SASARAN KEGIATAN ===== -->
         <Transition name="slide-up" mode="out-in">
           <div v-if="selectedSP" key="level-sk">
             <!-- SP Summary Card -->
@@ -233,7 +324,7 @@
                 <h3 class="text-base font-black text-slate-800">Sasaran Kegiatan & Indikator ({{ kegiatanDrilled.length }})</h3>
                 <p class="text-xs text-slate-500 mt-0.5">Klik kartu untuk melihat detail lengkap Sasaran Kegiatan.</p>
               </div>
-              <button @click="drillTo('sp', selectedSS)" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors">
+              <button @click="drillTo('sp', null)" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors">
                 <IconChevronLeft :size="14" /> Kembali ke Program
               </button>
             </div>
@@ -311,8 +402,8 @@
 <script setup lang="ts">
 /**
  * Cascading Kinerja — Interactive Drill-Down Edition
- * Hirarki One-to-Many navigasi per level:
- * Sasaran Strategis → Sasaran Program → Sasaran Kegiatan + Indikator
+ * Hirarki 4 Level:
+ * Sasaran Strategis → Indikator Strategis → Sasaran Program → Sasaran Kegiatan
  */
 
 definePageMeta({ layout: 'dashboard' })
@@ -328,7 +419,10 @@ import {
   IconUsers,
   IconChevronRight,
   IconChevronLeft,
-  IconTarget
+  IconTarget,
+  IconChartBar,
+  IconTargetArrow,
+  IconBuildingBank
 } from '@tabler/icons-vue'
 import FilterDropdown from '@/components/FilterDropdown.vue'
 import useSWRV from 'swrv'
@@ -336,6 +430,7 @@ import useSWRV from 'swrv'
 // ──────────────────── State ────────────────────
 const selectedYear = ref('2025')
 const selectedSS = ref<any>(null)
+const selectedIS = ref<any>(null)  // Indikator Strategis
 const selectedSP = ref<any>(null)
 const router = useRouter()
 const route = useRoute()
@@ -345,16 +440,28 @@ const fetcher = (url: string) => fetch(url).then(r => r.json())
 const { data: strategisList } = useSWRV('/api/sasaran-strategis', fetcher)
 const { data: programList }   = useSWRV('/api/sasaran-program', fetcher)
 const { data: kegiatanList }  = useSWRV('/api/sasaran-kegiatan', fetcher)
+// Fetch Indikator Strategis berdasarkan SS yang dipilih
+const { data: isRaw } = useSWRV(
+  () => selectedSS.value?.id ? `/api/indikator-strategis?sasaranStrategisId=${selectedSS.value.id}` : null,
+  fetcher
+)
 
 const loading = computed(() => !strategisList.value || !programList.value || !kegiatanList.value)
 
 // ──────────────────── Drill-Down Navigation ────────────────────
-function drillTo(level: 'ss' | 'sp' | 'sk', item: any) {
+function drillTo(level: 'ss' | 'is' | 'sp' | 'sk', item: any) {
   if (level === 'ss') {
     selectedSS.value = null
+    selectedIS.value = null
+    selectedSP.value = null
+  } else if (level === 'is') {
+    // Klik SS → tampilkan IS level
+    if (item !== null) selectedSS.value = item
+    selectedIS.value = null
     selectedSP.value = null
   } else if (level === 'sp') {
-    selectedSS.value = item
+    // Klik IS → tampilkan SP level
+    if (item !== null) selectedIS.value = item
     selectedSP.value = null
   } else if (level === 'sk') {
     selectedSP.value = item
@@ -364,34 +471,52 @@ function drillTo(level: 'ss' | 'sp' | 'sk', item: any) {
 // ──────────────────── Computed Lists ────────────────────
 const uniqueStrategis = computed(() => {
   if (!strategisList.value) return []
-  const raw = Array.isArray(strategisList.value)
-    ? strategisList.value
-    : (strategisList.value.data || [])
+  // Handle error response object
+  const val = strategisList.value as any
+  if (val?.success === false) {
+    console.warn('[cascading] /api/sasaran-strategis error:', val.message)
+    return []
+  }
+  const raw = Array.isArray(val) ? val : (val?.data || val?.rows || [])
   if (!Array.isArray(raw)) return []
   const seen = new Set()
   return raw.reduce((acc: any[], item: any) => {
-    const id = item.ssId || item.id
+    const id = Number(item.ssId || item.id)
     if (id && !seen.has(id)) {
       seen.add(id)
-      acc.push({ id, sasaranText: item.sasaranText || item.namaSs, unitKerja: item.unit_kerja || '' })
+      acc.push({ id, sasaranText: item.sasaranText || item.namaSs, unitKerja: item.unit_kerja || item.pengampu || '' })
     }
     return acc
   }, [])
 })
 
+// Indikator Strategis untuk SS yang dipilih
+const isDrilled = computed(() => {
+  if (!isRaw.value) return []
+  const raw = Array.isArray(isRaw.value) ? isRaw.value : []
+  return raw.map((item: any) => ({
+    id: item.id,
+    nama: item.nama || '-',
+    kode: item.kode || '',
+    satuan: item.satuan || '',
+    ssId: item.sasaranStrategisId || item.sasaran_strategis_id
+  }))
+})
+
 const uniqueProgram = computed(() => {
   if (!programList.value) return []
-  const raw = Array.isArray(programList.value)
-    ? programList.value
-    : (programList.value.data || [])
+  const val = programList.value as any
+  if (val?.success === false) return []
+  const raw = Array.isArray(val) ? val : (val?.data || val?.rows || [])
   if (!Array.isArray(raw)) return []
   const seen = new Set()
   return raw.reduce((acc: any[], item: any) => {
-    if (item.id && !seen.has(item.id)) {
-      seen.add(item.id)
+    const spId = Number(item.id)
+    if (spId && !seen.has(spId)) {
+      seen.add(spId)
       acc.push({
-        id: item.id,
-        ssId: item.ssId,
+        id: spId,
+        ssId: Number(item.ssId),
         sasaranText: item.sasaran_program_text || item.namaSp,
         unitKerja: item.unit_kerja || item.unitKerjaNama || ''
       })
@@ -402,18 +527,18 @@ const uniqueProgram = computed(() => {
 
 const uniqueKegiatan = computed(() => {
   if (!kegiatanList.value) return []
-  const raw = Array.isArray(kegiatanList.value)
-    ? kegiatanList.value
-    : (kegiatanList.value.data || [])
+  const val = kegiatanList.value as any
+  if (val?.success === false) return []
+  const raw = Array.isArray(val) ? val : (val?.data || val?.rows || [])
   if (!Array.isArray(raw)) return []
   const map = new Map()
   raw.forEach((item: any) => {
-    const id = item.id
+    const id = Number(item.id)
     if (!id) return
     if (!map.has(id)) {
       map.set(id, {
         id,
-        spId: item.spId,
+        spId: Number(item.spId),
         sasaranText: item.sasaran_kegiatan_text || item.sasaranText || item.namaSk,
         unitKerja: item.unit_kerja || item.unitKerjaNama || '-',
         indicators: []
@@ -436,12 +561,13 @@ const uniqueKegiatan = computed(() => {
 })
 
 // ──────────────────── Filtered for drill-down ────────────────────
-const programDrilled  = computed(() => uniqueProgram.value.filter(p => p.ssId === selectedSS.value?.id))
-const kegiatanDrilled = computed(() => uniqueKegiatan.value.filter(k => k.spId === selectedSP.value?.id))
+// SP difilter berdasarkan SS yang dipilih (relasi IS→SP belum ada di DB)
+const programDrilled  = computed(() => uniqueProgram.value.filter(p => p.ssId === Number(selectedSS.value?.id)))
+const kegiatanDrilled = computed(() => uniqueKegiatan.value.filter(k => k.spId === Number(selectedSP.value?.id)))
 
 // ──────────────────── Helpers ────────────────────
-const getChildrenProgram  = (ssId: number)  => uniqueProgram.value.filter(p => p.ssId === ssId)
-const getChildrenKegiatan = (spId: number)  => uniqueKegiatan.value.filter(k => k.spId === spId)
+const getChildrenProgram  = (ssId: number)  => uniqueProgram.value.filter(p => p.ssId === Number(ssId))
+const getChildrenKegiatan = (spId: number)  => uniqueKegiatan.value.filter(k => k.spId === Number(spId))
 const getTotalKegiatan    = (ssId: number) => {
   const pIds = getChildrenProgram(ssId).map((p: any) => p.id)
   return uniqueKegiatan.value.filter(k => pIds.includes(k.spId)).length

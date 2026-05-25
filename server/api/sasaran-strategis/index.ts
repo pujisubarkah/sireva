@@ -2,7 +2,7 @@ import { db } from '../../db';
 import { sasaranStrategis } from '../../db/schema/sasaran-strategis';
 import { indikatorStrategis } from '../../db/schema/indikator-strategis';
 import { targetIndikatorStrategis } from '../../db/schema/target-indikator-strategis';
-import { eq, and, isNull, sql } from 'drizzle-orm';
+import { eq, and, isNull, sql, inArray } from 'drizzle-orm';
 import { defineEventHandler, readBody, getMethod, getQuery, createError } from 'h3';
 import { generateKodeSS, getStringHash } from '../../utils/kode-helper';
 
@@ -26,85 +26,90 @@ export default defineEventHandler(async (event) => {
         return result[0] || null;
       }
 
-      // Fetch all strategic objectives
-      const sasaranList = await db.select()
+      // Fetch all sasaran strategis
+      const rows = await db.select({
+        id: sasaranStrategis.id,
+        ssId: sasaranStrategis.id,
+        kodeSs: sasaranStrategis.kodeSs,
+        kode: sasaranStrategis.kodeSs,
+        namaSs: sasaranStrategis.namaSs,
+        sasaranText: sasaranStrategis.namaSs,
+        nomorUrut: sasaranStrategis.nomorUrut,
+        pengampu: sasaranStrategis.pengampu,
+        tahun: sasaranStrategis.tahun,
+      })
         .from(sasaranStrategis)
         .where(isNull(sasaranStrategis.deletedAt))
         .orderBy(sasaranStrategis.nomorUrut);
 
-      // Fetch all indicators
-      const allIndicators = await db.select()
-        .from(indikatorStrategis);
+      if (rows.length === 0) return [];
 
-      // Fetch all targets
-      const allTargets = await db.select()
-        .from(targetIndikatorStrategis);
+      // Fetch all indikator_strategis for these SS rows (avoid N+1)
+      const ssIds = rows.map((r) => r.id);
+      const allIndikators = await db.select({
+        id: indikatorStrategis.id,
+        sasaranStrategisId: indikatorStrategis.sasaranStrategisId,
+        nama: indikatorStrategis.nama,
+        satuan: indikatorStrategis.satuan,
+      })
+        .from(indikatorStrategis)
+        .where(inArray(indikatorStrategis.sasaranStrategisId, ssIds));
 
-      // Map targets by indikatorId
-      const targetsMap = new Map<number, any[]>();
+      // Fetch all targets for those indikators
+      const indIds = allIndikators.map((i) => i.id);
+      let allTargets: { indikatorId: number | null; tahun: number | null; target: string | null }[] = [];
+      if (indIds.length > 0) {
+        allTargets = await db.select({
+          indikatorId: targetIndikatorStrategis.indikatorId,
+          tahun: targetIndikatorStrategis.tahun,
+          target: targetIndikatorStrategis.target,
+        })
+          .from(targetIndikatorStrategis)
+          .where(inArray(targetIndikatorStrategis.indikatorId, indIds));
+      }
+
+      // Group targets by indikator id
+      const targetsByIndId = new Map<number, { tahun: number; target: number }[]>();
       allTargets.forEach((t) => {
-        if (t.indikatorId && t.tahun !== null && t.target !== null) {
-          const list = targetsMap.get(t.indikatorId) || [];
-          list.push({
-            tahun: Number(t.tahun),
-            target: Number(t.target)
-          });
-          targetsMap.set(t.indikatorId, list);
-        }
+        if (t.indikatorId == null || t.tahun == null) return;
+        const list = targetsByIndId.get(t.indikatorId) || [];
+        list.push({ tahun: Number(t.tahun), target: Number(t.target) });
+        targetsByIndId.set(t.indikatorId, list);
       });
 
-      // Map indicators by sasaranStrategisId
-      const indicatorsMap = new Map<number, any[]>();
-      allIndicators.forEach((ind) => {
-        if (ind.sasaranStrategisId) {
-          const list = indicatorsMap.get(ind.sasaranStrategisId) || [];
-          list.push(ind);
-          indicatorsMap.set(ind.sasaranStrategisId, list);
-        }
+      // Group indikators by SS id
+      const indikatorsBySsId = new Map<number, typeof allIndikators>();
+      allIndikators.forEach((ind) => {
+        if (ind.sasaranStrategisId == null) return;
+        const list = indikatorsBySsId.get(ind.sasaranStrategisId) || [];
+        list.push(ind);
+        indikatorsBySsId.set(ind.sasaranStrategisId, list);
       });
 
-      // Format flat list containing both schema naming properties
-      const formatted: any[] = [];
-      sasaranList.forEach((ss) => {
-        const list = indicatorsMap.get(ss.id) || [];
-        if (list.length === 0) {
-          formatted.push({
-            // Format 1 (master-sasaran-strategis list)
-            id: ss.id,
-            kodeSs: ss.kodeSs,
-            namaSs: ss.namaSs,
-
-            // Format 2 (sasaran-strategis monitor list)
-            ssId: ss.id,
-            kode: ss.kodeSs,
-            sasaranText: ss.namaSs,
-            indikatorId: null,
+      const flattenedRows: any[] = [];
+      for (const row of rows) {
+        const indikators = indikatorsBySsId.get(row.id) || [];
+        if (indikators.length === 0) {
+          flattenedRows.push({
+            ...row,
             indikatorNama: null,
             indikatorSatuan: null,
-            targets: []
+            targets: [],
           });
         } else {
-          list.forEach((ind) => {
-            formatted.push({
-              // Format 1
-              id: ss.id,
-              kodeSs: ss.kodeSs,
-              namaSs: ss.namaSs,
-
-              // Format 2
-              ssId: ss.id,
-              kode: ss.kodeSs,
-              sasaranText: ss.namaSs,
-              indikatorId: ind.id,
+          for (const ind of indikators) {
+            flattenedRows.push({
+              ...row,
+              id: `${row.id}-${ind.id}`, // Unique ID for table row key
               indikatorNama: ind.nama,
               indikatorSatuan: ind.satuan,
-              targets: targetsMap.get(ind.id) || []
+              targets: targetsByIndId.get(ind.id) || [],
             });
-          });
+          }
         }
-      });
+      }
 
-      return formatted;
+      return flattenedRows;
     } catch (error: any) {
       return {
         success: false,

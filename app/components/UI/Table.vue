@@ -88,6 +88,8 @@
                   :col="col"
                   :value="row[col.key || col.accessor]"
                   :index="rowIndex"
+                  :page="page"
+                  :absolute-index="(page - 1) * props.pageSize + rowIndex"
                 >
                   <span v-if="col.render">{{ col.render(row) }}</span>
                   <span v-else>{{ row[col.key || col.accessor] }}</span>
@@ -109,7 +111,7 @@
 
       <div v-if="showPagination && totalPages > 1" class="flex justify-between items-center mt-4 px-2 pb-2">
         <span class="text-xs text-slate-500">
-          Menampilkan {{ (page - 1) * pageSize + 1 }}–{{ Math.min(page * pageSize, filteredData.length) }} dari {{ filteredData.length }} data
+          Menampilkan {{ (page - 1) * props.pageSize + 1 }}–{{ Math.min(page * props.pageSize, filteredData.length) }} dari {{ filteredData.length }} data
         </span>
         <div class="flex gap-2">
           <button @click="prevPage" :disabled="page === 1" class="px-3 py-1 border border-slate-300 rounded-md text-sm disabled:opacity-40 hover:bg-slate-50 transition-colors">‹ Prev</button>

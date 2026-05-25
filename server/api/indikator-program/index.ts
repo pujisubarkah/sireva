@@ -17,13 +17,17 @@ export default defineEventHandler(async (event) => {
 
   if (method === 'POST') {
     const body = await readBody(event);
-    return await db.insert(indikatorProgram).values(body).returning();
+    // Strip id from body to prevent client from setting arbitrary PK
+    const { id: _id, ...insertData } = body;
+    return await db.insert(indikatorProgram).values(insertData).returning();
   }
 
   if (method === 'PUT') {
     const body = await readBody(event);
     if (!body.id) throw new Error('ID is required');
-    return await db.update(indikatorProgram).set(body).where(eq(indikatorProgram.id, body.id)).returning();
+    // Destructure id out so it does NOT appear in SET clause (can't update PK)
+    const { id, ...updateData } = body;
+    return await db.update(indikatorProgram).set(updateData).where(eq(indikatorProgram.id, id)).returning();
   }
 
   if (method === 'DELETE') {

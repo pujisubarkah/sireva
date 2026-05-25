@@ -94,8 +94,8 @@
         row-key="id"
         class="border-0"
       >
-        <template #cell-no="{ index }">
-          <span class="text-sm font-black text-slate-400">{{ (currentPage - 1) * pageSize + Number(index) + 1 }}</span>
+        <template #cell-no="{ absoluteIndex }">
+          <span class="text-sm font-black text-slate-400">{{ absoluteIndex + 1 }}</span>
         </template>
 
         <template #cell-kode="{ value }">

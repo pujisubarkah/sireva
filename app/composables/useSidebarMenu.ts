@@ -31,23 +31,22 @@ const superAdminMenuItems: SidebarMenuItem[] = [
     icon: 'IconDashboard',
   },
   {
-    label: 'Perencanaan',
-    icon: 'IconClipboardList',
+    label: 'Master Data',
+    icon: 'IconSettings',
     children: [
-      { label: 'Visi, Misi, Tujuan', href: SIDEBAR_MENU_ROUTES.visiMisiTujuan, icon: 'IconFlag' },
-      { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.sasaranStrategis, icon: 'IconTargetArrow' },
-      { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.sasaranProgram, icon: 'IconFocus2' },
-      { label: 'Sasaran Kegiatan', href: SIDEBAR_MENU_ROUTES.sasaranKegiatan, icon: 'IconListDetails' },
-      { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.rencanaAksi, icon: 'IconChecklist' },
+      { label: 'Master User', href: SIDEBAR_MENU_ROUTES.masterUser, icon: 'IconUser' },
+      { label: 'Master Unit Kerja', href: SIDEBAR_MENU_ROUTES.masterUnitKerja, icon: 'IconSitemap' },
+      { label: 'Master Visi, Misi, Tujuan', href: SIDEBAR_MENU_ROUTES.masterVisiMisiTujuan, icon: 'IconFlag' },
+      { label: 'Master Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.masterSasaranStrategis, icon: 'IconTargetArrow' },
+      { label: 'Master Sasaran Program', href: SIDEBAR_MENU_ROUTES.masterSasaranProgram, icon: 'IconFocus2' },
+      { label: 'Master Sasaran Kegiatan', href: SIDEBAR_MENU_ROUTES.masterSasaranKegiatan, icon: 'IconListDetails' },
     ],
   },
   {
-    label: 'Pemantauan',
-    icon: 'IconChartBar',
+    label: 'Perencanaan',
+    icon: 'IconClipboardList',
     children: [
-      { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.pemantauanSasaranProgram, icon: 'IconFocus2' },
-      { label: 'Sasaran Kegiatan', href: SIDEBAR_MENU_ROUTES.pemantauanSasaranKegiatan, icon: 'IconListDetails' },
-      { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.pemantauanRencanaAksi, icon: 'IconChecklist' },
+      { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.sasaranStrategis, icon: 'IconTargetArrow' },
     ],
   },
   {
@@ -60,19 +59,9 @@ const superAdminMenuItems: SidebarMenuItem[] = [
     icon: 'IconReport',
     children: [
       { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.laporanSasaranProgram, icon: 'IconReport' },
-      { label: 'Kinerja (Rencana Aksi)', href: SIDEBAR_MENU_ROUTES.laporanRencanaAksi, icon: 'IconReport' },
-    ],
-  },
-  {
-    label: 'Manajemen Sistem',
-    icon: 'IconSettings',
-    children: [
-      { label: 'Master Unit Kerja', href: SIDEBAR_MENU_ROUTES.masterUnitKerja, icon: 'IconSitemap' },
-      { label: 'Master User', href: SIDEBAR_MENU_ROUTES.masterUser, icon: 'IconUser' },
-      { label: 'Master Visi, Misi, Tujuan', href: SIDEBAR_MENU_ROUTES.masterVisiMisiTujuan, icon: 'IconFlag' },
-      { label: 'Master Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.masterSasaranStrategis, icon: 'IconTargetArrow' },
-      { label: 'Master Sasaran Program', href: SIDEBAR_MENU_ROUTES.masterSasaranProgram, icon: 'IconFocus2' },
-      { label: 'Master Sasaran Kegiatan', href: SIDEBAR_MENU_ROUTES.masterSasaranKegiatan, icon: 'IconListDetails' },
+      { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.laporanSasaranStrategis, icon: 'IconReport' },
+      { label: 'Perjanjian Kinerja', href: SIDEBAR_MENU_ROUTES.laporanPerjanjianKinerja, icon: 'IconReport' },
+      { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.laporanRencanaAksi, icon: 'IconReport' },
     ],
   },
 ];
@@ -91,7 +80,6 @@ const adminMenuItems: SidebarMenuItem[] = [
       { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.sasaranStrategis, icon: 'IconTargetArrow' },
       { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.sasaranProgram, icon: 'IconFocus2' },
       { label: 'Sasaran Kegiatan', href: SIDEBAR_MENU_ROUTES.sasaranKegiatan, icon: 'IconListDetails' },
-      { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.rencanaAksi, icon: 'IconChecklist' },
     ],
   },
   {
@@ -99,8 +87,7 @@ const adminMenuItems: SidebarMenuItem[] = [
     icon: 'IconChartBar',
     children: [
       { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.pemantauanSasaranProgram, icon: 'IconFocus2' },
-      { label: 'Sasaran Kegiatan', href: SIDEBAR_MENU_ROUTES.pemantauanSasaranKegiatan, icon: 'IconListDetails' },
-      { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.pemantauanRencanaAksi, icon: 'IconChecklist' },
+      { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.pemantauanRencanaAksi, icon: 'IconClipboardList' },
     ],
   },
   {
@@ -113,32 +100,76 @@ const adminMenuItems: SidebarMenuItem[] = [
     icon: 'IconReport',
     children: [
       { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.laporanSasaranProgram, icon: 'IconReport' },
-      { label: 'Kinerja (Rencana Aksi)', href: SIDEBAR_MENU_ROUTES.laporanRencanaAksi, icon: 'IconReport' },
+      { label: 'Perjanjian Kinerja', href: SIDEBAR_MENU_ROUTES.laporanPerjanjianKinerja, icon: 'IconReport' },
     ],
   },
 ];
 
 const userMenuItems: SidebarMenuItem[] = [
-  ...adminMenuItems,
+  {
+    label: 'Dashboard',
+    href: SIDEBAR_MENU_ROUTES.dashboard,
+    icon: 'IconDashboard',
+  },
+  {
+    label: 'Perencanaan',
+    icon: 'IconClipboardList',
+    children: [
+      { label: 'Visi, Misi, Tujuan', href: SIDEBAR_MENU_ROUTES.visiMisiTujuan, icon: 'IconFlag' },
+      { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.sasaranStrategis, icon: 'IconTargetArrow' },
+      { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.sasaranProgram, icon: 'IconFocus2' },
+      { label: 'Sasaran Kegiatan', href: SIDEBAR_MENU_ROUTES.sasaranKegiatan, icon: 'IconListDetails' },
+    ],
+  },
+  {
+    label: 'Pemantauan',
+    icon: 'IconChartBar',
+    children: [
+      { label: 'Sasaran Kegiatan', href: SIDEBAR_MENU_ROUTES.pemantauanSasaranKegiatan, icon: 'IconListDetails' },
+      { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.pemantauanRencanaAksi, icon: 'IconClipboardList' },
+    ],
+  },
+  {
+    label: 'Cascading Kinerja',
+    href: SIDEBAR_MENU_ROUTES.cascading,
+    icon: 'IconSitemap',
+  },
+  {
+    label: 'Laporan',
+    icon: 'IconReport',
+    children: [
+      { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.laporanSasaranProgram, icon: 'IconReport' },
+      { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.laporanSasaranStrategis, icon: 'IconReport' },
+      { label: 'Perjanjian Kinerja', href: SIDEBAR_MENU_ROUTES.laporanPerjanjianKinerja, icon: 'IconReport' },
+      { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.laporanRencanaAksi, icon: 'IconReport' },
+    ],
+  },
 ];
 
 const verifikatorMenuItems: SidebarMenuItem[] = [
-  ...adminMenuItems,
+  ...userMenuItems,
 ];
 
 const kepalaMenuItems: SidebarMenuItem[] = [
-  ...adminMenuItems,
+  ...userMenuItems,
 ];
 
 export function useSidebarMenu(options: UseSidebarMenuOptions = {}) {
   const route = useRoute();
-  const { role } = useAuthUser();
+  const { role, authUser } = useAuthUser();
 
   const showLaporan = options.showLaporan ?? true;
   const slug = computed(() => String(route.params.slug || '').toLowerCase());
 
   const resolvedVariant = computed<SidebarVariant>(() => {
     if (options.variant) return options.variant;
+    
+    // Resolve by role_id first
+    const roleId = authUser.value?.role_id;
+    if (roleId === 1) return 'super_admin';
+    if (roleId === 2) return 'admin';
+    if (roleId === 3) return 'user';
+    
     const roleName = role.value?.replace(/\s+/g, '_') as SidebarVariant;
     if (roleName) return roleName;
     return (slug.value?.replace(/\s+/g, '_') as SidebarVariant) || 'user';
