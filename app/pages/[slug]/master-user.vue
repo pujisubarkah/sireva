@@ -58,7 +58,6 @@
 definePageMeta({ layout: 'dashboard' })
 
 import { computed } from 'vue';
-import useSWRV from 'swrv';
 import { IconPencil, IconTrash, IconPlus } from '@tabler/icons-vue';
 import Table from '@/components/UI/Table.vue';
 
@@ -119,9 +118,9 @@ const dummyRows: UserRow[] = [
 ];
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
-const { data, error, isValidating } = useSWRV<UserApi[]>('/api/users', fetcher);
+const { data, error, pending } = useFetch('/api/users', { lazy: true, default: () => [] });
 
-const loading = computed(() => isValidating.value && !data.value);
+const loading = computed(() => pending.value && !data.value);
 
 const errorMessage = computed(() => {
   if (!error.value) return '';

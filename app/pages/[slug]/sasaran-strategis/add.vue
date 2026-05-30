@@ -184,7 +184,6 @@ import {
   IconPlus, IconTrash, IconChevronDown, 
   IconCalendar, IconInfoCircle, IconX, IconDeviceFloppy 
 } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
 import { useAuthUser } from '~/composables/useAuthUser'
 
 const router = useRouter()
@@ -192,9 +191,6 @@ const route = useRoute()
 const submitting = ref(false)
 const currentYear = ref(2026)
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
-const { data: masterData } = useSWRV('/api/sasaran-strategis', fetcher)
 const { authUser, role } = useAuthUser()
 
 // Role & Unit Logic

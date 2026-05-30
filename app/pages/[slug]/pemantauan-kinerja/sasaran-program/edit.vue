@@ -68,10 +68,12 @@
               <td class="px-8 py-5">
                 <input
                   v-model="form.realisasi"
+                  @input="form.realisasi = form.realisasi.replace(/\D/g, '').slice(0, 20)"
                   type="text"
                   required
-                  maxlength="10"
+                  maxlength="20"
                   class="w-full md:w-1/3 bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-bold text-[#2663A3] focus:outline-none focus:border-[#2663A3] transition-all"
+                  placeholder="Input Realisasi (Angka Bulat)"
                 />
               </td>
             </tr>
@@ -84,8 +86,9 @@
                   v-model="form.realisasiKik"
                   :disabled="!form.kikId"
                   type="text"
-                  maxlength="10"
+                  maxlength="20"
                   class="w-full md:w-1/3 bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-bold text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all disabled:bg-slate-50"
+                  placeholder="Input Realisasi KIK"
                 />
               </td>
             </tr>
@@ -97,29 +100,49 @@
                 <textarea
                   v-model="form.analisaPencapaian"
                   required
-                  maxlength="200"
+                  maxlength="500"
                   rows="4"
                   class="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-3 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                  placeholder="Tuliskan analisa pencapaian (Min 100, Max 500 karakter)..."
                 ></textarea>
-                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  {{ form.analisaPencapaian.length }} / 200 Karakter
+                <span :class="form.analisaPencapaian.length < 100 ? 'text-red-500 font-bold' : 'text-slate-400 font-bold'" class="text-[10px] uppercase tracking-widest block mt-1">
+                  {{ form.analisaPencapaian.length }} / 500 Karakter (Min. 100)
                 </span>
               </td>
             </tr>
 
             <!-- Analisa Permasalahan -->
-            <tr>
+            <tr class="border-b border-slate-100">
               <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700 align-top pt-8">Analisa Permasalahan <span class="text-red-500">*</span></td>
               <td class="px-8 py-8 space-y-3">
                 <textarea
                   v-model="form.analisaPermasalahan"
                   required
-                  maxlength="200"
+                  maxlength="500"
                   rows="4"
                   class="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-3 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                  placeholder="Tuliskan analisa permasalahan (Min 100, Max 500 karakter)..."
                 ></textarea>
-                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  {{ form.analisaPermasalahan.length }} / 200 Karakter
+                <span :class="form.analisaPermasalahan.length < 100 ? 'text-red-500 font-bold' : 'text-slate-400 font-bold'" class="text-[10px] uppercase tracking-widest block mt-1">
+                  {{ form.analisaPermasalahan.length }} / 500 Karakter (Min. 100)
+                </span>
+              </td>
+            </tr>
+
+            <!-- Rencana Tindak Lanjut -->
+            <tr>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700 align-top pt-8">Rencana Tindak Lanjut <span class="text-red-500">*</span></td>
+              <td class="px-8 py-8 space-y-3">
+                <textarea
+                  v-model="form.tindakLanjut"
+                  required
+                  maxlength="800"
+                  rows="4"
+                  class="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-3 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                  placeholder="Tuliskan rencana tindak lanjut (Min 100, Max 800 karakter)..."
+                ></textarea>
+                <span :class="form.tindakLanjut.length < 100 ? 'text-red-500 font-bold' : 'text-slate-400 font-bold'" class="text-[10px] uppercase tracking-widest block mt-1">
+                  {{ form.tindakLanjut.length }} / 800 Karakter (Min. 100)
                 </span>
               </td>
             </tr>
@@ -130,8 +153,8 @@
       <div class="flex items-center justify-end gap-4">
         <button
           type="submit"
-          :disabled="submitting"
-          class="px-10 py-4 rounded-2xl bg-[#2663A3] text-white font-black text-sm hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all flex items-center gap-2 active:scale-95"
+          :disabled="submitting || !isFormValid"
+          class="px-10 py-4 rounded-2xl bg-[#2663A3] text-white font-black text-sm hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <IconDeviceFloppy :size="20" />
           Simpan Perubahan
@@ -144,7 +167,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { IconPencil, IconArrowLeft, IconFileText, IconDeviceFloppy } from '@tabler/icons-vue'
 
@@ -158,14 +181,22 @@ const form = ref<any>({
   realisasi: '',
   realisasiKik: '',
   analisaPencapaian: '',
-  analisaPermasalahan: ''
+  analisaPermasalahan: '',
+  tindakLanjut: ''
 })
 
 onMounted(async () => {
   if (!id) return
   try {
-    const data = await $fetch<any>(`/api/pemantauan-program/${id}`)
-    form.value = { ...data }
+    const data = await $fetch<any>(`/api/pemantauan-program?id=${id}`)
+    form.value = { 
+      ...data,
+      realisasi: String(data.realisasi || ''),
+      realisasiKik: String(data.realisasiKik || ''),
+      analisaPencapaian: data.analisaCapaian || data.analisaPencapaian || '',
+      analisaPermasalahan: data.analisaPermasalahan || '',
+      tindakLanjut: data.tindakLanjut || ''
+    }
   } catch (error) {
     console.error('Error fetching:', error)
   } finally {
@@ -173,13 +204,35 @@ onMounted(async () => {
   }
 })
 
+const isFormValid = computed(() => {
+  const realisasiVal = String(form.value.realisasi || '').trim()
+  return (
+    realisasiVal &&
+    /^\d+$/.test(realisasiVal) &&
+    realisasiVal.length <= 20 &&
+    String(form.value.analisaPencapaian || '').length >= 100 &&
+    String(form.value.analisaPencapaian || '').length <= 500 &&
+    String(form.value.analisaPermasalahan || '').length >= 100 &&
+    String(form.value.analisaPermasalahan || '').length <= 500 &&
+    String(form.value.tindakLanjut || '').length >= 100 &&
+    String(form.value.tindakLanjut || '').length <= 800
+  )
+})
+
 const handleUpdate = async () => {
-  if (submitting.value) return
+  if (!isFormValid.value || submitting.value) return
   submitting.value = true
   try {
-    await $fetch(`/api/pemantauan-program/${id}`, {
+    await $fetch(`/api/pemantauan-program`, {
       method: 'PUT',
-      body: form.value
+      body: {
+        id: Number(id),
+        realisasi: form.value.realisasi,
+        realisasiKik: form.value.realisasiKik,
+        analisaPencapaian: form.value.analisaPencapaian,
+        analisaPermasalahan: form.value.analisaPermasalahan,
+        tindakLanjut: form.value.tindakLanjut
+      }
     })
     router.push(`/${route.params.slug}/pemantauan-kinerja/sasaran-program`)
   } catch (error) {

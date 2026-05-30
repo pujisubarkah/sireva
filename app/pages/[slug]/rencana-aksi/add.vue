@@ -158,7 +158,6 @@ import {
   IconArrowLeft, IconPlus, IconCheck, IconTarget, 
   IconListDetails, IconX, IconDeviceFloppy 
 } from '@tabler/icons-vue';
-import useSWRV from 'swrv';
 
 const router = useRouter();
 const route = useRoute();
@@ -178,8 +177,6 @@ const form = ref<any>({
 });
 
 // Fetchers
-const fetcher = (url: string) => fetch(url).then(r => r.json());
-const { data: kegiatanList } = useSWRV('/api/sasaran-kegiatan', fetcher);
 
 // Computed / Filters
 const filteredSasaranList = computed(() => {

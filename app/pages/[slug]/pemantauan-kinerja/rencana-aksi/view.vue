@@ -62,8 +62,8 @@
             <tr>
               <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">Keterangan Progres</td>
               <td class="px-8 py-5">
-                <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700 italic">
-                  "{{ record.keterangan }}"
+                <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700 font-medium">
+                  "{{ record.keteranganRencanaAksi || record.keterangan || '-' }}"
                 </div>
               </td>
             </tr>
@@ -89,7 +89,7 @@ const record = ref<any>({})
 onMounted(async () => {
   if (!id) return
   try {
-    const data = await $fetch<any>(`/api/pemantauan-rencana-aksi/${id}`)
+    const data = await $fetch<any>(`/api/pemantauan-rencana-aksi?id=${id}`)
     record.value = data
   } catch (error) {
     console.error('Error fetching:', error)

@@ -248,7 +248,6 @@ import { useRouter, useRoute } from 'vue-router'
 import {
   IconPencil, IconFileText, IconChevronDown, IconTrash, IconPlus, IconX, IconDeviceFloppy
 } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
 import { useToast } from '#imports'
 
 const router = useRouter()
@@ -258,10 +257,10 @@ const id = route.query.id
 const skId = Number(id)
 const submitting = ref(false)
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: detail, isValidating: fetching } = useSWRV(id ? `/api/sasaran-kegiatan?id=${id}` : null, fetcher, { dedupingInterval: 0 })
-const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
-const { data: spData } = useSWRV('/api/sasaran-program', fetcher)
+const { data: detail, pending: fetching } = useFetch(id ? `/api/sasaran-kegiatan?id=${id}` : null, { lazy: true, default: () => [] })
+const { data: spData } = useFetch('/api/sasaran-program', { lazy: true, default: () => [] })
+const { data: unitData } = useFetch('/api/unit-kerja', { lazy: true, default: () => [] })
+const unitList = computed(() => Array.isArray(unitData.value) ? unitData.value : (unitData.value?.data || []))
 
 // ─── Form State ─────────────────────────────────
 const form = ref<Record<string, any>>({

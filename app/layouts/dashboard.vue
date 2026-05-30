@@ -3,7 +3,7 @@
     <!-- Backdrop overlay for mobile -->
     <div 
       v-if="sidebarOpen && isMobile" 
-      class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden"
+      class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden print:hidden"
       @click="sidebarOpen = false"
     ></div>
 
@@ -11,7 +11,7 @@
     <Sidebar
       :open="sidebarOpen"
       @close-sidebar="sidebarOpen = false"
-      class="shrink-0 border-r-2 border-white/50 bg-blue-900/95 backdrop-blur-xl transition-all duration-300 z-50"
+      class="shrink-0 border-r-2 border-white/50 bg-blue-900/95 backdrop-blur-xl transition-all duration-300 z-50 print:hidden"
       :class="[
         isMobile ? 'fixed inset-y-0 left-0' : 'relative',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-0'
@@ -24,20 +24,20 @@
     />
     
     <!-- Content area -->
-    <div class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+    <div class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden print:h-auto print:overflow-visible print:block">
       <!-- Header fixed top -->
       <Header
         @toggle-sidebar="toggleSidebar"
-        class="h-20 shrink-0 border-b-2 border-white/30 shadow-lg"
+        class="h-20 shrink-0 border-b-2 border-white/30 shadow-lg print:hidden"
         style="z-index: 40; background-color: #1F4F85;"
       />
       <!-- Topbar di bawah Header -->
-      <Topbar class="shrink-0" />
+      <Topbar class="shrink-0 print:hidden" />
       
       <!-- Main content scrollable -->
-      <main class="flex-1 overflow-y-auto p-4 sm:p-8 pb-20 bg-white custom-content-scroll">
-        <Breadcrumb class="mb-6" />
-        <div class="max-w-7xl mx-auto">
+      <main class="flex-1 overflow-y-auto p-4 sm:p-8 pb-20 bg-white custom-content-scroll print:overflow-visible print:p-0 print:pb-0">
+        <Breadcrumb class="mb-6 print:hidden" />
+        <div class="max-w-7xl mx-auto print:max-w-full">
           <slot />
         </div>
       </main>

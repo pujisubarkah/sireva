@@ -10,6 +10,7 @@ export const sasaranProgram = appSchema.table("sasaran_program", {
   namaSp: text("nama_sp").notNull(),
   pengampu: text("pengampu"),
   instansiTerkait: text("instansi_terkait"),
+  ikssId: integer("ikss_id"),
   isActive: boolean("is_active").default(true),
   deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").defaultNow(),

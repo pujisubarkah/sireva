@@ -14,7 +14,7 @@
         </div>
       </div>
       <div class="px-4 py-1.5 bg-blue-50 border border-blue-200 rounded-full">
-        <span class="text-[10px] font-black uppercase tracking-widest text-[#2663A3]">Administrator</span>
+        <span class="text-[10px] font-black uppercase tracking-widest text-[#2663A3]">{{ role }}</span>
       </div>
     </div>
 
@@ -35,7 +35,8 @@
                   <select
                     v-model="form.unitKerjaId"
                     required
-                    class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                    :disabled="!isSuperAdmin"
+                    class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all disabled:bg-slate-100 disabled:text-slate-400"
                   >
                     <option :value="null" disabled>-- Pilih Unit Kerja --</option>
                     <option v-for="u in unitList" :key="u.id" :value="u.id">{{ u.nama }}</option>
@@ -218,20 +219,28 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { 
   IconChartBar, IconFileText, IconChevronDown, IconLock, IconX, IconDeviceFloppy 
 } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
+import { useAuthUser } from '~/composables/useAuthUser'
 
 const router = useRouter()
 const route = useRoute()
 const submitting = ref(false)
+const { authUser, role } = useAuthUser()
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
-const { data: skMaster } = useSWRV('/api/sasaran-kegiatan', fetcher)
+const normalizedRole = computed(() => String(role.value || '').toLowerCase().replace(/\s+/g, '_'))
+const isSuperAdmin = computed(() => normalizedRole.value === 'super_admin')
+
+
+const loggedUnitKerjaName = computed(() => String(authUser.value?.unit_kerja || '').trim())
+const userUnitKerjaId = computed(() => {
+  if (!unitList.value) return null
+  const found = unitList.value.find((u: any) => u.nama === loggedUnitKerjaName.value)
+  return found?.id || null
+})
 
 const form = ref({
   unitKerjaId: null as number | null,
@@ -244,48 +253,78 @@ const form = ref({
   analisaPermasalahan: ''
 })
 
+// Auto-fill unit kerja for non-super admins
+watch([userUnitKerjaId, isSuperAdmin], () => {
+  if (!isSuperAdmin.value && userUnitKerjaId.value && !form.value.unitKerjaId) {
+    form.value.unitKerjaId = userUnitKerjaId.value
+  }
+}, { immediate: true })
+
+const skApiUrl = computed(() => {
+  if (isSuperAdmin.value) {
+    if (form.value.unitKerjaId) return `/api/sasaran-kegiatan/unit-kerja/${form.value.unitKerjaId}`
+    return '/api/sasaran-kegiatan'
+  }
+  const unitId = userUnitKerjaId.value
+  return unitId ? `/api/sasaran-kegiatan/unit-kerja/${unitId}` : null
+})
+
+
 const sasaranKegiatanList = computed(() => {
   if (!skMaster.value) return []
-  return Array.isArray(skMaster.value?.data) ? skMaster.value.data : (skMaster.value || [])
+  return Array.isArray(skMaster.value) ? skMaster.value : (skMaster.value?.data || [])
 })
 
 const uniqueSasaranKegiatan = computed(() => {
-  if (!form.value.unitKerjaId) return []
   const seen = new Set()
-  return sasaranKegiatanList.value
-    .filter((sk: any) => sk.unitKerjaId === form.value.unitKerjaId)
-    .filter((sk: any) => {
-      if (seen.has(sk.id)) return false
-      seen.add(sk.id)
-      return true
-    })
+  const result = []
+  for (const row of sasaranKegiatanList.value) {
+    if (!seen.has(row.id)) {
+      seen.add(row.id)
+      result.push({
+        id: row.id,
+        sasaranText: row.sasaranText || row.sasaran_kegiatan_text || '-'
+      })
+    }
+  }
+  return result
 })
 
 const filteredIndikators = computed(() => {
   if (!form.value.sasaranKegiatanId) return []
-  return sasaranKegiatanList.value
-    .filter((sk: any) => sk.id === form.value.sasaranKegiatanId)
-    .flatMap((sk: any) => sk.indikators || [])
+  const filteredRows = sasaranKegiatanList.value.filter((r: any) => r.id === form.value.sasaranKegiatanId)
+  const seen = new Set()
+  const result = []
+  for (const row of filteredRows) {
+    if (row.indikatorId && !seen.has(row.indikatorId)) {
+      seen.add(row.indikatorId)
+      result.push({
+        id: row.indikatorId,
+        nama: row.indikatorNama || row.indikator_kinerja || '-',
+        satuan: row.satuan || row.indikatorSatuan || '',
+        target: row.target_2 || '0'
+      })
+    }
+  }
+  return result
 })
 
 const availableKiks = computed<{ id: number, nama: string }[]>(() => {
   if (!form.value.indikatorId) return []
   const ind = filteredIndikators.value.find((i: any) => i.id === form.value.indikatorId)
-  return ind?.kiks || []
+  return (ind as any)?.kiks || []
 })
 
 const selectedTarget = computed(() => {
   if (!form.value.indikatorId) return 0
   const ind = filteredIndikators.value.find((i: any) => i.id === form.value.indikatorId)
-  const currentYear = 2026 // Assumption
-  const target = ind?.targets?.find((t: any) => t.tahun === currentYear)
-  return target?.target || 0
+  return ind ? Number(ind.target || 0) : 0
 })
 
 const selectedSatuan = computed(() => {
   if (!form.value.indikatorId) return ''
   const ind = filteredIndikators.value.find((i: any) => i.id === form.value.indikatorId)
-  return ind?.satuan || ''
+  return ind ? ind.satuan : ''
 })
 
 const isValid = computed(() => {

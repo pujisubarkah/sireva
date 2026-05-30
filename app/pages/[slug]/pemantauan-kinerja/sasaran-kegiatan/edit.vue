@@ -14,7 +14,7 @@
         </div>
       </div>
       <div class="px-4 py-1.5 bg-blue-50 border border-blue-200 rounded-full">
-        <span class="text-[10px] font-black uppercase tracking-widest text-[#2663A3]">Administrator</span>
+        <span class="text-[10px] font-black uppercase tracking-widest text-[#2663A3]">{{ role }}</span>
       </div>
     </div>
 
@@ -163,10 +163,12 @@ definePageMeta({ layout: 'dashboard' })
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { IconChartBar, IconFileText, IconX, IconDeviceFloppy } from '@tabler/icons-vue'
+import { useAuthUser } from '~/composables/useAuthUser'
 
 const router = useRouter()
 const route = useRoute()
 const submitting = ref(false)
+const { role } = useAuthUser()
 const loadingRecord = ref(true)
 
 const id = route.query.id
@@ -192,7 +194,7 @@ onMounted(async () => {
   }
   
   try {
-    const data = await $fetch<any>(`/api/pemantauan-kegiatan/${id}`)
+    const data = await $fetch<any>(`/api/pemantauan-kegiatan?id=${id}`)
     if (data) {
       form.value.realisasi = data.realisasi
       form.value.realisasiKik = data.realisasiKik || ''
@@ -223,7 +225,7 @@ const handleSubmit = async () => {
   if (submitting.value) return
   submitting.value = true
   try {
-    await $fetch(`/api/pemantauan-kegiatan/${id}`, { method: 'PUT', body: form.value })
+    await $fetch(`/api/pemantauan-kegiatan`, { method: 'PUT', body: { id, ...form.value } })
     router.push(`/${route.params.slug}/pemantauan-kinerja/sasaran-kegiatan`)
   } catch (error) {
     console.error('Error:', error)

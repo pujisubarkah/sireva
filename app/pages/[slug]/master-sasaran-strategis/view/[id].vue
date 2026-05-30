@@ -122,7 +122,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { 
   IconEye, IconFileText, IconPencil, IconAlertCircle, IconArrowLeft 
 } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
 
 const router = useRouter()
 const route = useRoute()
@@ -133,10 +132,9 @@ const id = computed(() => Number(route.params.id))
 console.log('Detail route id:', id.value)
 console.log('Fetching:', `/api/sasaran-strategis/${id.value}`)
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data, error, isValidating } = useSWRV(() => id.value ? `/api/sasaran-strategis/${id.value}` : null, fetcher)
+const { data, error, pending } = useFetch(() => id.value ? `/api/sasaran-strategis/${id.value}` : null, { lazy: true, default: () => [] })
 
-const loading = computed(() => isValidating.value && !data.value)
+const loading = computed(() => pending.value && !data.value)
 </script>
 
 <style scoped>

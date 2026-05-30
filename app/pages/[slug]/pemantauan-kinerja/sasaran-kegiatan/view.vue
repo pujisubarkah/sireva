@@ -133,7 +133,7 @@ const record = ref<any>({})
 onMounted(async () => {
   if (!id) return
   try {
-    const data = await $fetch<any>(`/api/pemantauan-kegiatan/${id}`)
+    const data = await $fetch<any>(`/api/pemantauan-kegiatan?id=${id}`)
     record.value = data
   } catch (error) {
     console.error('Error fetching:', error)

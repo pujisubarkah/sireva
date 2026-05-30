@@ -117,15 +117,14 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import useSWRV from 'swrv'
 import { IconTarget, IconChartBar, IconTrendingUp, IconPercentage } from '@tabler/icons-vue'
 
 const CURRENT_YEAR = new Date().getFullYear()
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
-const { data: skRes, isValidating: skLoading } = useSWRV<any[]>('/api/sasaran-kegiatan', fetcher)
-const { data: ikuRes, isValidating: ikuLoading } = useSWRV<any[]>('/api/indikator-kinerja', fetcher)
-const { data: targetRes, isValidating: targetLoading } = useSWRV<any[]>('/api/target-indikator', fetcher)
+const { data: skRes, pending: skLoading } = useFetch('/api/sasaran-kegiatan', { lazy: true, default: () => [] })
+const { data: ikuRes, pending: ikuLoading } = useFetch('/api/indikator-kinerja', { lazy: true, default: () => [] })
+const { data: targetRes, pending: targetLoading } = useFetch('/api/target-indikator', { lazy: true, default: () => [] })
 
 const loading = computed(() => skLoading.value || ikuLoading.value || targetLoading.value)
 

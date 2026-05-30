@@ -148,17 +148,15 @@ import {
   IconChartBar, IconPlus, IconSearch, IconCalendarEvent, 
   IconEye, IconPencil, IconTrash, IconCircleCheck, IconAlertTriangle, IconClock
 } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
 import FilterDropdown from '@/components/FilterDropdown.vue'
 import UiTable from '@/components/UI/Table.vue'
 
 const route = useRoute()
-const fetcher = (url: string) => fetch(url).then(r => r.json())
 
 const searchQuery = ref('')
 const selectedYear = ref('2026')
 
-const { data: rawData, isValidating: loading, mutate } = useSWRV('/api/pemantauan-program', fetcher)
+const { data: rawData, pending: loading, refresh } = useFetch('/api/pemantauan-program', { lazy: true, default: () => [] })
 
 const tableColumns = [
   { key: 'no', label: 'No', align: 'center', width: 60 },

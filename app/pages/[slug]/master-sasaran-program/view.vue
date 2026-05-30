@@ -45,15 +45,19 @@
         <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="space-y-1">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kode Sasaran</span>
-            <p class="text-lg font-bold text-slate-700">{{ detail?.kode || detail?.kodeSp || '-' }}</p>
+            <p class="text-lg font-bold text-slate-700">{{ itemData?.kode || itemData?.kodeSp || '-' }}</p>
           </div>
           <div class="space-y-1">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nomor Urut</span>
-            <p class="text-lg font-bold text-slate-700">{{ detail?.nomorUrut || '-' }}</p>
+            <p class="text-lg font-bold text-slate-700">{{ itemData?.nomorUrut || '-' }}</p>
           </div>
           <div class="md:col-span-2 space-y-1">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sasaran Strategis Induk</span>
             <p class="text-lg font-bold text-slate-700">{{ ssName }}</p>
+          </div>
+          <div class="md:col-span-2 space-y-1">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Indikator Strategis Induk</span>
+            <p class="text-lg font-bold text-slate-700">{{ itemData?.isNama || '-' }}</p>
           </div>
         </div>
       </div>
@@ -68,18 +72,57 @@
           <div class="md:col-span-2 space-y-2">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pernyataan Sasaran</span>
             <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-              <p class="text-slate-700 font-bold leading-relaxed text-lg">"{{ detail?.sasaran_program_text || detail?.namaSp || '-' }}"</p>
+              <p class="text-slate-700 font-bold leading-relaxed text-lg">"{{ itemData?.sasaran_program_text || itemData?.namaSp || '-' }}"</p>
             </div>
           </div>
 
-          <div class="space-y-1">
+          <div class="md:col-span-2 space-y-1">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pengampu</span>
-            <p class="text-base font-bold text-slate-700">{{ detail?.unit_kerja || detail?.pengampu || '-' }}</p>
+            <p class="text-base font-bold text-slate-700">{{ itemData?.unit_kerja || itemData?.pengampu || '-' }}</p>
           </div>
+        </div>
+      </div>
 
-          <div class="space-y-1">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Instansi Terkait</span>
-            <p class="text-base font-bold text-slate-700">{{ detail?.instansiTerkait || '-' }}</p>
+      <!-- Section 3: Indikator Kinerja -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden transition-all hover:shadow-md">
+        <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center gap-3">
+          <IconFileText :size="20" class="text-slate-500" stroke-width="2.5" />
+          <h2 class="text-slate-700 font-bold text-sm uppercase tracking-wider">
+            Indikator Kinerja Sasaran Program
+            <span v-if="ikList?.length" class="ml-2 px-2 py-0.5 bg-blue-100 text-[#2663A3] text-[10px] rounded-full font-black">{{ ikList.length }}</span>
+          </h2>
+        </div>
+        <div class="p-6">
+          <div v-if="!ikList || ikList.length === 0" class="p-6 text-center text-slate-400 text-sm font-medium">
+            Belum ada indikator kinerja untuk sasaran ini.
+          </div>
+          <div v-else class="overflow-x-auto rounded-2xl border border-slate-100">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200">
+                  <th class="p-3 text-[10px] font-black uppercase tracking-widest text-slate-400 w-10 text-center">No</th>
+                  <th class="p-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Nama Indikator</th>
+                  <th class="p-3 text-[10px] font-black uppercase tracking-widest text-slate-400 w-28">Satuan</th>
+                  <th class="p-3 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center w-20">2025</th>
+                  <th class="p-3 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center w-20">2026</th>
+                  <th class="p-3 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center w-20">2027</th>
+                  <th class="p-3 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center w-20">2028</th>
+                  <th class="p-3 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center w-20">2029</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr v-for="(ik, idx) in ikList" :key="ik.id" class="hover:bg-slate-50/60 transition-colors">
+                  <td class="p-3 text-center text-sm font-bold text-slate-400">{{ idx + 1 }}</td>
+                  <td class="p-3 text-sm font-semibold text-slate-700 leading-snug">{{ ik.nama || '-' }}</td>
+                  <td class="p-3 text-sm text-slate-600">{{ ik.satuan || '-' }}</td>
+                  <td class="p-3 text-center text-sm font-bold text-[#2663A3]">{{ ik.target_1 ?? '-' }}</td>
+                  <td class="p-3 text-center text-sm font-bold text-[#2663A3]">{{ ik.target_2 ?? '-' }}</td>
+                  <td class="p-3 text-center text-sm font-bold text-[#2663A3]">{{ ik.target_3 ?? '-' }}</td>
+                  <td class="p-3 text-center text-sm font-bold text-[#2663A3]">{{ ik.target_4 ?? '-' }}</td>
+                  <td class="p-3 text-center text-sm font-bold text-[#2663A3]">{{ ik.target_5 ?? '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -104,25 +147,22 @@ definePageMeta({ layout: 'dashboard' })
 import { computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { IconEye, IconSitemap, IconFileText, IconArrowLeft, IconPencil } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
 
 const router = useRouter()
 const route = useRoute()
 const id = route.query.id
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: detail, isValidating: fetching, mutate } = useSWRV(
-  id ? `/api/sasaran-program?id=${id}` : null,
-  fetcher,
-  { dedupingInterval: 0, revalidateOnFocus: true }
-)
-const { data: ssData } = useSWRV('/api/sasaran-strategis', fetcher)
+const { data: detail, pending: fetching, refresh } = useFetch(id ? `/api/sasaran-program?id=${id}` : null, { lazy: true, default: () => [] })
+const { data: ssData } = useFetch('/api/sasaran-strategis', { lazy: true, default: () => [] })
+const { data: ikList } = useFetch(id ? `/api/indikator-program?sasaranProgramId=${id}` : null, { lazy: true, default: () => [] })
 
-onMounted(() => mutate())
+const itemData = computed(() => {
+  return Array.isArray(detail.value) ? detail.value[0] : detail.value
+})
 
 const ssName = computed(() => {
-  if (!detail.value || !ssData.value) return '-'
-  const item = Array.isArray(detail.value) ? detail.value[0] : detail.value
+  if (!itemData.value || !ssData.value) return '-'
+  const item = itemData.value
   const source = Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
   const found = source.find((s: any) => Number(s.id) === Number(item?.ssId))
   return found ? `[${found.kode_ss || found.kode}] ${found.nama_ss || found.sasaranText}` : '-'

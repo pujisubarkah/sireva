@@ -98,11 +98,19 @@
                 </div>
               </td>
             </tr>
-            <tr>
+            <tr class="border-b border-slate-100">
               <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700 align-top pt-8 border-r border-slate-100">Analisa Permasalahan</td>
               <td class="px-8 py-8">
                 <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-slate-700 leading-relaxed font-medium italic">
                   "{{ record.analisaPermasalahan }}"
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700 align-top pt-8 border-r border-slate-100">Rencana Tindak Lanjut</td>
+              <td class="px-8 py-8">
+                <div class="p-6 bg-emerald-50 rounded-2xl border border-emerald-100 text-slate-700 leading-relaxed font-medium">
+                  "{{ record.tindakLanjut || '-' }}"
                 </div>
               </td>
             </tr>
@@ -128,7 +136,7 @@ const record = ref<any>({})
 onMounted(async () => {
   if (!id) return
   try {
-    const data = await $fetch<any>(`/api/pemantauan-program/${id}`)
+    const data = await $fetch<any>(`/api/pemantauan-program?id=${id}`)
     record.value = data
   } catch (error) {
     console.error('Error fetching:', error)

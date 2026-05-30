@@ -1,6 +1,8 @@
 import { db } from '../../db';
 import { rencanaAksi } from '../../db/schema/rencana-aksi';
 import { sasaranStrategis } from '../../db/schema/sasaran-strategis';
+import { sasaranKegiatan } from '../../db/schema/sasaran-kegiatan';
+import { sasaranProgram } from '../../db/schema/sasaran-program';
 import { eq, sql } from 'drizzle-orm';
 import { defineEventHandler, readBody, getQuery, createError } from 'h3';
 
@@ -17,9 +19,6 @@ export default defineEventHandler(async (event) => {
       if (query.id) {
         return await db.select().from(rencanaAksi).where(eq(rencanaAksi.id, Number(query.id)));
       }
-      
-      const { sasaranKegiatan } = await import('../../db/schema/sasaran-kegiatan');
-      const { sasaranProgram } = await import('../../db/schema/sasaran-program');
 
       return await db.select({
         id: rencanaAksi.id,
@@ -27,13 +26,14 @@ export default defineEventHandler(async (event) => {
         rencanaAksi: rencanaAksi.namaRencanaAksi,
         target: rencanaAksi.target,
         anggaran: sql<string | null>`null`,
-        indikator: sasaranKegiatan.sasaranText,
-        sasaran: sasaranProgram.sasaranText,
-        unitKerja: sasaranKegiatan.unitKerjaId
+        indikator: sasaranKegiatan.namaSk,
+        sasaran: sasaranProgram.namaSp,
+        sasaranProgramId: sasaranProgram.id,
+        unitKerja: sasaranKegiatan.pengampu
       })
       .from(rencanaAksi)
       .leftJoin(sasaranKegiatan, eq(rencanaAksi.indikatorId, sasaranKegiatan.id))
-      .leftJoin(sasaranProgram, eq(sasaranKegiatan.idSp, sasaranProgram.id));
+      .leftJoin(sasaranProgram, eq(sasaranKegiatan.spId, sasaranProgram.id));
     }
 
     // POST: Create new plan

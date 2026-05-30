@@ -119,7 +119,6 @@ definePageMeta({ layout: 'dashboard' })
 
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import useSWRV from 'swrv';
 import { 
   IconEye, IconPlus, IconTarget, IconRocket, 
   IconLayoutDashboard, IconCircleCheck, IconAlertCircle 
@@ -129,9 +128,9 @@ const router = useRouter();
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 // SWRV Data Fetching
-const { data: visiRes, isValidating: visiLoading, error: visiError } = useSWRV('/api/visi', fetcher);
-const { data: misiRes, isValidating: misiLoading, error: misiError } = useSWRV('/api/misi', fetcher);
-const { data: tujuanRes, isValidating: tujuanLoading, error: tujuanError } = useSWRV('/api/tujuan', fetcher);
+const { data: visiRes, pending: visiLoading, error: visiError } = useFetch('/api/visi', { lazy: true, default: () => [] });
+const { data: misiRes, pending: misiLoading, error: misiError } = useFetch('/api/misi', { lazy: true, default: () => [] });
+const { data: tujuanRes, pending: tujuanLoading, error: tujuanError } = useFetch('/api/tujuan', { lazy: true, default: () => [] });
 
 // State Management
 const loading = computed(() => visiLoading.value || misiLoading.value || tujuanLoading.value);

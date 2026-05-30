@@ -164,11 +164,9 @@ import {
 } from '@tabler/icons-vue'
 import FilterDropdown from '@/components/FilterDropdown.vue'
 import UiTable from '@/components/UI/Table.vue'
-import useSWRV from 'swrv'
 import { useAuthUser } from '~/composables/useAuthUser'
 
 const router = useRouter()
-const fetcher = (url: string) => fetch(url).then(r => r.json())
 
 // State
 const searchQuery = ref('')
@@ -181,7 +179,7 @@ const yearOptions = ['2025', '2026', '2027', '2028', '2029']
 
 // Data Fetching
 const { authUser, role } = useAuthUser()
-const { data: unitData } = useSWRV('/api/unit-kerja', fetcher)
+const { data: unitData } = useFetch<any[]>('/api/unit-kerja', { lazy: true, default: () => [] })
 
 // Role Checks Normalized
 const normalizedRole = computed(() => String(role.value || '').toLowerCase().replace(/\s+/g, '_'))
@@ -192,7 +190,7 @@ const canInput = computed(() => isSuperAdmin.value || isAdmin.value)
 const loggedUnitKerjaName = computed(() => String(authUser.value?.unit_kerja || '').trim())
 const userUnitKerjaId = computed(() => {
   if (!unitData.value) return null
-  const found = unitData.value.find((u: any) => u.nama === loggedUnitKerjaName.value)
+  const found = (unitData.value as any[]).find((u: any) => u.nama === loggedUnitKerjaName.value)
   return found?.id || null
 })
 
@@ -206,10 +204,7 @@ const apiUrl = computed(() => {
   return `/api/sasaran-program/unit-kerja/${unitId}`
 })
 
-const { data: spRaw, isValidating: loading, mutate } = useSWRV(() => apiUrl.value, fetcher, {
-  dedupingInterval: 0,
-  revalidateOnFocus: true
-})
+const { data: spRaw, pending: loading, refresh } = useFetch(() => apiUrl.value, { lazy: true, default: () => [] })
 
 const unitOptions = computed(() => {
   const units = (unitData.value || []).map((u: any) => ({ value: u.id, label: u.nama }))

@@ -35,7 +35,8 @@
                   <select
                     v-model="form.unitKerjaId"
                     required
-                    class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                    :disabled="!isSuperAdmin"
+                    class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all disabled:bg-slate-50 disabled:text-slate-500"
                   >
                     <option :value="null" disabled>-- Pilih Unit Kerja --</option>
                     <option v-for="u in unitList" :key="u.id" :value="u.id">{{ u.nama }}</option>
@@ -124,11 +125,12 @@
               <td class="px-8 py-5">
                 <input
                   v-model="form.realisasi"
+                  @input="form.realisasi = form.realisasi.replace(/\D/g, '').slice(0, 20)"
                   type="text"
                   required
-                  maxlength="10"
+                  maxlength="20"
                   class="w-full md:w-1/3 bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-bold text-[#2663A3] focus:outline-none focus:border-[#2663A3] transition-all"
-                  placeholder="Input Realisasi (Angka)"
+                  placeholder="Input Realisasi (Angka Bulat)"
                 />
               </td>
             </tr>
@@ -141,7 +143,7 @@
                   v-model="form.realisasiKik"
                   :disabled="!form.kikId"
                   type="text"
-                  maxlength="10"
+                  maxlength="20"
                   class="w-full md:w-1/3 bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-bold text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all disabled:bg-slate-50"
                   placeholder="Input Realisasi KIK"
                 />
@@ -155,34 +157,54 @@
                 <textarea
                   v-model="form.analisaPencapaian"
                   required
-                  maxlength="200"
+                  maxlength="500"
                   rows="4"
                   class="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-3 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
-                  placeholder="Tuliskan analisa pencapaian (Max 200 karakter)..."
+                  placeholder="Tuliskan analisa pencapaian (Min 100, Max 500 karakter)..."
                 ></textarea>
                 <div class="flex justify-between items-center px-1">
-                  <span :class="form.analisaPencapaian.length > 200 ? 'text-red-500' : 'text-slate-400'" class="text-[10px] font-bold uppercase tracking-widest">
-                    {{ form.analisaPencapaian.length }} / 200 Karakter
+                  <span :class="form.analisaPencapaian.length < 100 ? 'text-red-500 font-bold' : 'text-slate-400 font-bold'" class="text-[10px] uppercase tracking-widest">
+                    {{ form.analisaPencapaian.length }} / 500 Karakter (Min. 100)
                   </span>
                 </div>
               </td>
             </tr>
 
             <!-- 9. Analisa Permasalahan -->
-            <tr>
+            <tr class="border-b border-slate-100">
               <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700 align-top pt-8">9. Analisa Permasalahan <span class="text-red-500">*</span></td>
               <td class="px-8 py-8 space-y-3">
                 <textarea
                   v-model="form.analisaPermasalahan"
                   required
-                  maxlength="200"
+                  maxlength="500"
                   rows="4"
                   class="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-3 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
-                  placeholder="Tuliskan analisa permasalahan (Max 200 karakter)..."
+                  placeholder="Tuliskan analisa permasalahan (Min 100, Max 500 karakter)..."
                 ></textarea>
                 <div class="flex justify-between items-center px-1">
-                  <span :class="form.analisaPermasalahan.length > 200 ? 'text-red-500' : 'text-slate-400'" class="text-[10px] font-bold uppercase tracking-widest">
-                    {{ form.analisaPermasalahan.length }} / 200 Karakter
+                  <span :class="form.analisaPermasalahan.length < 100 ? 'text-red-500 font-bold' : 'text-slate-400 font-bold'" class="text-[10px] uppercase tracking-widest">
+                    {{ form.analisaPermasalahan.length }} / 500 Karakter (Min. 100)
+                  </span>
+                </div>
+              </td>
+            </tr>
+
+            <!-- 10. Rencana Tindak Lanjut -->
+            <tr>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700 align-top pt-8">10. Rencana Tindak Lanjut <span class="text-red-500">*</span></td>
+              <td class="px-8 py-8 space-y-3">
+                <textarea
+                  v-model="form.tindakLanjut"
+                  required
+                  maxlength="800"
+                  rows="4"
+                  class="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-3 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                  placeholder="Tuliskan rencana tindak lanjut (Min 100, Max 800 karakter)..."
+                ></textarea>
+                <div class="flex justify-between items-center px-1">
+                  <span :class="form.tindakLanjut.length < 100 ? 'text-red-500 font-bold' : 'text-slate-400 font-bold'" class="text-[10px] uppercase tracking-widest">
+                    {{ form.tindakLanjut.length }} / 800 Karakter (Min. 100)
                   </span>
                 </div>
               </td>
@@ -202,7 +224,7 @@
         </button>
         <button
           type="submit"
-          :disabled="submitting"
+          :disabled="submitting || !isFormValid"
           class="px-8 py-3.5 rounded-2xl bg-[#2663A3] text-white font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <IconDeviceFloppy v-if="!submitting" :size="18" />
@@ -217,20 +239,28 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { 
   IconChartBar, IconFileText, IconChevronDown, IconLock, IconX, IconDeviceFloppy 
 } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
+import { useAuthUser } from '~/composables/useAuthUser'
 
 const router = useRouter()
 const route = useRoute()
 const submitting = ref(false)
+const { authUser, role } = useAuthUser()
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
-const { data: spMaster } = useSWRV('/api/sasaran-program', fetcher)
+const normalizedRole = computed(() => String(role.value || '').toLowerCase().replace(/\s+/g, '_'))
+const isSuperAdmin = computed(() => normalizedRole.value === 'super_admin')
+
+
+const loggedUnitKerjaName = computed(() => String(authUser.value?.unit_kerja || '').trim())
+const userUnitKerjaId = computed(() => {
+  if (!unitList.value) return null
+  const found = unitList.value.find((u: any) => u.nama === loggedUnitKerjaName.value)
+  return found?.id || null
+})
 
 const form = ref({
   unitKerjaId: null as number | null,
@@ -240,25 +270,40 @@ const form = ref({
   realisasi: '',
   realisasiKik: '',
   analisaPencapaian: '',
-  analisaPermasalahan: ''
+  analisaPermasalahan: '',
+  tindakLanjut: ''
 })
+
+// Auto-fill unit kerja for non-super admins
+watch([userUnitKerjaId, isSuperAdmin], () => {
+  if (!isSuperAdmin.value && userUnitKerjaId.value && !form.value.unitKerjaId) {
+    form.value.unitKerjaId = userUnitKerjaId.value
+  }
+}, { immediate: true })
+
+const spApiUrl = computed(() => {
+  if (isSuperAdmin.value) {
+    if (form.value.unitKerjaId) return `/api/sasaran-program/unit-kerja/${form.value.unitKerjaId}`
+    return '/api/sasaran-program'
+  }
+  const unitId = userUnitKerjaId.value
+  return unitId ? `/api/sasaran-program/unit-kerja/${unitId}` : null
+})
+
 
 const sasaranProgramList = computed(() => {
   if (!spMaster.value) return []
-  return Array.isArray(spMaster.value?.data) ? spMaster.value.data : (spMaster.value || [])
+  return Array.isArray(spMaster.value) ? spMaster.value : (spMaster.value?.data || [])
 })
 
 const uniqueSasaranProgram = computed(() => {
-  if (!form.value.unitKerjaId) return []
   const seen = new Set()
   const results: any[] = []
   
   sasaranProgramList.value.forEach((item: any) => {
-    // Check if the selected unit is in the list of units for this sasaran
-    const unitIds = Array.isArray(item.unitKerjaIds) ? item.unitKerjaIds : []
-    if (unitIds.includes(form.value.unitKerjaId) && !seen.has(item.id)) {
+    if (item.id && !seen.has(item.id)) {
       seen.add(item.id)
-      results.push({ id: item.id, sasaranText: item.sasaranText })
+      results.push({ id: item.id, sasaranText: item.sasaran_program_text || item.namaSp || item.sasaranText })
     }
   })
   return results
@@ -267,25 +312,29 @@ const uniqueSasaranProgram = computed(() => {
 const filteredIndikators = computed(() => {
   if (!form.value.sasaranProgramId) return []
   return sasaranProgramList.value
-    .filter((item: any) => item.id === form.value.sasaranProgramId)
+    .filter((item: any) => item.id === form.value.sasaranProgramId && item.indikatorId)
     .map((item: any) => ({
       id: item.indikatorId,
       nama: item.indikatorNama,
-      satuan: item.indikatorSatuan,
-      targets: item.targets || []
+      satuan: item.satuan || item.indikatorSatuan,
+      targets: [
+        { tahun: 2025, target: item.target_1 },
+        { tahun: 2026, target: item.target_2 },
+        { tahun: 2027, target: item.target_3 },
+        { tahun: 2028, target: item.target_4 },
+        { tahun: 2029, target: item.target_5 },
+      ]
     }))
 })
 
 const availableKiks = computed<{ id: number, nama: string }[]>(() => {
-  // Assuming KIKs are part of the indicator object if implemented
-  // For now, returning empty since we haven't added KIKs to the planning response yet
   return []
 })
 
 const selectedTarget = computed(() => {
   if (!form.value.indikatorId) return 0
   const ind = filteredIndikators.value.find((i: any) => i.id === form.value.indikatorId)
-  const currentYear = 2026 // Assumption
+  const currentYear = 2026 // Current Year 2026
   const target = ind?.targets?.find((t: any) => t.tahun === currentYear)
   return target?.target || 0
 })
@@ -296,8 +345,26 @@ const selectedSatuan = computed(() => {
   return ind?.satuan || ''
 })
 
+const isFormValid = computed(() => {
+  const realisasiVal = form.value.realisasi.trim()
+  return (
+    form.value.unitKerjaId &&
+    form.value.sasaranProgramId &&
+    form.value.indikatorId &&
+    realisasiVal &&
+    /^\d+$/.test(realisasiVal) &&
+    realisasiVal.length <= 20 &&
+    form.value.analisaPencapaian.length >= 100 &&
+    form.value.analisaPencapaian.length <= 500 &&
+    form.value.analisaPermasalahan.length >= 100 &&
+    form.value.analisaPermasalahan.length <= 500 &&
+    form.value.tindakLanjut.length >= 100 &&
+    form.value.tindakLanjut.length <= 800
+  )
+})
+
 const handleSubmit = async () => {
-  if (submitting.value) return
+  if (!isFormValid.value || submitting.value) return
   submitting.value = true
   try {
     await $fetch('/api/pemantauan-program', {
@@ -309,7 +376,8 @@ const handleSubmit = async () => {
         realisasi: form.value.realisasi,
         realisasiKik: form.value.realisasiKik,
         analisaPencapaian: form.value.analisaPencapaian,
-        analisaPermasalahan: form.value.analisaPermasalahan
+        analisaPermasalahan: form.value.analisaPermasalahan,
+        tindakLanjut: form.value.tindakLanjut
       }
     })
     router.push(`/${route.params.slug}/pemantauan-kinerja/sasaran-program`)

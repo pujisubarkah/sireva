@@ -73,16 +73,14 @@ definePageMeta({ layout: 'dashboard' })
 
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import useSWRV from 'swrv';
 import { IconPencil, IconTrash, IconPlus } from '@tabler/icons-vue';
 import Table from '@/components/UI/Table.vue';
 
 const route = useRoute();
-const fetcher = (url: string) => fetch(url).then(r => r.json());
 
-const { data: visiData, error: vError, isValidating: vLoading } = useSWRV('/api/visi', fetcher);
-const { data: misiData, error: mError, isValidating: mLoading } = useSWRV('/api/misi', fetcher);
-const { data: tujuanData, error: tError, isValidating: tLoading } = useSWRV('/api/tujuan', fetcher);
+const { data: visiData, error: vError, pending: vLoading } = useFetch('/api/visi', { lazy: true, default: () => [] });
+const { data: misiData, error: mError, pending: mLoading } = useFetch('/api/misi', { lazy: true, default: () => [] });
+const { data: tujuanData, error: tError, pending: tLoading } = useFetch('/api/tujuan', { lazy: true, default: () => [] });
 
 const loading = computed(() => vLoading.value || mLoading.value || tLoading.value);
 const errorMessage = computed(() => vError.value || mError.value || tError.value ? 'Gagal memuat data' : '');

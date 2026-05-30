@@ -13,9 +13,12 @@
           </p>
         </div>
       </div>
-      <div class="px-4 py-1.5 bg-blue-50 border border-blue-200 rounded-full">
-        <span class="text-[10px] font-black uppercase tracking-widest text-[#2663A3]">Administrator</span>
-      </div>
+      <NuxtLink
+        :to="`/${route.params.slug}/pemantauan-kinerja/rencana-aksi`"
+        class="px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-500 font-bold text-sm hover:bg-slate-50 transition-all flex items-center gap-2"
+      >
+        <IconArrowLeft :size="18" /> Kembali
+      </NuxtLink>
     </div>
 
     <div v-if="loadingRecord" class="p-20 text-center flex flex-col items-center gap-4">
@@ -38,47 +41,41 @@
               <td class="px-8 py-5 font-bold text-slate-800">{{ unitName || '-' }}</td>
             </tr>
 
-            <!-- 2. Sasaran Kegiatan (Locked) -->
+            <!-- 2. Rencana Kegiatan (Locked) -->
             <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">2. Sasaran Kegiatan</td>
-              <td class="px-8 py-5 font-bold text-slate-800">{{ skName || '-' }}</td>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">2. Rencana Kegiatan</td>
+              <td class="px-8 py-5 font-bold text-slate-800">{{ rencanaAksiNama || '-' }}</td>
             </tr>
 
             <!-- 3. Indikator Kinerja (Locked) -->
             <tr class="border-b border-slate-100">
               <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">3. Indikator Kinerja</td>
-              <td class="px-8 py-5 font-bold text-slate-800">{{ indikatorName || '-' }}</td>
+              <td class="px-8 py-5 font-bold text-[#2663A3]">{{ indikatorName || '-' }}</td>
             </tr>
 
-            <!-- 4. Rencana Kegiatan -->
+            <!-- 4. Target (Locked) -->
             <tr class="border-b border-slate-100">
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">4. Rencana Kegiatan <span class="text-red-500">*</span></td>
-              <td class="px-8 py-5">
-                <div class="relative max-w-2xl">
-                  <select
-                    v-model="form.rencanaAksiId"
-                    required
-                    class="w-full appearance-none bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
-                  >
-                    <option :value="null" disabled>-- Pilih Rencana Aksi --</option>
-                    <option v-for="ra in raPlanningList" :key="ra.id" :value="ra.id">{{ ra.namaRencanaAksi }}</option>
-                  </select>
-                  <IconChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" :size="18" />
-                </div>
-              </td>
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">4. Target (Database)</td>
+              <td class="px-8 py-5 font-black text-slate-700 text-lg">{{ targetValue || 0 }}</td>
             </tr>
 
             <!-- 5. Keterangan -->
             <tr>
-              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700">5. Keterangan <span class="text-red-500">*</span></td>
-              <td class="px-8 py-5">
-                <input
+              <td class="w-1/4 px-8 py-5 bg-slate-50/50 font-bold text-slate-700 align-top pt-8">5. Keterangan <span class="text-red-500">*</span></td>
+              <td class="px-8 py-8 space-y-3">
+                <textarea
                   v-model="form.keterangan"
-                  type="text"
                   required
-                  maxlength="50"
-                  class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-2.5 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
-                />
+                  maxlength="800"
+                  rows="4"
+                  class="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-3 font-medium text-slate-700 focus:outline-none focus:border-[#2663A3] transition-all"
+                  placeholder="Tuliskan keterangan progres rencana kegiatan ini (Min 100, Max 800 karakter)..."
+                ></textarea>
+                <div class="flex justify-between items-center px-1">
+                  <span :class="form.keterangan.length < 100 ? 'text-red-500 font-bold' : 'text-slate-400 font-bold'" class="text-[10px] uppercase tracking-widest">
+                    {{ form.keterangan.length }} / 800 Karakter (Min. 100)
+                  </span>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -96,7 +93,7 @@
         </button>
         <button
           type="submit"
-          :disabled="submitting"
+          :disabled="submitting || !isFormValid"
           class="px-8 py-3.5 rounded-2xl bg-[#2663A3] text-white font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <IconDeviceFloppy v-if="!submitting" :size="18" />
@@ -111,9 +108,9 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { IconChartBar, IconFileText, IconChevronDown, IconX, IconDeviceFloppy } from '@tabler/icons-vue'
+import { IconChartBar, IconFileText, IconX, IconDeviceFloppy, IconArrowLeft } from '@tabler/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -127,41 +124,52 @@ const form = ref({
 })
 
 const unitName = ref('')
-const skName = ref('')
+const rencanaAksiNama = ref('')
 const indikatorName = ref('')
-const raPlanningList = ref<any[]>([])
+const targetValue = ref(0)
 
 onMounted(async () => {
   if (!id) return
   try {
-    const data = await $fetch<any>(`/api/pemantauan-rencana-aksi/${id}`)
+    const data = await $fetch<any>(`/api/pemantauan-rencana-aksi?id=${id}`)
     if (data) {
       form.value.rencanaAksiId = data.rencanaAksiId
-      form.value.keterangan = data.keterangan
+      form.value.keterangan = data.keteranganRencanaAksi || data.keterangan || ''
       
-      unitName.value = data.unitKerjaNama
-      skName.value = data.sasaranText
-      indikatorName.value = data.indikatorNama
-      
-      // Fetch available planning actions for this indicator
-      const raData = await $fetch<any[]>('/api/rencana-aksi')
-      raPlanningList.value = raData.filter((ra: any) => ra.idIndikator === data.indikatorId)
+      unitName.value = data.unitKerjaNama || '-'
+      rencanaAksiNama.value = data.rencanaAksiNama || '-'
+      indikatorName.value = data.indikatorNama || '-'
+      targetValue.value = Number(data.targetValue || 0)
     }
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error fetching pemantauan rencana aksi:', error)
   } finally {
     loadingRecord.value = false
   }
 })
 
+const isFormValid = computed(() => {
+  const val = String(form.value.keterangan || '').trim()
+  return val.length >= 100 && val.length <= 800
+})
+
 const handleSubmit = async () => {
-  if (submitting.value) return
+  if (!isFormValid.value || submitting.value) return
   submitting.value = true
   try {
-    await $fetch(`/api/pemantauan-rencana-aksi/${id}`, { method: 'PUT', body: form.value })
+    await $fetch(`/api/pemantauan-rencana-aksi`, { 
+      method: 'PUT', 
+      body: {
+        id: Number(id),
+        realisasi: 100,
+        analisaPencapaian: 'Laporan Progres Rencana Aksi',
+        analisaPermasalahan: '-',
+        keterangan: form.value.keterangan
+      } 
+    })
     router.push(`/${route.params.slug}/pemantauan-kinerja/rencana-aksi`)
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error updating pemantauan:', error)
   } finally {
     submitting.value = false
   }

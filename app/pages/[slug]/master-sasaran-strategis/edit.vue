@@ -194,15 +194,13 @@ import {
   IconPlus, IconTrash, IconChevronDown,
   IconX, IconDeviceFloppy 
 } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
 
 const router = useRouter()
 const route = useRoute()
 const id = route.query.id
 const submitting = ref(false)
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: detail, isValidating: fetching } = useSWRV(id ? `/api/sasaran-strategis/${id}` : null, fetcher)
+const { data: detail, pending: fetching } = useFetch(id ? `/api/sasaran-strategis/${id}` : null, { lazy: true, default: () => null })
 
 const form = ref({
   kode: '',

@@ -236,7 +236,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { 
   IconDatabase, IconFileText, IconChevronDown, IconTrash, IconPlus, IconX, IconDeviceFloppy 
 } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
 import { useToast } from '#imports'
 
 const toast = useToast()
@@ -244,9 +243,8 @@ const router = useRouter()
 const route = useRoute()
 const submitting = ref(false)
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
-const { data: ssData } = useSWRV('/api/sasaran-strategis', fetcher)
+const { data: unitList } = useFetch<any[]>('/api/unit-kerja', { default: () => [] })
+const { data: ssData }   = useFetch<any>('/api/sasaran-strategis', { default: () => [] })
 
 // 1. Reactive State Definition
 const form = reactive({
@@ -343,6 +341,7 @@ const handleSubmit = async () => {
       method: 'POST',
       body: {
         ss_id: form.id_ss,
+        is_id: form.id_is,
         nama_sp: form.sasaran_program_text,
         pengampu: form.unit_kerja
       }

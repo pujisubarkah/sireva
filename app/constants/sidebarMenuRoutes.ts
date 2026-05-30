@@ -20,7 +20,7 @@ export const SIDEBAR_MENU_ROUTES = {
   pemantauanSasaranKegiatan: '/pemantauan-kinerja/sasaran-kegiatan',
   pemantauanRencanaAksi: '/pemantauan-kinerja/rencana-aksi',
   laporanSasaranStrategis: '/laporan/sasaran-strategis',
-  laporanPerjanjianKinerja: '/laporan/perjanjian-kinerja',
   laporanSasaranProgram: '/laporan/sasaran-program',
   laporanRencanaAksi: '/laporan/rencana-aksi',
+  laporanKinerjaTriwulan: '/laporan/kinerja-triwulan',
 } as const;

@@ -102,7 +102,6 @@ definePageMeta({ layout: 'dashboard' })
 
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import useSWRV from 'swrv'
 import { IconPencil, IconTarget, IconCalendar, IconInfoCircle } from '@tabler/icons-vue'
 import { useToast } from '#imports'
 
@@ -115,8 +114,6 @@ const fetching = ref(true)
 const submitting = ref(false)
 const currentYear = new Date().getFullYear()
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: sasaranRaw } = useSWRV('/api/sasaran-kegiatan?limit=1000', fetcher)
 
 const targetRecord = ref<any>(null)
 

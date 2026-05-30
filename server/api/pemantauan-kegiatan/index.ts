@@ -1,7 +1,7 @@
 import { db } from '../../db';
 import { laporanSasaranKegiatan } from '../../db/schema/laporan-sasaran-kegiatan';
 import { sasaranKegiatan } from '../../db/schema/sasaran-kegiatan';
-import { indikatorKegiatan } from '../../db/schema/indikator-kegiatan';
+import { indikatorKinerja } from '../../db/schema/indikator-kinerja';
 import { unitKerja } from '../../db/schema/unit-kerja';
 import { eq, sql } from 'drizzle-orm';
 import { defineEventHandler, readBody, getQuery, createError } from 'h3';
@@ -21,16 +21,16 @@ export default defineEventHandler(async (event) => {
           realisasiKik: laporanSasaranKegiatan.realisasiKik,
           analisaCapaian: laporanSasaranKegiatan.analisaCapaian,
           analisaPermasalahan: laporanSasaranKegiatan.analisaPermasalahan,
-          sasaranText: sasaranKegiatan.sasaranText,
-          indikatorNama: indikatorKegiatan.nama,
-          unitKerjaNama: unitKerja.nama,
-          targetValue: sql<number>`0`, // Placeholder
-          satuan: indikatorKegiatan.satuan
+          sasaranText: sasaranKegiatan.namaSk,
+          kode: sasaranKegiatan.kodeSk,
+          indikatorNama: indikatorKinerja.namaIku,
+          unitKerjaNama: sasaranKegiatan.pengampu,
+          targetValue: sql<number>`coalesce((select target_nilai from sireva.target_indikator_kegiatan tik where tik.id_iku = ${indikatorKinerja.id} and tik.tahun = 2026 limit 1), 0)`,
+          satuan: indikatorKinerja.satuan
         })
         .from(laporanSasaranKegiatan)
         .leftJoin(sasaranKegiatan, eq(laporanSasaranKegiatan.sasaranId, sasaranKegiatan.id))
-        .leftJoin(indikatorKegiatan, eq(laporanSasaranKegiatan.indikatorId, indikatorKegiatan.id))
-        .leftJoin(unitKerja, eq(sasaranKegiatan.unitKerjaId, unitKerja.id))
+        .leftJoin(indikatorKinerja, eq(laporanSasaranKegiatan.indikatorId, indikatorKinerja.id))
         .where(eq(laporanSasaranKegiatan.id, Number(query.id)));
         
         return res;
@@ -38,15 +38,16 @@ export default defineEventHandler(async (event) => {
 
       return await db.select({
         id: laporanSasaranKegiatan.id,
-        sasaranText: sasaranKegiatan.sasaranText,
-        indikatorNama: indikatorKegiatan.nama,
+        sasaranText: sasaranKegiatan.namaSk,
+        kode: sasaranKegiatan.kodeSk,
+        indikatorNama: indikatorKinerja.namaIku,
         realisasi: laporanSasaranKegiatan.realisasi,
-        targetValue: sql<number>`100`, // Placeholder
-        satuan: indikatorKegiatan.satuan
+        targetValue: sql<number>`coalesce((select target_nilai from sireva.target_indikator_kegiatan tik where tik.id_iku = ${indikatorKinerja.id} and tik.tahun = 2026 limit 1), 0)`,
+        satuan: indikatorKinerja.satuan
       })
       .from(laporanSasaranKegiatan)
       .leftJoin(sasaranKegiatan, eq(laporanSasaranKegiatan.sasaranId, sasaranKegiatan.id))
-      .leftJoin(indikatorKegiatan, eq(laporanSasaranKegiatan.indikatorId, indikatorKegiatan.id));
+      .leftJoin(indikatorKinerja, eq(laporanSasaranKegiatan.indikatorId, indikatorKinerja.id));
     }
 
     if (method === 'POST') {

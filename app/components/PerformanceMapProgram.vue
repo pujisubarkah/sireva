@@ -54,12 +54,11 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import useSWRV from 'swrv'
 import { IconBuildingCommunity } from '@tabler/icons-vue'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
-const { data, isValidating: loading } = useSWRV<any[]>('/api/sasaran-program', fetcher)
+const { data, pending: loading } = useFetch('/api/sasaran-program', { lazy: true, default: () => [] })
 
 const rows = computed(() => data.value ?? [])
 

@@ -107,15 +107,13 @@ import { useRoute } from 'vue-router'
 import { 
   IconChartBar, IconPlus, IconSearch, IconEye, IconPencil, IconTrash 
 } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
 import UiTable from '@/components/UI/Table.vue'
 
 const route = useRoute()
-const fetcher = (url: string) => fetch(url).then(r => r.json())
 
 const searchQuery = ref('')
 
-const { data: rawData, isValidating: loading, mutate } = useSWRV('/api/pemantauan-rencana-aksi', fetcher)
+const { data: rawData, pending: loading, refresh } = useFetch('/api/pemantauan-rencana-aksi', { lazy: true, default: () => [] })
 
 const tableColumns = [
   { key: 'no', label: 'No', align: 'center', width: 60 },

@@ -58,10 +58,7 @@ const superAdminMenuItems: SidebarMenuItem[] = [
     label: 'Laporan',
     icon: 'IconReport',
     children: [
-      { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.laporanSasaranProgram, icon: 'IconReport' },
-      { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.laporanSasaranStrategis, icon: 'IconReport' },
-      { label: 'Perjanjian Kinerja', href: SIDEBAR_MENU_ROUTES.laporanPerjanjianKinerja, icon: 'IconReport' },
-      { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.laporanRencanaAksi, icon: 'IconReport' },
+      { label: 'Kinerja Triwulanan', href: SIDEBAR_MENU_ROUTES.laporanKinerjaTriwulan, icon: 'IconReport' },
     ],
   },
 ];
@@ -99,8 +96,7 @@ const adminMenuItems: SidebarMenuItem[] = [
     label: 'Laporan',
     icon: 'IconReport',
     children: [
-      { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.laporanSasaranProgram, icon: 'IconReport' },
-      { label: 'Perjanjian Kinerja', href: SIDEBAR_MENU_ROUTES.laporanPerjanjianKinerja, icon: 'IconReport' },
+      { label: 'Kinerja Triwulanan', href: SIDEBAR_MENU_ROUTES.laporanKinerjaTriwulan, icon: 'IconReport' },
     ],
   },
 ];
@@ -138,10 +134,7 @@ const userMenuItems: SidebarMenuItem[] = [
     label: 'Laporan',
     icon: 'IconReport',
     children: [
-      { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.laporanSasaranProgram, icon: 'IconReport' },
-      { label: 'Sasaran Strategis', href: SIDEBAR_MENU_ROUTES.laporanSasaranStrategis, icon: 'IconReport' },
-      { label: 'Perjanjian Kinerja', href: SIDEBAR_MENU_ROUTES.laporanPerjanjianKinerja, icon: 'IconReport' },
-      { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.laporanRencanaAksi, icon: 'IconReport' },
+      { label: 'Kinerja Triwulanan', href: SIDEBAR_MENU_ROUTES.laporanKinerjaTriwulan, icon: 'IconReport' },
     ],
   },
 ];

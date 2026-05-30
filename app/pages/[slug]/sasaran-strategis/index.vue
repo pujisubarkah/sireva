@@ -168,14 +168,12 @@ import {
 } from '@tabler/icons-vue'
 import FilterDropdown from '@/components/FilterDropdown.vue'
 import UiTable from '@/components/UI/Table.vue'
-import useSWRV from 'swrv'
 import { useToast } from '#imports'
 import { useAuthUser } from '~/composables/useAuthUser'
 
 const toast = useToast()
 
 const router = useRouter()
-const fetcher = (url: string) => fetch(url).then(r => r.json())
 
 // State
 const searchQuery = ref('')
@@ -201,7 +199,7 @@ const apiUrl = computed(() => {
   return '/api/sasaran-strategis' // Simplified to return all as unit is not required
 })
 
-const { data: ssRaw, isValidating: loading, mutate } = useSWRV(() => apiUrl.value, fetcher)
+const { data: ssRaw, pending: loading, refresh } = useFetch(() => apiUrl.value, { lazy: true, default: () => [] })
 
 // unitOptions removed as unit is not required
 

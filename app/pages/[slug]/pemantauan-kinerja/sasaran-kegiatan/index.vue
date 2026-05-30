@@ -68,6 +68,10 @@
         <template #cell-sasaran="{ row }">
           <div class="space-y-1">
             <p class="text-[13px] font-bold text-slate-800 leading-tight">{{ row.sasaranText }}</p>
+            <div class="flex items-start gap-1.5">
+              <div class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1 flex-shrink-0"></div>
+              <p class="text-[10px] font-medium text-slate-500 uppercase tracking-tight italic">{{ row.indikatorNama }}</p>
+            </div>
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{{ row.kode }}</p>
           </div>
         </template>
@@ -132,17 +136,21 @@ import {
   IconChartBar, IconPlus, IconSearch, IconCalendarEvent, 
   IconEye, IconPencil, IconTrash 
 } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
 import FilterDropdown from '@/components/FilterDropdown.vue'
 import UiTable from '@/components/UI/Table.vue'
+import { useAuthUser } from '~/composables/useAuthUser'
 
 const route = useRoute()
-const fetcher = (url: string) => fetch(url).then(r => r.json())
+const { authUser, role } = useAuthUser()
+
+const normalizedRole = computed(() => String(role.value || '').toLowerCase().replace(/\s+/g, '_'))
+const isSuperAdmin = computed(() => normalizedRole.value === 'super_admin')
+const loggedUnitKerjaName = computed(() => String(authUser.value?.unit_kerja || '').trim())
 
 const searchQuery = ref('')
 const selectedYear = ref('2026')
 
-const { data: rawData, isValidating: loading, mutate } = useSWRV('/api/pemantauan-kegiatan', fetcher)
+const { data: rawData, pending: loading, refresh } = useFetch('/api/pemantauan-kegiatan', { lazy: true, default: () => [] })
 
 const tableColumns = [
   { key: 'no', label: 'No', align: 'center', width: 60 },
@@ -156,6 +164,13 @@ const tableColumns = [
 const displayRows = computed(() => {
   let rows = (rawData.value || []) as any[]
   if (rawData.value?.data) rows = rawData.value.data
+
+  if (!isSuperAdmin.value && loggedUnitKerjaName.value) {
+    rows = rows.filter((r: any) => {
+      const uk = r.unitKerjaNama || r.unit_kerja || r.pengampu || ''
+      return uk.toLowerCase().includes(loggedUnitKerjaName.value.toLowerCase())
+    })
+  }
 
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
@@ -180,7 +195,7 @@ function getProgressColor(percent: number) {
 async function handleDelete(row: any) {
   if (!confirm('Hapus laporan capaian ini?')) return
   try {
-    await $fetch(`/api/pemantauan-kegiatan/${row.id}`, { method: 'DELETE' })
+    await $fetch(`/api/pemantauan-kegiatan?id=${row.id}`, { method: 'DELETE' })
     mutate()
   } catch (error) {
     console.error('Error:', error)

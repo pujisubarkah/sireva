@@ -17,7 +17,10 @@ export default defineEventHandler(async (event: H3Event) => {
       sql`exists (
         select 1 from sireva.sasaran_program_unit_kerja spuk
         where spuk.sasaran_program_id = ${sasaranProgram.id}
-          and spuk.unit_kerja_id = ${unitKerjaId}
+          and (
+            spuk.unit_kerja_id = ${unitKerjaId}
+            or spuk.unit_kerja_id = (select parent_id from sireva.unit_kerja where id = ${unitKerjaId})
+          )
       )`
     ];
 

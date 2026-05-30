@@ -12,6 +12,7 @@ export const laporanSasaranProgram = appSchema.table("laporan_sasaran_program", 
   realisasiKik: numeric("realisasi_kik"),
   analisaCapaian: text("analisa_capaian").notNull(),
   analisaPermasalahan: text("analisa_permasalahan").notNull(),
+  tindakLanjut: text("tindak_lanjut").default("").notNull(),
   createdAt: timestamp("created_at", { mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 }, (table) => [
   foreignKey({

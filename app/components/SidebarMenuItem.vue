@@ -21,7 +21,7 @@
       {{ item.label }}
     </NuxtLink>
 
-    <div v-else-if="item.children" :class="isOpen ? 'mb-2' : ''">
+    <div v-if="item.children && item.children.length" :class="isOpen ? 'mb-2' : ''">
       <div
         @click="isOpen = !isOpen"
         :class="[

@@ -1,7 +1,8 @@
 import { db } from '../../db';
 import { laporanRencanaAksi } from '../../db/schema/laporan-rencana-aksi';
 import { rencanaAksi } from '../../db/schema/rencana-aksi';
-import { indikatorKegiatan } from '../../db/schema/indikator-kegiatan';
+import { sasaranKegiatan } from '../../db/schema/sasaran-kegiatan';
+import { indikatorKinerja } from '../../db/schema/indikator-kinerja';
 import { eq, sql } from 'drizzle-orm';
 import { defineEventHandler, readBody, getQuery, createError } from 'h3';
 
@@ -20,12 +21,15 @@ export default defineEventHandler(async (event) => {
           analisaPermasalahan: laporanRencanaAksi.analisaPermasalahan,
           keteranganRencanaAksi: laporanRencanaAksi.keteranganRencanaAksi,
           rencanaAksiNama: rencanaAksi.namaRencanaAksi,
-          indikatorNama: indikatorKegiatan.nama,
+          indikatorNama: indikatorKinerja.namaIku,
           targetValue: rencanaAksi.target,
+          unitKerjaNama: sasaranKegiatan.pengampu,
+          sasaranText: sasaranKegiatan.namaSk,
         })
         .from(laporanRencanaAksi)
         .leftJoin(rencanaAksi, eq(laporanRencanaAksi.rencanaAksiId, rencanaAksi.id))
-        .leftJoin(indikatorKegiatan, eq(rencanaAksi.indikatorId, indikatorKegiatan.id))
+        .leftJoin(sasaranKegiatan, eq(rencanaAksi.indikatorId, sasaranKegiatan.id))
+        .leftJoin(indikatorKinerja, eq(sasaranKegiatan.id, indikatorKinerja.skId))
         .where(eq(laporanRencanaAksi.id, Number(query.id)));
         
         return res;
@@ -34,13 +38,15 @@ export default defineEventHandler(async (event) => {
       return await db.select({
         id: laporanRencanaAksi.id,
         rencanaAksiNama: rencanaAksi.namaRencanaAksi,
-        indikatorNama: indikatorKegiatan.nama,
+        indikatorNama: indikatorKinerja.namaIku,
         realisasi: laporanRencanaAksi.capaian, // In schema RA it's named 'capaian' but used as realisasi
         targetValue: rencanaAksi.target,
+        unitKerja: sasaranKegiatan.pengampu,
       })
       .from(laporanRencanaAksi)
       .leftJoin(rencanaAksi, eq(laporanRencanaAksi.rencanaAksiId, rencanaAksi.id))
-      .leftJoin(indikatorKegiatan, eq(rencanaAksi.indikatorId, indikatorKegiatan.id));
+      .leftJoin(sasaranKegiatan, eq(rencanaAksi.indikatorId, sasaranKegiatan.id))
+      .leftJoin(indikatorKinerja, eq(sasaranKegiatan.id, indikatorKinerja.skId));
     }
 
     if (method === 'POST') {

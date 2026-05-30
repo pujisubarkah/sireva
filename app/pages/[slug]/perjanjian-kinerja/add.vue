@@ -163,17 +163,15 @@ definePageMeta({ layout: 'dashboard' })
 
 import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import useSWRV from 'swrv';
 import { IconArrowLeft, IconFileCheck, IconCheck } from '@tabler/icons-vue';
 
 const router = useRouter();
 const route = useRoute();
-const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 // Fetch Data Referensi (Force refresh for better sync)
-const { data: units } = useSWRV('/api/unit-kerja', fetcher, { revalidateOnFocus: true });
-const { data: sasaranList } = useSWRV('/api/sasaran-strategis', fetcher, { revalidateOnFocus: true });
-const { data: indikatorList } = useSWRV('/api/indikator-kinerja', fetcher, { revalidateOnFocus: true });
+const { data: units } = useFetch('/api/unit-kerja', { lazy: true, default: () => [] });
+const { data: sasaranList } = useFetch('/api/sasaran-strategis', { lazy: true, default: () => [] });
+const { data: indikatorList } = useFetch('/api/indikator-kinerja', { lazy: true, default: () => [] });
 
 // Deduplicated Sasaran List
 const uniqueSasaranList = computed(() => {

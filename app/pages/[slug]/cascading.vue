@@ -425,7 +425,6 @@ import {
   IconBuildingBank
 } from '@tabler/icons-vue'
 import FilterDropdown from '@/components/FilterDropdown.vue'
-import useSWRV from 'swrv'
 
 // ──────────────────── State ────────────────────
 const selectedYear = ref('2025')
@@ -436,15 +435,12 @@ const router = useRouter()
 const route = useRoute()
 
 // ──────────────────── Data Fetching ────────────────────
-const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: strategisList } = useSWRV('/api/sasaran-strategis', fetcher)
-const { data: programList }   = useSWRV('/api/sasaran-program', fetcher)
-const { data: kegiatanList }  = useSWRV('/api/sasaran-kegiatan', fetcher)
 // Fetch Indikator Strategis berdasarkan SS yang dipilih
-const { data: isRaw } = useSWRV(
-  () => selectedSS.value?.id ? `/api/indikator-strategis?sasaranStrategisId=${selectedSS.value.id}` : null,
-  fetcher
-)
+const { data: isRaw } = useFetch(() => selectedSS.value?.id ? `/api/indikator-strategis?sasaranStrategisId=${selectedSS.value.id}` : (null as any), { lazy: true, default: () => [] })
+
+const { data: strategisList } = useFetch('/api/sasaran-strategis', { lazy: true, default: () => [] })
+const { data: programList } = useFetch('/api/sasaran-program', { lazy: true, default: () => [] })
+const { data: kegiatanList } = useFetch('/api/sasaran-kegiatan', { lazy: true, default: () => [] })
 
 const loading = computed(() => !strategisList.value || !programList.value || !kegiatanList.value)
 
@@ -871,9 +867,29 @@ const printCascading = async () => {
     padding:8px 24px; background:#1e3a8a; color:#fff; border:none;
     border-radius:7px; font-weight:700; font-size:9pt; cursor:pointer;
   }
+  .tree-wrapper {
+    overflow-x: auto;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  #cascade-tree {
+    min-width: max-content;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
   @media print {
     .btn-wrap { display:none; }
     body { background:white; }
+    .tree-wrapper {
+      overflow-x: visible;
+      padding: 0;
+    }
+    #cascade-tree {
+      min-width: auto;
+      display: block;
+    }
   }
 </style>
 </head>
@@ -889,29 +905,16 @@ const printCascading = async () => {
   <div class="legend-item"><div class="dot sk"></div> Sasaran Kegiatan (SK)</div>
 </div>
 
-<div id="cascade-tree">
-  ${ssBlocks || '<p style="text-align:center;color:#94a3b8;padding:40px;">Tidak ada data untuk ditampilkan.</p>'}
+<div class="tree-wrapper">
+  <div id="cascade-tree">
+    ${ssBlocks || '<p style="text-align:center;color:#94a3b8;padding:40px;">Tidak ada data untuk ditampilkan.</p>'}
+  </div>
 </div>
 
 <div class="btn-wrap">
   <button class="btn-print" onclick="window.print()">&#128424; Cetak / Simpan PDF</button>
 </div>
 
-<script>
-// Auto-scale the tree to fit page width
-window.addEventListener('load', function () {
-  var tree = document.getElementById('cascade-tree');
-  if (!tree) return;
-  var tw = tree.scrollWidth;
-  var pw = document.documentElement.clientWidth;
-  if (tw > pw) {
-    var scale = pw / tw;
-    tree.style.transformOrigin = 'top center';
-    tree.style.transform = 'scale(' + scale + ')';
-    tree.style.marginBottom = ((scale - 1) * tree.scrollHeight) + 'px';
-  }
-});
-<\/script>
 </body>
 </html>`
 

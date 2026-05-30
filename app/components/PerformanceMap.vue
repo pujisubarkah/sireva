@@ -119,7 +119,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import useSWRV from 'swrv'
 import { IconTarget, IconChartBar, IconTrendingUp, IconPercentage } from '@tabler/icons-vue'
 
 const CURRENT_YEAR = new Date().getFullYear()
@@ -127,7 +126,7 @@ const CURRENT_YEAR = new Date().getFullYear()
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 // API returns flat array: { ssId, kode, sasaranText, indikatorId, indikatorNama, indikatorSatuan, targets: [{tahun, target}] }
-const { data: flatRows, isValidating: loading } = useSWRV<any[]>('/api/sasaran-strategis', fetcher)
+const { data: flatRows, pending: loading } = useFetch('/api/sasaran-strategis', { lazy: true, default: () => [] })
 
 function getMetrics(indikator: any) {
   if (!indikator) return { target: '-', realisasi: '-', capaian: '-%' }

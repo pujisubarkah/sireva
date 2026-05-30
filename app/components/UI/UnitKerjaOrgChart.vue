@@ -71,7 +71,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import useSWRV from 'swrv'
 
 export interface OrgChartNode {
   id: number
@@ -82,9 +81,9 @@ export interface OrgChartNode {
 }
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
-const { data, error, isValidating } = useSWRV<OrgChartNode[]>('/api/organisasi', fetcher)
+const { data, error, pending } = useFetch('/api/organisasi', { lazy: true, default: () => [] })
 
-const loading = computed(() => isValidating.value && !data.value)
+const loading = computed(() => pending.value && !data.value)
 
 const errorMsg = computed(() => {
   if (!error.value) return ''

@@ -63,6 +63,7 @@ export default defineEventHandler(async (event) => {
       if (body.pengampu !== undefined) updateFields.pengampu = body.pengampu;
       if (body.instansi_terkait !== undefined) updateFields.instansiTerkait = body.instansi_terkait;
       if (body.is_active !== undefined) updateFields.isActive = !!body.is_active;
+      if (body.is_id !== undefined) updateFields.ikssId = body.is_id || null;
 
       updateFields.updatedAt = new Date();
 

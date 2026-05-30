@@ -173,11 +173,9 @@ import {
 } from '@tabler/icons-vue'
 import FilterDropdown from '@/components/FilterDropdown.vue'
 import UiTable from '@/components/UI/Table.vue'
-import useSWRV from 'swrv'
 import { useAuthUser } from '~/composables/useAuthUser'
 
 const router = useRouter()
-const fetcher = (url: string) => fetch(url).then(r => r.json())
 
 // State
 const searchQuery = ref('')
@@ -196,7 +194,7 @@ const yearOptions = [
 
 // Data Fetching
 const { role, authUser } = useAuthUser()
-const { data: unitData } = useSWRV('/api/unit-kerja', fetcher, { dedupingInterval: 0 })
+const { data: unitData } = useFetch<any[]>('/api/unit-kerja', { lazy: true, default: () => [] })
 
 // Role Checks Normalized
 const normalizedRole = computed(() => String(role.value || '').toLowerCase().replace(/\s+/g, '_'))
@@ -213,11 +211,7 @@ const userUnitKerjaId = computed(() => {
 })
 
 // Always fetch all data — filter client-side to avoid SWRV reactive URL issues
-const { data: skRaw, isValidating: loading, mutate } = useSWRV(
-  '/api/sasaran-kegiatan',
-  fetcher,
-  { dedupingInterval: 0, revalidateOnFocus: false }
-)
+const { data: skRaw, pending: loading, refresh } = useFetch<any[]>('/api/sasaran-kegiatan', { lazy: true, default: () => [] })
 
 // Resolve selected unit name from ID for client-side filtering
 const selectedUnitName = computed(() => {
@@ -233,7 +227,7 @@ const unitOptions = computed(() => {
 
 const displayRows = computed(() => {
   let rows = (skRaw.value || []) as any[]
-  if (skRaw.value?.data) rows = skRaw.value.data
+  if ((skRaw.value as any)?.data) rows = (skRaw.value as any).data
 
   // If not super admin, filter to own unit kerja only
   if (!isSuperAdmin.value && loggedUnitKerjaName.value) {
@@ -292,7 +286,7 @@ async function handleDelete(item: any) {
       alert(res.message || 'Gagal menghapus data.')
       return
     }
-    mutate()
+    refresh()
   } catch (error: any) {
     const msg = error?.data?.message || error?.message || 'Gagal menghapus data.'
     alert(msg)

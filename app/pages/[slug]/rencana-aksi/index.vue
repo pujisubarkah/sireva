@@ -187,7 +187,6 @@ import {
 } from '@tabler/icons-vue'
 import FilterDropdown from '@/components/FilterDropdown.vue'
 import UiTable from '@/components/UI/Table.vue'
-import useSWRV from 'swrv'
 import { useAuthUser } from '~/composables/useAuthUser'
 
 const router = useRouter()
@@ -205,8 +204,7 @@ const yearOptions = ['2025', '2026', '2027', '2028', '2029']
 
 // Data Fetching
 const { authUser, role } = useAuthUser()
-const { data: unitData } = useSWRV('/api/unit-kerja', fetcher)
-const { data: rencanaData, isValidating: loading, mutate } = useSWRV('/api/rencana-aksi', fetcher)
+const { data: rencanaData, pending: loading, refresh } = useFetch('/api/rencana-aksi', { lazy: true, default: () => [] })
 
 // Role Checks
 const isSuperAdmin = computed(() => role.value?.toLowerCase() === 'super_admin')

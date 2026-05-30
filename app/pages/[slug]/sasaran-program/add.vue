@@ -216,7 +216,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { 
   IconPlus, IconFileText, IconChevronDown, IconDeviceFloppy, IconListCheck 
 } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
 import { useToast } from '#imports'
 
 const router = useRouter()
@@ -240,13 +239,10 @@ const form = ref<Record<string, any>>({
 })
 
 // 2. Dropdown Relasi (Data Fetching)
-const fetcher = (url: string) => fetch(url).then(r => r.json())
 
 // Fetching Unit Kerja
-const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
 
 // Fetching Sasaran Strategis (Master)
-const { data: ssData } = useSWRV('/api/sasaran-strategis', fetcher)
 
 // Opsi Sasaran Strategis (Deduplicated)
 const sasaranStrategisOptions = computed(() => {

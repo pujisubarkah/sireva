@@ -202,7 +202,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { 
   IconPencil, IconFileText, IconChevronDown, IconTrash, IconPlus, IconX, IconDeviceFloppy 
 } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
 import { useToast } from '#imports'
 
 const router = useRouter()
@@ -211,14 +210,7 @@ const toast = useToast()
 const id = route.query.id
 const submitting = ref(false)
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: detail, isValidating: fetching } = useSWRV(
-  id ? `/api/sasaran-program?id=${id}` : null,
-  fetcher,
-  { dedupingInterval: 0 }
-)
-const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
-const { data: ssData } = useSWRV('/api/sasaran-strategis', fetcher)
+const { data: detail, pending: fetching } = useFetch(id ? `/api/sasaran-program?id=${id}` : null, { lazy: true, default: () => [] })
 
 // 1. Standardized Form State
 const form = ref<Record<string, any>>({
@@ -314,6 +306,7 @@ const handleSubmit = async () => {
       body: {
         nama_sp: form.value.sasaran_program_text,
         pengampu: form.value.unit_kerja || null,
+        is_id: form.value.id_is || null,
       }
     })
     if (spRes?.success === false) {

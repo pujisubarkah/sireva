@@ -2,6 +2,7 @@ import { db } from '../../db';
 import { sasaranProgram } from '../../db/schema/sasaran-program';
 import { sasaranStrategis } from '../../db/schema/sasaran-strategis';
 import { indikatorProgram } from '../../db/schema/indikator-program';
+import { indikatorStrategis } from '../../db/schema/indikator-strategis';
 import { eq, and, isNull, sql } from 'drizzle-orm';
 import { defineEventHandler, readBody, getMethod, getQuery, createError } from 'h3';
 import { generateKodeSP } from '../../utils/kode-helper';
@@ -18,6 +19,8 @@ export default defineEventHandler(async (event) => {
       const selectFields = {
         id: sasaranProgram.id,
         ssId: sasaranProgram.ssId,
+        ikssId: sasaranProgram.ikssId,
+        isNama: indikatorStrategis.nama,
         nomorUrut: sasaranProgram.nomorUrut,
         kode: sasaranProgram.kodeSp,
         sasaran_program_text: sasaranProgram.namaSp,
@@ -39,6 +42,7 @@ export default defineEventHandler(async (event) => {
         const result = await db.select(selectFields)
           .from(sasaranProgram)
           .leftJoin(indikatorProgram, eq(sasaranProgram.id, indikatorProgram.sasaranProgramId))
+          .leftJoin(indikatorStrategis, eq(sasaranProgram.ikssId, indikatorStrategis.id))
           .where(
             and(
               eq(sasaranProgram.id, id),
@@ -56,6 +60,7 @@ export default defineEventHandler(async (event) => {
       return await db.select(selectFields)
         .from(sasaranProgram)
         .leftJoin(indikatorProgram, eq(sasaranProgram.id, indikatorProgram.sasaranProgramId))
+        .leftJoin(indikatorStrategis, eq(sasaranProgram.ikssId, indikatorStrategis.id))
         .where(and(...conditions))
         .orderBy(sasaranProgram.nomorUrut);
     } catch (error: any) {
@@ -107,6 +112,7 @@ export default defineEventHandler(async (event) => {
          const inserted = await tx.insert(sasaranProgram)
            .values({
              ssId: parentId,
+             ikssId: body.is_id || null,
              nomorUrut: nextNomorUrut,
              kodeSp: generatedCode,
              namaSp: body.nama_sp,

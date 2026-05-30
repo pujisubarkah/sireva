@@ -124,7 +124,6 @@ import {
   IconClock, IconChevronDown, IconTarget, 
   IconChartPie, IconLayoutGrid, IconTrendingUp 
 } from '@tabler/icons-vue';
-import useSWRV from 'swrv';
 import StatCard from './StatCard.vue';
 
 const lastUpdate = ref(new Date().toLocaleString('id-ID', { 
@@ -139,7 +138,7 @@ const apexchartComponent = shallowRef<any>(null);
 
 // Fetch Real Data from API
 const fetcher = (url: string) => fetch(url).then(r => r.json());
-const { data: stats } = useSWRV('/api/dashboard/stats', fetcher);
+const { data: stats } = useFetch('/api/dashboard/stats', { lazy: true, default: () => [] });
 
 onMounted(async () => {
   if (typeof window !== 'undefined') {

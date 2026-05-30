@@ -88,7 +88,6 @@
 definePageMeta({ layout: 'dashboard' })
 
 import { computed, ref } from 'vue'
-import useSWRV from 'swrv'
 import { IconPencil, IconTrash, IconPlus } from '@tabler/icons-vue'
 import Table from '@/components/UI/Table.vue'
 import UnitKerjaOrgChart from '@/components/UI/UnitKerjaOrgChart.vue'
@@ -119,9 +118,9 @@ const columns = [
 const activeTab = ref<'table' | 'chart'>('table')
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
-const { data, error, isValidating } = useSWRV<UnitKerjaApi[]>('/api/unit-kerja', fetcher)
+const { data, error, pending } = useFetch('/api/unit-kerja', { lazy: true, default: () => [] })
 
-const loading = computed(() => isValidating.value && !data.value)
+const loading = computed(() => pending.value && !data.value)
 
 const errorMessage = computed(() => {
   if (!error.value) return ''

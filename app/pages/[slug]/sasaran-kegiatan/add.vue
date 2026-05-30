@@ -128,7 +128,6 @@ definePageMeta({
 
 import { ref, computed, watch, onMounted, watchEffect } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import useSWRV from 'swrv'
 import { IconClipboardList, IconTarget, IconCalendar, IconInfoCircle } from '@tabler/icons-vue'
 import { useToast, useAuthUser } from '#imports'
 
@@ -154,9 +153,6 @@ const isSuperAdmin = computed(() => normalizedRole.value === 'super_admin')
 const isUserOnly = computed(() => normalizedRole.value === 'user')
 const loggedUnitKerjaName = computed(() => String(authUser.value?.unit_kerja || '').trim())
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: sasaranRaw } = useSWRV('/api/sasaran-kegiatan?limit=1000', fetcher)
-const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
 
 const userUnitKerjaId = computed(() => {
   if (!isUserOnly.value || !unitList.value) return null

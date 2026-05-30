@@ -146,27 +146,15 @@ definePageMeta({ layout: 'dashboard' })
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { IconEye, IconSitemap, IconFileText, IconArrowLeft, IconPencil } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
 
 const router = useRouter()
 const route = useRoute()
 const id = route.query.id
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: detail, isValidating: fetching } = useSWRV(
-  id ? `/api/sasaran-kegiatan?id=${id}` : null,
-  fetcher,
-  { dedupingInterval: 30000, revalidateOnFocus: false }
-)
-const { data: spData } = useSWRV('/api/sasaran-program', fetcher)
+const { data: detail, pending: fetching } = useFetch(id ? `/api/sasaran-kegiatan?id=${id}` : null, { lazy: true, default: () => [] })
 // Fetch all indikator kinerja for this SK
-const { data: ikList } = useSWRV(
-  id ? `/api/indikator-kinerja?sk_id=${id}` : null,
-  fetcher,
-  { dedupingInterval: 30000, revalidateOnFocus: false }
-)
-
-
+const { data: ikList } = useFetch(id ? `/api/indikator-kinerja?sk_id=${id}` : null, { lazy: true, default: () => [] })
+const { data: spData } = useFetch('/api/sasaran-program', { lazy: true, default: () => [] })
 const spName = computed(() => {
   if (!detail.value || !spData.value) return '-'
   const item = Array.isArray(detail.value) ? detail.value[0] : detail.value

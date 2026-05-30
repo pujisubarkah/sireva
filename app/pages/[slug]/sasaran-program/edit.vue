@@ -190,7 +190,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { 
   IconPencil, IconFileText, IconChevronDown, IconDeviceFloppy 
 } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
 import { useToast } from '#imports'
 
 const router = useRouter()
@@ -215,16 +214,9 @@ const form = ref<Record<string, any>>({
 })
 
 // 2. Data Fetching
-const fetcher = (url: string) => fetch(url).then(r => r.json())
 
-const { data: detail, isValidating: fetching } = useSWRV(id ? `/api/sasaran-program?id=${id}` : null, fetcher)
-const { data: unitList } = useSWRV('/api/unit-kerja', fetcher)
-const { data: ssData } = useSWRV('/api/sasaran-strategis', fetcher)
 // Fetch indikator strategis berdasarkan SS yang dipilih
-const { data: indikatorStrategisData } = useSWRV(
-  () => form.value.id_ss ? `/api/indikator-strategis?sasaranStrategisId=${form.value.id_ss}` : null,
-  fetcher
-)
+const { data: indikatorStrategisData } = useFetch(() => form.value.id_ss ? `/api/indikator-strategis?sasaranStrategisId=${form.value.id_ss}` : null, { lazy: true, default: () => [] })
 
 // Load existing data into form
 watchEffect(() => {

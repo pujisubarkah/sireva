@@ -128,7 +128,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { 
   IconDatabase, IconFileText, IconChevronDown, IconX, IconDeviceFloppy 
 } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
 
 const router = useRouter()
 const route = useRoute()
@@ -141,9 +140,6 @@ const form = ref({
   text: ''
 })
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
-const { data: visiData } = useSWRV('/api/visi', fetcher)
-const { data: misiData } = useSWRV('/api/misi', fetcher)
 
 const parentList = computed(() => {
   if (form.value.tipe === 'MISI') {

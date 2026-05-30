@@ -162,7 +162,6 @@ definePageMeta({ layout: 'dashboard' })
 
 import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import useSWRV from 'swrv';
 import { 
   IconPencil, IconTrash, IconPlus, IconEye, 
   IconBuilding, IconCalendarEvent, IconLayoutGrid, IconSearch, IconFolderSearch 
@@ -202,12 +201,9 @@ const selectedUnit = ref<string | null>(null);
 const yearOptions = ['2025', '2026', '2027', '2028', '2029'];
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
-const { data, error, isValidating, mutate } = useSWRV<SasaranStrategisApi[]>('/api/sasaran-strategis', fetcher, {
-  dedupingInterval: 60000,
-  revalidateOnFocus: false,
-});
+const { data, error, pending, refresh } = useFetch('/api/sasaran-strategis', { lazy: true, default: () => [] });
 
-const { data: unitData } = useSWRV<any[]>('/api/unit-kerja', fetcher);
+const { data: unitData } = useFetch('/api/unit-kerja', { lazy: true, default: () => [] });
 
 const unitOptions = computed(() => {
   const units = (unitData.value || []).map((u: any) => ({ value: u.nama, label: u.nama }));
@@ -223,7 +219,7 @@ const columns = [
   { key: 'aksi', label: 'Aksi', center: true, width: 120 },
 ];
 
-const loading = computed(() => isValidating.value && !data.value);
+const loading = computed(() => pending.value && !data.value);
 
 const errorMessage = computed(() => {
   if (!error.value) return '';
@@ -232,7 +228,7 @@ const errorMessage = computed(() => {
 
 const filteredRows = computed<SasaranRow[]>(() => {
   if (!data.value) return [];
-  const source = Array.isArray(data.value) ? data.value : [];
+  const source = Array.isArray(data.value) ? data.value : ((data.value as any)?.data || []);
   
   // Apply year filter
   let rows = source;

@@ -172,14 +172,12 @@ import { useRouter, useRoute } from 'vue-router'
 import { 
   IconDatabase, IconFileText, IconTrash, IconPlus, IconX, IconDeviceFloppy, IconChevronDown
 } from '@tabler/icons-vue'
-import useSWRV from 'swrv'
 
 const router = useRouter()
 const route = useRoute()
 const submitting = ref(false)
 
 // Data Fetching for Dropdown
-const fetcher = (url: string) => fetch(url).then(r => r.json())
 
 // 1. Reactive State Definition
 const form = reactive({
