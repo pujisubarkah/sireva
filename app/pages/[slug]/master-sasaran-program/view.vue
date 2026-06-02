@@ -89,7 +89,7 @@
           <IconFileText :size="20" class="text-slate-500" stroke-width="2.5" />
           <h2 class="text-slate-700 font-bold text-sm uppercase tracking-wider">
             Indikator Kinerja Sasaran Program
-            <span v-if="ikList?.length" class="ml-2 px-2 py-0.5 bg-blue-100 text-[#2663A3] text-[10px] rounded-full font-black">{{ ikList.length }}</span>
+            <span v-if="filteredIkList?.length" class="ml-2 px-2 py-0.5 bg-blue-100 text-[#2663A3] text-[10px] rounded-full font-black">{{ filteredIkList.length }}</span>
           </h2>
         </div>
         <div class="p-6">
@@ -111,7 +111,7 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
-                <tr v-for="(ik, idx) in ikList" :key="ik.id" class="hover:bg-slate-50/60 transition-colors">
+                <tr v-for="(ik, idx) in filteredIkList" :key="ik.id" class="hover:bg-slate-50/60 transition-colors">
                   <td class="p-3 text-center text-sm font-bold text-slate-400">{{ idx + 1 }}</td>
                   <td class="p-3 text-sm font-semibold text-slate-700 leading-snug">{{ ik.nama || '-' }}</td>
                   <td class="p-3 text-sm text-slate-600">{{ ik.satuan || '-' }}</td>
@@ -130,7 +130,7 @@
       <!-- Action Buttons -->
       <div class="flex items-center justify-end gap-4 pt-4">
         <button
-          @click="router.push(`/${route.params.slug}/master-sasaran-program/edit?id=${id}`)"
+          @click="router.push(`/${route.params.slug}/master-sasaran-program/edit?id=${id}${route.query.indId ? '&indId=' + route.query.indId : ''}`)"
           class="px-8 py-3.5 rounded-2xl bg-[#2663A3] text-white font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2"
         >
           <IconPencil :size="18" />
@@ -155,6 +155,15 @@ const id = route.query.id
 const { data: detail, pending: fetching, refresh } = useFetch(id ? `/api/sasaran-program?id=${id}` : null, { lazy: true, default: () => [] })
 const { data: ssData } = useFetch('/api/sasaran-strategis', { lazy: true, default: () => [] })
 const { data: ikList } = useFetch(id ? `/api/indikator-program?sasaranProgramId=${id}` : null, { lazy: true, default: () => [] })
+
+const filteredIkList = computed(() => {
+  const list = ikList.value || []
+  const indIdQuery = route.query.indId ? Number(route.query.indId) : null
+  if (indIdQuery) {
+    return list.filter((ik: any) => Number(ik.id) === indIdQuery)
+  }
+  return list
+})
 
 const itemData = computed(() => {
   return Array.isArray(detail.value) ? detail.value[0] : detail.value

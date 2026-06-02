@@ -41,11 +41,19 @@ export default defineEventHandler(async (event) => {
 
 
       if (id && !isNaN(id)) {
+        const indId = query.indId ? Number(query.indId) : null;
+        const whereConditions = [
+          eq(sasaranKegiatan.id, id),
+          isNull(sasaranKegiatan.deletedAt)
+        ];
+        if (indId && !isNaN(indId)) {
+          whereConditions.push(eq(indikatorKinerja.id, indId));
+        }
         const result = await db.select(selectFields)
           .from(sasaranKegiatan)
           .leftJoin(indikatorKinerja, and(eq(sasaranKegiatan.id, indikatorKinerja.skId), isNull(indikatorKinerja.deletedAt)))
           .leftJoin(sql`sireva.target_indikator_kegiatan tik`, sql`tik.id_iku = ${indikatorKinerja.id}`)
-          .where(and(eq(sasaranKegiatan.id, id), isNull(sasaranKegiatan.deletedAt)))
+          .where(and(...whereConditions))
           .groupBy(
             sasaranKegiatan.id,
             sasaranKegiatan.spId,

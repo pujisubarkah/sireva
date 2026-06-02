@@ -139,6 +139,9 @@ const { authUser, role } = useAuthUser()
 const submitting = ref(false)
 const currentYear = new Date().getFullYear()
 
+const { data: unitList } = useFetch('/api/unit-kerja', { default: () => [] })
+const { data: sasaranRaw } = useFetch('/api/sasaran-kegiatan', { default: () => [] })
+
 // Role & Unit Logic
 const normalizedRole = computed(() => String(role.value || '').toLowerCase().replace(/\s+/g, '_'))
 

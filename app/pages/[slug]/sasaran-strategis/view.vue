@@ -23,7 +23,7 @@
           Kembali
         </button>
         <button 
-          @click="router.push(`/${$route.params.slug}/sasaran-strategis/edit?id=${ssId}`)"
+          @click="router.push(`/${$route.params.slug}/sasaran-strategis/edit?id=${ssId}${route.query.indId ? '&indId=' + route.query.indId : ''}`)"
           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2663A3] text-white font-bold text-sm shadow-lg shadow-blue-700/20 hover:bg-blue-800 hover:scale-[1.02] transition-all"
         >
           <IconPencil :size="18" />
@@ -164,7 +164,13 @@ onMounted(async () => {
     viewData.value.kode = detail.kode
     
     // Map indikators and their targets for all years
-    viewData.value.indikatorList = (detail.indikatorStrategis || []).map((ind: any) => {
+    const indIdQuery = route.query.indId ? Number(route.query.indId) : null
+    let rawIndList = detail.indikatorStrategis || []
+    if (indIdQuery) {
+      rawIndList = rawIndList.filter((ind: any) => Number(ind.id) === indIdQuery)
+    }
+
+    viewData.value.indikatorList = rawIndList.map((ind: any) => {
       const targetsMap: Record<number, string> = {}
       ind.targets?.forEach((t: any) => {
         targetsMap[t.tahun] = t.target

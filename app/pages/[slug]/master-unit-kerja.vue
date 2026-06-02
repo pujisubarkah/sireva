@@ -9,30 +9,10 @@
         <div class="flex w-full justify-end">
           <button
             type="button"
+            @click="showOrgChart = true"
             class="bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-lg px-4 py-2 inline-flex items-center gap-2 text-sm shadow"
           >
-            <IconPlus :size="16" :stroke="'2'" />
-            Input Unit Kerja
-          </button>
-        </div>
-      </div>
-
-      <div class="px-5 pt-4 bg-white border-b border-slate-100">
-        <div class="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
-          <button
-            type="button"
-            class="tab-btn"
-            :class="activeTab === 'table' ? 'tab-btn-active' : 'tab-btn-inactive'"
-            @click="activeTab = 'table'"
-          >
-            Tabel Unit Kerja
-          </button>
-          <button
-            type="button"
-            class="tab-btn"
-            :class="activeTab === 'chart' ? 'tab-btn-active' : 'tab-btn-inactive'"
-            @click="activeTab = 'chart'"
-          >
+            <IconSitemap :size="16" :stroke="'2'" />
             Organization Chart
           </button>
         </div>
@@ -42,7 +22,6 @@
       <div v-else-if="errorMessage" class="p-6 text-sm text-red-600">{{ errorMessage }}</div>
       <div v-else class="p-5">
         <Table
-          v-if="activeTab === 'table'"
           :columns="columns"
           :data="tableRows"
           rowKey="id"
@@ -58,6 +37,7 @@
             <div class="flex items-center justify-center gap-2">
               <button
                 type="button"
+                @click="openModal(row)"
                 :aria-label="`Edit ${row.nama}`"
                 title="Edit"
                 class="action-btn action-btn-edit"
@@ -66,6 +46,7 @@
               </button>
               <button
                 type="button"
+                @click="deleteUnitKerja(row.id)"
                 :aria-label="`Hapus ${row.nama}`"
                 title="Hapus"
                 class="action-btn action-btn-delete"
@@ -75,9 +56,53 @@
             </div>
           </template>
         </Table>
+      </div>
+    </div>
 
-        <div v-else class="org-chart-wrap">
-          <UnitKerjaOrgChart />
+    <!-- Org Chart Modal -->
+    <div v-if="showOrgChart" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl overflow-hidden" style="height: 90vh; display: flex; flex-direction: column;">
+        <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+          <h2 class="text-lg font-semibold text-slate-800">Organization Chart Unit Kerja</h2>
+          <button @click="showOrgChart = false" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+        </div>
+        <div class="flex-1 overflow-hidden">
+          <ClientOnly>
+            <UIUnitKerjaOrgChart />
+          </ClientOnly>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Form -->
+    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div class="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+          <h2 class="text-lg font-semibold text-slate-800">{{ isEdit ? 'Edit Unit Kerja' : 'Input Unit Kerja' }}</h2>
+          <button @click="closeModal" class="text-slate-400 hover:text-slate-600">&times;</button>
+        </div>
+        <div class="p-5">
+          <form @submit.prevent="saveUnitKerja" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Nama Unit Kerja</label>
+              <input v-model="formData.nama" type="text" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Parent ID (Opsional)</label>
+              <input v-model="formData.parentId" type="number" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Level (Opsional)</label>
+              <input v-model="formData.level" type="number" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500" />
+            </div>
+            
+            <div class="flex justify-end gap-2 mt-6">
+              <button type="button" @click="closeModal" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium text-sm transition-colors">Batal</button>
+              <button type="submit" :disabled="isSaving" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50">
+                {{ isSaving ? 'Menyimpan...' : 'Simpan' }}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -87,10 +112,9 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-import { computed, ref } from 'vue'
-import { IconPencil, IconTrash, IconPlus } from '@tabler/icons-vue'
+import { computed, ref, reactive } from 'vue'
+import { IconPencil, IconTrash, IconPlus, IconSitemap } from '@tabler/icons-vue'
 import Table from '@/components/UI/Table.vue'
-import UnitKerjaOrgChart from '@/components/UI/UnitKerjaOrgChart.vue'
 
 interface UnitKerjaApi {
   id: number
@@ -102,6 +126,7 @@ interface UnitKerjaApi {
 }
 
 interface UnitKerjaRow {
+  no: number
   id: number
   nama: string
   parent: string
@@ -109,16 +134,16 @@ interface UnitKerjaRow {
 }
 
 const columns = [
-  { key: 'id', label: 'ID', className: 'text-center w-16' },
+  { key: 'no', label: 'No.', className: 'text-center w-16' },
   { key: 'nama', label: 'Unit Kerja' },
   { key: 'parent', label: 'Parent Unit' },
   { key: 'aksi', label: 'Aksi', className: 'text-center w-24' },
 ]
 
-const activeTab = ref<'table' | 'chart'>('table')
+const showOrgChart = ref(false)
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
-const { data, error, pending } = useFetch('/api/unit-kerja', { lazy: true, default: () => [] })
+const { data, error, pending, refresh } = useFetch('/api/unit-kerja', { lazy: true, default: () => [] })
 
 const loading = computed(() => pending.value && !data.value)
 
@@ -135,47 +160,113 @@ const tableRows = computed<UnitKerjaRow[]>(() => {
     byId.set(item.id, item)
   }
 
-  return units.value.map((item) => ({
+  let mappedRows = units.value.map((item) => ({
+    no: 0,
     id: item.id,
     nama: item.nama || '-',
     parent: item.parentId ? byId.get(item.parentId)?.nama || '-' : '-',
     aksi: '',
   }))
+
+  mappedRows.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' }))
+
+  mappedRows = mappedRows.map((item, index) => ({
+    ...item,
+    no: index + 1
+  }))
+
+  return mappedRows
 })
+
+// Modal & Form State
+const showModal = ref(false)
+const isEdit = ref(false)
+const isSaving = ref(false)
+const formData = reactive({
+  id: null as number | null,
+  nama: '',
+  level: null as number | null,
+  parentId: null as number | null
+})
+
+function openModal(row?: UnitKerjaRow) {
+  isEdit.value = !!row
+  if (row) {
+    formData.id = row.id
+    const originalItem = units.value.find(u => u.id === row.id)
+    if (originalItem) {
+      formData.nama = originalItem.nama || ''
+      formData.level = originalItem.level || null
+      formData.parentId = originalItem.parentId || null
+    } else {
+      formData.nama = row.nama !== '-' ? row.nama : ''
+      formData.level = null
+      formData.parentId = null
+    }
+  } else {
+    formData.id = null
+    formData.nama = ''
+    formData.level = null
+    formData.parentId = null
+  }
+  showModal.value = true
+}
+
+function closeModal() {
+  showModal.value = false
+}
+
+async function saveUnitKerja() {
+  if (isSaving.value) return
+  isSaving.value = true
+  try {
+    const response = await fetch('/api/unit-kerja', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+    
+    if (!response.ok) {
+      const result = await response.json()
+      throw new Error(result.statusMessage || 'Gagal menyimpan data')
+    }
+    
+    closeModal()
+    await refresh()
+  } catch (err: any) {
+    alert(err.message || 'Terjadi kesalahan saat menyimpan data')
+  } finally {
+    isSaving.value = false
+  }
+}
+
+async function deleteUnitKerja(id: number) {
+  if (!confirm('Apakah Anda yakin ingin menghapus unit kerja ini?')) return
+  
+  try {
+    const response = await fetch('/api/unit-kerja', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ id })
+    })
+    
+    if (!response.ok) {
+      const result = await response.json()
+      throw new Error(result.statusMessage || 'Gagal menghapus data')
+    }
+    
+    await refresh()
+  } catch (err: any) {
+    alert(err.message || 'Terjadi kesalahan saat menghapus data')
+  }
+}
 </script>
 
 <style scoped>
-.tab-btn {
-  border-radius: 0.45rem;
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 0.45rem 0.8rem;
-  transition: all 0.15s ease;
-}
-
-.tab-btn-active {
-  background: #1d4ed8;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.2);
-}
-
-.tab-btn-inactive {
-  color: #475569;
-}
-
-.tab-btn-inactive:hover {
-  background: #e2e8f0;
-}
-
-.org-chart-wrap {
-  min-height: 25rem;
-}
-
-.org-chart-scroll {
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
-}
-
 .action-btn {
   height: 1.9rem;
   width: 1.9rem;

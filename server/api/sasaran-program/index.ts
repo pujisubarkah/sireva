@@ -39,16 +39,19 @@ export default defineEventHandler(async (event) => {
       };
 
       if (id && !isNaN(id)) {
+        const indId = query.indId ? Number(query.indId) : null;
+        const whereConditions = [
+          eq(sasaranProgram.id, id),
+          isNull(sasaranProgram.deletedAt)
+        ];
+        if (indId && !isNaN(indId)) {
+          whereConditions.push(eq(indikatorProgram.id, indId));
+        }
         const result = await db.select(selectFields)
           .from(sasaranProgram)
           .leftJoin(indikatorProgram, eq(sasaranProgram.id, indikatorProgram.sasaranProgramId))
           .leftJoin(indikatorStrategis, eq(sasaranProgram.ikssId, indikatorStrategis.id))
-          .where(
-            and(
-              eq(sasaranProgram.id, id),
-              isNull(sasaranProgram.deletedAt)
-            )
-          );
+          .where(and(...whereConditions));
         return result[0] || null;
       }
 

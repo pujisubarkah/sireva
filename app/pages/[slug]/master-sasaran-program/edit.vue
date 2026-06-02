@@ -210,7 +210,9 @@ const toast = useToast()
 const id = route.query.id
 const submitting = ref(false)
 
-const { data: detail, pending: fetching } = useFetch(id ? `/api/sasaran-program?id=${id}` : null, { lazy: true, default: () => [] })
+const { data: detail, pending: fetching } = useFetch(id ? `/api/sasaran-program?id=${id}${route.query.indId ? '&indId=' + route.query.indId : ''}` : null, { lazy: true, default: () => [] })
+const { data: ssData } = useFetch('/api/sasaran-strategis', { lazy: true, default: () => [] })
+const { data: unitList } = useFetch('/api/unit-kerja', { lazy: true, default: () => [] })
 
 // 1. Standardized Form State
 const form = ref<Record<string, any>>({

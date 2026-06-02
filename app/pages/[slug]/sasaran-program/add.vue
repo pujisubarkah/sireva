@@ -223,6 +223,9 @@ const route = useRoute()
 const toast = useToast()
 const submitting = ref(false)
 
+const { data: ssData } = useFetch('/api/sasaran-strategis', { default: () => [] })
+const { data: unitList } = useFetch('/api/unit-kerja', { default: () => [] })
+
 // 1. State Form (Key sesuai nama kolom database)
 const form = ref<Record<string, any>>({
   id_ss: null as number | null,
@@ -266,11 +269,18 @@ const indikatorStrategisOptions = computed(() => {
   const source = Array.isArray(ssData.value) ? ssData.value : (ssData.value.data || [])
   return source
     .filter((item: any) => item.ssId === form.value.id_ss)
-    .map((item: any) => ({
-      id: item.indikatorId,
-      nama: item.indikatorNama,
-      kode: item.indikatorKode
-    }))
+    .map((item: any) => {
+      let indId = item.indikatorId
+      if (!indId && item.id && String(item.id).includes('-')) {
+        indId = Number(String(item.id).split('-')[1])
+      }
+      return {
+        id: indId,
+        nama: item.indikatorNama,
+        kode: item.indikatorKode
+      }
+    })
+    .filter((is: any) => is.id)
 })
 
 // 4. Fungsi Submit

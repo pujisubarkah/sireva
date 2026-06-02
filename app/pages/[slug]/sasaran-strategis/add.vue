@@ -191,6 +191,9 @@ const route = useRoute()
 const submitting = ref(false)
 const currentYear = ref(2026)
 
+const { data: masterData } = useFetch('/api/sasaran-strategis', { default: () => [] })
+const { data: unitList } = useFetch('/api/unit-kerja', { default: () => [] })
+
 const { authUser, role } = useAuthUser()
 
 // Role & Unit Logic
@@ -200,17 +203,19 @@ const loggedUnitKerjaName = computed(() => String(authUser.value?.unit_kerja || 
 
 const userUnitKerjaId = computed(() => {
   if (!unitList.value) return null
-  const found = unitList.value.find((u: any) => u.nama === loggedUnitKerjaName.value)
+  const source = Array.isArray(unitList.value) ? unitList.value : ((unitList.value as any)?.data || [])
+  const found = source.find((u: any) => u.nama === loggedUnitKerjaName.value)
   return found?.id || null
 })
 
 // Dynamic Master Options
 const filteredMasterSasaran = computed(() => {
   if (!masterData.value) return []
+  const source = Array.isArray(masterData.value) ? masterData.value : ((masterData.value as any)?.data || [])
   
   // Group by ssId to get unique sasarans
   const map = new Map()
-  masterData.value.forEach((item: any) => {
+  source.forEach((item: any) => {
     if (!map.has(item.ssId)) {
       map.set(item.ssId, item)
     }
@@ -220,7 +225,20 @@ const filteredMasterSasaran = computed(() => {
 
 const availableIndikatorOptions = computed(() => {
   if (!masterData.value || !form.value.masterSsId) return []
-  return masterData.value.filter((item: any) => item.ssId === form.value.masterSsId && item.indikatorId)
+  const source = Array.isArray(masterData.value) ? masterData.value : ((masterData.value as any)?.data || [])
+  return source
+    .filter((item: any) => item.ssId === form.value.masterSsId)
+    .map((item: any) => {
+      let indId = item.indikatorId
+      if (!indId && item.id && String(item.id).includes('-')) {
+        indId = Number(String(item.id).split('-')[1])
+      }
+      return {
+        ...item,
+        indikatorId: indId
+      }
+    })
+    .filter((item: any) => item.indikatorId)
 })
 
 const form = ref({

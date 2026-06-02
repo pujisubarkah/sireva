@@ -9,6 +9,7 @@
         <div class="flex w-full justify-end">
           <button
             type="button"
+            @click="openModal()"
             class="bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-lg px-4 py-2 inline-flex items-center gap-2 text-sm shadow"
           >
             <IconPlus :size="16" :stroke="'2'" />
@@ -32,6 +33,7 @@
             <div class="flex items-center justify-center gap-2">
               <button
                 type="button"
+                @click="openModal(row)"
                 :aria-label="`Edit ${row.nama}`"
                 title="Edit"
                 class="action-btn action-btn-edit"
@@ -40,6 +42,7 @@
               </button>
               <button
                 type="button"
+                @click="deleteUser(row.id)"
                 :aria-label="`Hapus ${row.nama}`"
                 title="Hapus"
                 class="action-btn action-btn-delete"
@@ -51,13 +54,59 @@
         </Table>
       </div>
     </div>
+
+    <!-- Modal Form -->
+    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div class="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+          <h2 class="text-lg font-semibold text-slate-800">{{ isEdit ? 'Edit User' : 'Input User' }}</h2>
+          <button @click="closeModal" class="text-slate-400 hover:text-slate-600">&times;</button>
+        </div>
+        <div class="p-5">
+          <form @submit.prevent="saveUser" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Username</label>
+              <input v-model="formData.username" type="text" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Password {{ isEdit ? '(Kosongkan jika tidak diubah)' : '' }}</label>
+              <input v-model="formData.password" type="password" :required="!isEdit" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Nama / Alias</label>
+              <input v-model="formData.alias" type="text" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Unit Kerja</label>
+              <input v-model="formData.unit_kerja" type="text" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500" />
+            </div>
+            <div class="flex gap-4">
+              <div class="w-1/2">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Role ID</label>
+                <input v-model="formData.role_id" type="number" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500" />
+              </div>
+              <div class="w-1/2">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Role</label>
+                <input v-model="formData.role" type="text" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500" />
+              </div>
+            </div>
+            <div class="flex justify-end gap-2 mt-6">
+              <button type="button" @click="closeModal" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium text-sm transition-colors">Batal</button>
+              <button type="submit" :disabled="isSaving" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50">
+                {{ isSaving ? 'Menyimpan...' : 'Simpan' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-import { computed } from 'vue';
+import { computed, ref, reactive } from 'vue';
 import { IconPencil, IconTrash, IconPlus } from '@tabler/icons-vue';
 import Table from '@/components/UI/Table.vue';
 
@@ -73,6 +122,7 @@ interface UserApi {
 }
 
 interface UserRow {
+  no: number;
   id: number;
   nama: string;
   username: string;
@@ -84,18 +134,16 @@ interface UserRow {
 }
 
 const columns = [
-  { key: 'id', label: 'ID', className: 'text-center w-16' },
+  { key: 'no', label: 'No.', className: 'text-center w-16' },
   { key: 'nama', label: 'Nama' },
   { key: 'username', label: 'Username' },
-  { key: 'role_id', label: 'Role ID', className: 'text-center w-24' },
-  { key: 'role', label: 'Role', className: 'text-center w-28' },
   { key: 'unit_kerja', label: 'Unit Kerja' },
-  { key: 'created_at', label: 'Dibuat', className: 'w-44' },
   { key: 'aksi', label: 'Aksi', className: 'text-center w-24' },
 ];
 
 const dummyRows: UserRow[] = [
   {
+    no: 1,
     id: 1,
     nama: 'Admin',
     username: 'admin',
@@ -106,6 +154,7 @@ const dummyRows: UserRow[] = [
     aksi: '',
   },
   {
+    no: 2,
     id: 2,
     nama: 'User B',
     username: 'userb',
@@ -118,7 +167,7 @@ const dummyRows: UserRow[] = [
 ];
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
-const { data, error, pending } = useFetch('/api/users', { lazy: true, default: () => [] });
+const { data, error, pending, refresh } = useFetch('/api/users', { lazy: true, default: () => [] });
 
 const loading = computed(() => pending.value && !data.value);
 
@@ -143,21 +192,138 @@ function formatDate(value: string | null): string {
 }
 
 const tableRows = computed<UserRow[]>(() => {
-  const rowsFromApi = Array.isArray(data.value)
-    ? data.value.map((item) => ({
-        id: item.id,
-        nama: item.alias || item.username || '-',
-        username: item.username || '-',
-        role_id: item.role_id ?? '-',
-        role: item.role || '-',
-        unit_kerja: item.unit_kerja || '-',
-        created_at: formatDate(item.created_at),
-        aksi: '',
-      }))
-    : [];
+  if (!Array.isArray(data.value)) {
+    return dummyRows;
+  }
 
-  return rowsFromApi.length ? rowsFromApi : dummyRows;
+  // Create a copy of the data from API
+  let rowsFromApi = [...data.value];
+
+  // Map to UserRow format first so we can sort by 'nama'
+  let mappedRows = rowsFromApi.map((item) => ({
+    no: 0, // placeholder, will be updated after sort
+    id: item.id,
+    nama: item.alias || item.username || '-',
+    username: item.username || '-',
+    role_id: item.role_id ?? '-',
+    role: item.role || '-',
+    unit_kerja: item.unit_kerja || '-',
+    created_at: formatDate(item.created_at),
+    aksi: '',
+  }));
+
+  // Sort by 'nama' alphabetically ascending
+  mappedRows.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' }));
+
+  // Assign sequence number based on sorted order
+  mappedRows = mappedRows.map((item, index) => ({
+    ...item,
+    no: index + 1
+  }));
+
+  return mappedRows.length ? mappedRows : dummyRows;
 });
+
+// Modal & Form State
+const showModal = ref(false);
+const isEdit = ref(false);
+const isSaving = ref(false);
+const formData = reactive({
+  id: null as number | null,
+  username: '',
+  password: '',
+  alias: '',
+  unit_kerja: '',
+  role_id: null as number | null,
+  role: ''
+});
+
+function openModal(row?: UserRow) {
+  isEdit.value = !!row;
+  if (row) {
+    formData.id = row.id;
+    formData.username = row.username !== '-' ? row.username : '';
+    formData.password = '';
+    
+    // Find the original item from data API to get the correct values
+    const originalItem = Array.isArray(data.value) ? data.value.find(u => u.id === row.id) : null;
+    
+    if (originalItem) {
+      formData.alias = originalItem.alias || '';
+      formData.unit_kerja = originalItem.unit_kerja || '';
+      formData.role_id = originalItem.role_id || null;
+      formData.role = originalItem.role || '';
+    } else {
+      formData.alias = row.nama !== '-' ? row.nama : '';
+      formData.unit_kerja = row.unit_kerja !== '-' ? row.unit_kerja : '';
+      formData.role_id = row.role_id !== '-' ? Number(row.role_id) : null;
+      formData.role = row.role !== '-' ? row.role : '';
+    }
+  } else {
+    formData.id = null;
+    formData.username = '';
+    formData.password = '';
+    formData.alias = '';
+    formData.unit_kerja = '';
+    formData.role_id = null;
+    formData.role = '';
+  }
+  showModal.value = true;
+}
+
+function closeModal() {
+  showModal.value = false;
+}
+
+async function saveUser() {
+  if (isSaving.value) return;
+  isSaving.value = true;
+  try {
+    const response = await fetch('/api/users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    });
+    
+    if (!response.ok) {
+      const result = await response.json();
+      throw new Error(result.statusMessage || 'Gagal menyimpan data');
+    }
+    
+    closeModal();
+    await refresh();
+  } catch (err: any) {
+    alert(err.message || 'Terjadi kesalahan saat menyimpan data');
+  } finally {
+    isSaving.value = false;
+  }
+}
+
+async function deleteUser(id: number) {
+  if (!confirm('Apakah Anda yakin ingin menghapus user ini?')) return;
+  
+  try {
+    // using PUT/DELETE (we implemented DELETE in /api/users, but could also call users with PUT body={id} if preferred, standard is DELETE)
+    const response = await fetch('/api/users', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ id })
+    });
+    
+    if (!response.ok) {
+      const result = await response.json();
+      throw new Error(result.statusMessage || 'Gagal menghapus data');
+    }
+    
+    await refresh();
+  } catch (err: any) {
+    alert(err.message || 'Terjadi kesalahan saat menghapus data');
+  }
+}
 </script>
 
 <style scoped>

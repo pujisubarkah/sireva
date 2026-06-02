@@ -133,14 +133,14 @@
         <template #cell-aksi="{ row }">
           <div class="flex items-center justify-center gap-1">
             <NuxtLink
-              :to="`/${route.params.slug}/master-sasaran-program/view?id=${row.spId}`"
+              :to="`/${route.params.slug}/master-sasaran-program/view?id=${row.spId}${row.id !== row.spId ? '&indId=' + row.id : ''}`"
               class="p-2.5 text-slate-400 hover:text-[#2663A3] hover:bg-blue-50 rounded-2xl transition-all active:scale-90"
               title="Lihat Detail"
             >
               <IconEye :size="20" stroke-width="2.5" />
             </NuxtLink>
             <NuxtLink
-              :to="`/${route.params.slug}/master-sasaran-program/edit?id=${row.spId}`"
+              :to="`/${route.params.slug}/master-sasaran-program/edit?id=${row.spId}${row.id !== row.spId ? '&indId=' + row.id : ''}`"
               class="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-all active:scale-90"
               title="Edit"
             >
@@ -253,8 +253,10 @@ const filteredRows = computed<SasaranRow[]>(() => {
     const targetKey = `target_${yearIndex + 1}`;
     const targetValue = item[targetKey] || 0;
 
+    const indId = (item.indikatorId !== undefined && item.indikatorId !== null) ? Number(item.indikatorId) : null;
+
     return {
-      id: `${item.id}-${item.indikatorId || index}`,
+      id: indId || item.id,
       spId: item.id,
       nomor: index + 1,
       kode: item.kode || '-',

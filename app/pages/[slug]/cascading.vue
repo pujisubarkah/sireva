@@ -578,7 +578,7 @@ const printCascading = async () => {
     const year = selectedYear.value
 
     // ── Build org-chart HTML ──
-    const ssBlocks = uniqueStrategis.value.map((ss: any) => {
+    const ssItems = uniqueStrategis.value.map((ss: any) => {
       const programs = getChildrenProgram(ss.id)
       const totalSk = getTotalKegiatan(ss.id)
 
@@ -628,7 +628,7 @@ const printCascading = async () => {
         </li>`
       }).join('')
 
-      return `<div class="ss-block">
+      return `<li class="ss-item">
         <div class="ss-card">
           <div class="badge ss-badge">SS</div>
           <div class="ss-title">${ss.sasaranText ?? '-'}</div>
@@ -639,7 +639,7 @@ const printCascading = async () => {
           </div>
         </div>
         ${spItems ? `<ul class="sp-level">${spItems}</ul>` : '<p class="empty-msg">Belum ada Sasaran Program</p>'}
-      </div>`
+      </li>`
     }).join('')
 
     const printDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
@@ -682,8 +682,85 @@ const printCascading = async () => {
   .sp-badge { background:#ede9fe; color:#4c1d95; border:1px solid #a78bfa; }
   .sk-badge { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
 
+  /* ── LAN CARD ── */
+  .lan-card {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    color: #fff; border-radius: 8px; padding: 10px 18px;
+    min-width: 220px; text-align: center;
+    border-bottom: 4px solid #3b82f6;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
+    position: relative;
+    z-index: 10;
+  }
+  .lan-title { font-size: 9pt; font-weight: 900; letter-spacing: 0.5px; }
+
+  /* ── SS level (children of LAN) ── */
+  .ss-level {
+    display: flex;
+    list-style: none;
+    padding-top: 24px;   /* room for the vertical drop line from LAN */
+    position: relative;
+    gap: 0;
+  }
+
+  /* Vertical line dropping from LAN card bottom to the horizontal bar */
+  .ss-level::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 1.5px; height: 24px;
+    background: #1e3a8a;
+  }
+
+  /* Each SS item */
+  .ss-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 0 12px;
+  }
+
+  /* Left horizontal arm (toward left sibling) */
+  .ss-item::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 50%;
+    width: 50%; height: 1.5px;
+    background: #1e3a8a;
+  }
+  /* Right horizontal arm (toward right sibling) */
+  .ss-item::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    width: 50%; height: 1.5px;
+    background: #1e3a8a;
+  }
+  /* Single child — no horizontal arms */
+  .ss-item:only-child::before,
+  .ss-item:only-child::after  { display: none; }
+  /* First child — no left arm */
+  .ss-item:first-child::before { display: none; }
+  /* Last child  — no right arm */
+  .ss-item:last-child::after   { display: none; }
+
+  /* SS card — vertical stub from horizontal bar down to card top */
+  .ss-card {
+    margin-top: 24px;   /* space for stub */
+    position: relative;
+  }
+  .ss-card::before {
+    content: '';
+    position: absolute;
+    top: -24px; left: 50%;
+    transform: translateX(-50%);
+    width: 1.5px; height: 24px;
+    background: #1e3a8a;
+  }
+
   /* ── SS CARD ── */
-  .ss-block { display:flex; flex-direction:column; align-items:center; margin-bottom:16px; }
   .ss-card {
     background:linear-gradient(135deg,#1e3a8a,#1d4ed8);
     color:#fff; border-radius:8px; padding:9px 14px;
@@ -888,7 +965,9 @@ const printCascading = async () => {
     }
     #cascade-tree {
       min-width: auto;
-      display: block;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
   }
 </style>
@@ -907,7 +986,11 @@ const printCascading = async () => {
 
 <div class="tree-wrapper">
   <div id="cascade-tree">
-    ${ssBlocks || '<p style="text-align:center;color:#94a3b8;padding:40px;">Tidak ada data untuk ditampilkan.</p>'}
+    <div class="lan-card">
+      <div class="badge" style="background:#475569; color:#fff; border:1px solid #64748b; margin-bottom:2px;">INSTANSI</div>
+      <div class="lan-title">Lembaga Administrasi Negara (LAN)</div>
+    </div>
+    ${ssItems ? `<ul class="ss-level">${ssItems}</ul>` : '<p style="text-align:center;color:#94a3b8;padding:40px;">Tidak ada data untuk ditampilkan.</p>'}
   </div>
 </div>
 

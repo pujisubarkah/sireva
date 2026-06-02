@@ -88,7 +88,7 @@
           <IconFileText :size="20" class="text-slate-500" stroke-width="2.5" />
           <h2 class="text-slate-700 font-bold text-sm uppercase tracking-wider">
             Indikator Kinerja
-            <span v-if="ikList?.length" class="ml-2 px-2 py-0.5 bg-blue-100 text-[#2663A3] text-[10px] rounded-full font-black">{{ ikList.length }}</span>
+            <span v-if="filteredIkList?.length" class="ml-2 px-2 py-0.5 bg-blue-100 text-[#2663A3] text-[10px] rounded-full font-black">{{ filteredIkList.length }}</span>
           </h2>
         </div>
         <div class="p-6">
@@ -110,7 +110,7 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
-                <tr v-for="(ik, idx) in ikList" :key="ik.id" class="hover:bg-slate-50/60 transition-colors">
+                <tr v-for="(ik, idx) in filteredIkList" :key="ik.id" class="hover:bg-slate-50/60 transition-colors">
                   <td class="p-3 text-center text-sm font-bold text-slate-400">{{ idx + 1 }}</td>
                   <td class="p-3 text-sm font-semibold text-slate-700 leading-snug">{{ ik.namaIku || '-' }}</td>
                   <td class="p-3 text-sm text-slate-600">{{ ik.satuan || '-' }}</td>
@@ -129,7 +129,7 @@
       <!-- Action Buttons -->
       <div class="flex items-center justify-end gap-4 pt-4">
         <button
-          @click="router.push(`/${route.params.slug}/master-sasaran-kegiatan/edit?id=${id}`)"
+          @click="router.push(`/${route.params.slug}/master-sasaran-kegiatan/edit?id=${id}${route.query.indId ? '&indId=' + route.query.indId : ''}`)"
           class="px-8 py-3.5 rounded-2xl bg-[#2663A3] text-white font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2"
         >
           <IconPencil :size="18" />
@@ -155,6 +155,16 @@ const { data: detail, pending: fetching } = useFetch(id ? `/api/sasaran-kegiatan
 // Fetch all indikator kinerja for this SK
 const { data: ikList } = useFetch(id ? `/api/indikator-kinerja?sk_id=${id}` : null, { lazy: true, default: () => [] })
 const { data: spData } = useFetch('/api/sasaran-program', { lazy: true, default: () => [] })
+
+const filteredIkList = computed(() => {
+  const list = ikList.value || []
+  const indIdQuery = route.query.indId ? Number(route.query.indId) : null
+  if (indIdQuery) {
+    return list.filter((ik: any) => Number(ik.id) === indIdQuery)
+  }
+  return list
+})
+
 const spName = computed(() => {
   if (!detail.value || !spData.value) return '-'
   const item = Array.isArray(detail.value) ? detail.value[0] : detail.value

@@ -17,7 +17,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-3">L
+      <div class="flex items-center gap-3">
         <!-- Floating Add Button -->
         <button
           v-if="isSuperAdmin"
@@ -121,7 +121,7 @@
         <template #cell-aksi="{ row }">
           <div class="flex items-center justify-center gap-1">
             <button
-              @click="router.push(`/${$route.params.slug}/sasaran-strategis/view?id=${row.ssId}`)"
+              @click="router.push(`/${$route.params.slug}/sasaran-strategis/view?id=${row.ssId}${row.id !== row.ssId ? '&indId=' + row.id : ''}`)"
               class="p-2.5 text-slate-400 hover:text-[#2663A3] hover:bg-blue-50 rounded-2xl transition-all active:scale-90"
               title="Lihat Detail"
             >
@@ -129,7 +129,7 @@
             </button>
             <button
               v-if="isSuperAdmin"
-              @click="router.push(`/${$route.params.slug}/sasaran-strategis/edit?id=${row.ssId}`)"
+              @click="router.push(`/${$route.params.slug}/sasaran-strategis/edit?id=${row.ssId}${row.id !== row.ssId ? '&indId=' + row.id : ''}`)"
               class="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-all active:scale-90"
               title="Edit"
             >
@@ -216,10 +216,18 @@ const displayRows = computed(() => {
     )
   }
 
-  return rows.map((r: any) => ({
-    ...r,
-    targetValue: r.targets?.find((t: any) => Number(t.tahun) === Number(selectedYear.value))?.target || 0
-  }))
+  return rows.map((r: any) => {
+    const idParts = String(r.id).split('-')
+    const ssId = Number(idParts[0])
+    const indId = idParts[1] ? Number(idParts[1]) : null
+
+    return {
+      ...r,
+      id: indId || ssId,
+      ssId: ssId,
+      targetValue: r.targets?.find((t: any) => Number(t.tahun) === Number(selectedYear.value))?.target || 0
+    }
+  })
 })
 
 // (paginatedRows removed since Table.vue handles pagination internally)

@@ -215,10 +215,15 @@ watchEffect(() => {
     form.value.sasaranText = detail.value.sasaranText || ''
     
     // Map indicators and targets
-    const firstInd = detail.value.indikatorStrategis?.[0]
+    const indIdQuery = route.query.indId ? Number(route.query.indId) : null
+    const indicatorsToMap = indIdQuery
+      ? (detail.value.indikatorStrategis || []).filter((ind: any) => Number(ind.id) === indIdQuery)
+      : (detail.value.indikatorStrategis || [])
+
+    const firstInd = indicatorsToMap[0] || detail.value.indikatorStrategis?.[0]
     form.value.satuan = firstInd?.satuan || ''
     
-    form.value.indikatorList = (detail.value.indikatorStrategis || []).map((ind: any) => {
+    form.value.indikatorList = indicatorsToMap.map((ind: any) => {
       const targetsArr = ['', '', '', '', '']
       const startYear = 2025
       const actualTargets = ind.targets || []

@@ -15,7 +15,7 @@
       </div>
       <div class="flex gap-3">
         <NuxtLink
-          :to="`/${route.params.slug}/master-sasaran-strategis/edit?id=${id}`"
+          :to="`/${route.params.slug}/master-sasaran-strategis/edit?id=${id}${route.query.indId ? '&indId=' + route.query.indId : ''}`"
           class="px-5 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-100"
         >
           <IconPencil :size="18" /> Edit Data
@@ -60,7 +60,7 @@
           <h2 class="text-slate-800 font-black text-lg">Indikator Kinerja & Target</h2>
         </div>
 
-        <div v-for="(ind, idx) in data.indikatorStrategis" :key="ind.id" class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden transition-all hover:border-emerald-200">
+        <div v-for="(ind, idx) in filteredIndikators" :key="ind.id" class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden transition-all hover:border-emerald-200">
           <div class="p-8">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div class="flex-1 space-y-2">
@@ -138,6 +138,15 @@ const id = Number(route.query.id)
 const { data, error, pending } = useFetch(id ? `/api/sasaran-strategis/${id}` : null, { lazy: true, default: () => [] })
 
 const loading = computed(() => pending.value && !data.value)
+
+const filteredIndikators = computed(() => {
+  if (!data.value || !data.value.indikatorStrategis) return []
+  const indIdQuery = route.query.indId ? Number(route.query.indId) : null
+  if (indIdQuery) {
+    return data.value.indikatorStrategis.filter((ind: any) => Number(ind.id) === indIdQuery)
+  }
+  return data.value.indikatorStrategis
+})
 </script>
 
 <style scoped>

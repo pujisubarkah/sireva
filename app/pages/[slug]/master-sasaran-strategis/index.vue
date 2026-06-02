@@ -129,14 +129,14 @@
         <template #cell-aksi="{ row }">
           <div class="flex items-center justify-center gap-1">
             <NuxtLink
-              :to="`/${route.params.slug}/master-sasaran-strategis/view?id=${row.ssId}`"
+              :to="`/${route.params.slug}/master-sasaran-strategis/view?id=${row.ssId}${row.id !== row.ssId ? '&indId=' + row.id : ''}`"
               class="p-2.5 text-slate-400 hover:text-[#2663A3] hover:bg-blue-50 rounded-2xl transition-all active:scale-90"
               title="Lihat Detail"
             >
               <IconEye :size="20" stroke-width="2.5" />
             </NuxtLink>
             <NuxtLink
-              :to="`/${route.params.slug}/master-sasaran-strategis/edit?id=${row.ssId}`"
+              :to="`/${route.params.slug}/master-sasaran-strategis/edit?id=${row.ssId}${row.id !== row.ssId ? '&indId=' + row.id : ''}`"
               class="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-all active:scale-90"
               title="Edit"
             >
@@ -254,9 +254,13 @@ const filteredRows = computed<SasaranRow[]>(() => {
 
   return rows.map((item: any, index: number) => {
     const targetObj = item.targets?.find((t: any) => Number(t.tahun) === Number(selectedYear.value));
+    const idParts = String(item.id).split('-');
+    const ssId = Number(idParts[0]);
+    const indId = idParts[1] ? Number(idParts[1]) : null;
+
     return {
-      id: item.id,
-      ssId: item.ssId || item.id,
+      id: indId || ssId,
+      ssId: ssId,
       nomor: index + 1,
       kode: item.kode || item.kodeSs || '-',
       sasaran: item.sasaranText || item.namaSs || '-',

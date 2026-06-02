@@ -257,7 +257,7 @@ const id = route.query.id
 const skId = Number(id)
 const submitting = ref(false)
 
-const { data: detail, pending: fetching } = useFetch(id ? `/api/sasaran-kegiatan?id=${id}` : null, { lazy: true, default: () => [] })
+const { data: detail, pending: fetching } = useFetch(id ? `/api/sasaran-kegiatan?id=${id}${route.query.indId ? '&indId=' + route.query.indId : ''}` : null, { lazy: true, default: () => [] })
 const { data: spData } = useFetch('/api/sasaran-program', { lazy: true, default: () => [] })
 const { data: unitData } = useFetch('/api/unit-kerja', { lazy: true, default: () => [] })
 const unitList = computed(() => Array.isArray(unitData.value) ? unitData.value : (unitData.value?.data || []))
@@ -330,7 +330,11 @@ watchEffect(async () => {
     // Load all IKs for this SK
     try {
       const iks = await fetch(`/api/indikator-kinerja?sk_id=${skId}`).then(r => r.json())
-      const list = Array.isArray(iks) ? iks : []
+      let list = Array.isArray(iks) ? iks : []
+      const indIdQuery = route.query.indId ? Number(route.query.indId) : null
+      if (indIdQuery) {
+        list = list.filter((ik: any) => Number(ik.id) === indIdQuery)
+      }
       indikators.value = list.map((ik: any) => ({
         _key: ++_keyCounter,
         id: ik.id,

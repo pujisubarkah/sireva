@@ -49,6 +49,7 @@ export default defineEventHandler(async (event) => {
       const allIndikators = await db.select({
         id: indikatorStrategis.id,
         sasaranStrategisId: indikatorStrategis.sasaranStrategisId,
+        kode: indikatorStrategis.kode,
         nama: indikatorStrategis.nama,
         satuan: indikatorStrategis.satuan,
       })
@@ -101,6 +102,8 @@ export default defineEventHandler(async (event) => {
             flattenedRows.push({
               ...row,
               id: `${row.id}-${ind.id}`, // Unique ID for table row key
+              indikatorId: ind.id,
+              indikatorKode: ind.kode,
               indikatorNama: ind.nama,
               indikatorSatuan: ind.satuan,
               targets: targetsByIndId.get(ind.id) || [],

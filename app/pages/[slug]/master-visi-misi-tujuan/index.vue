@@ -78,9 +78,9 @@ import Table from '@/components/UI/Table.vue';
 
 const route = useRoute();
 
-const { data: visiData, error: vError, pending: vLoading } = useFetch('/api/visi', { lazy: true, default: () => [] });
-const { data: misiData, error: mError, pending: mLoading } = useFetch('/api/misi', { lazy: true, default: () => [] });
-const { data: tujuanData, error: tError, pending: tLoading } = useFetch('/api/tujuan', { lazy: true, default: () => [] });
+const { data: visiData, error: vError, pending: vLoading, refresh: refreshVisi } = useFetch('/api/visi', { lazy: true, default: () => [] });
+const { data: misiData, error: mError, pending: mLoading, refresh: refreshMisi } = useFetch('/api/misi', { lazy: true, default: () => [] });
+const { data: tujuanData, error: tError, pending: tLoading, refresh: refreshTujuan } = useFetch('/api/tujuan', { lazy: true, default: () => [] });
 
 const loading = computed(() => vLoading.value || mLoading.value || tLoading.value);
 const errorMessage = computed(() => vError.value || mError.value || tError.value ? 'Gagal memuat data' : '');
@@ -116,10 +116,16 @@ const tableData = computed(() => {
 const handleDelete = async (row: any) => {
   if (confirm(`Apakah Anda yakin ingin menghapus ${row.tipe} ini?`)) {
     try {
-      await $fetch(`/api/${row.tipe.toLowerCase()}/${row.id}`, { method: 'DELETE' });
-      // Refresh logic would go here
-    } catch (error) {
+      await $fetch(`/api/${row.tipe.toLowerCase()}`, {
+        method: 'DELETE',
+        body: { id: row.id }
+      });
+      if (row.tipe === 'VISI') await refreshVisi();
+      else if (row.tipe === 'MISI') await refreshMisi();
+      else if (row.tipe === 'TUJUAN') await refreshTujuan();
+    } catch (error: any) {
       console.error('Error deleting:', error);
+      alert('Gagal menghapus data: ' + (error.data?.message || error.message || 'Terjadi kesalahan'));
     }
   }
 };

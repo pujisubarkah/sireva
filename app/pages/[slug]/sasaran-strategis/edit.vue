@@ -188,6 +188,7 @@ const ssId = Number(route.query.id)
 const fetching = ref(true)
 const submitting = ref(false)
 const currentYear = ref(2026)
+const { data: unitList } = useFetch('/api/unit-kerja', { default: () => [] })
 
 const { authUser, role } = useAuthUser()
 
@@ -231,7 +232,13 @@ onMounted(async () => {
     form.value.unitKerjaId = detail.unitKerjaId
     
     // Map indikators and their target for currentYear
-    form.value.indikatorList = (detail.indikatorStrategis || []).map((ind: any) => ({
+    const indIdQuery = route.query.indId ? Number(route.query.indId) : null
+    let rawInds = detail.indikatorStrategis || []
+    if (indIdQuery) {
+      rawInds = rawInds.filter((ind: any) => Number(ind.id) === indIdQuery)
+    }
+
+    form.value.indikatorList = rawInds.map((ind: any) => ({
       id: ind.id,
       nama: ind.nama,
       target: ind.targets?.find((t: any) => Number(t.tahun) === currentYear.value)?.target || ''
