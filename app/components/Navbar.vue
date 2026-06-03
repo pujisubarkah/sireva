@@ -10,7 +10,8 @@
           <span class="font-normal text-xs" style="color: #F7D628">Sistem Informasi Perencanaan dan Evaluasi - New Generation</span>
         </div>
       </div>
-      <ul class="cd-header-buttons before-login-header-comp flex items-center gap-2 ml-8" id="ul_main_menu">
+      <!-- Desktop Menu Links -->
+      <ul class="hidden lg:flex cd-header-buttons before-login-header-comp items-center gap-2 ml-8" id="ul_main_menu">
         <li>
           <NuxtLink to="/" class="text-white hover:text-yellow-400 font-medium px-3 py-1">Beranda</NuxtLink>
         </li>
@@ -34,8 +35,52 @@
             <span>MASUK</span>
           </button>
         </li>
+      </ul>
 
+      <!-- Hamburger Menu Button (visible on mobile/tablet) -->
+      <button 
+        class="lg:hidden text-white hover:text-yellow-400 p-2 focus:outline-none active:scale-95 transition-transform" 
+        @click="isMobileMenuOpen = !isMobileMenuOpen"
+        type="button"
+        aria-label="Toggle menu"
+      >
+        <svg v-if="!isMobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
 
+    <!-- Mobile Menu Drawer (visible when open) -->
+    <div 
+      v-show="isMobileMenuOpen" 
+      class="lg:hidden bg-[#1F4F85] border-t border-white/10 px-4 py-4 space-y-3"
+    >
+      <ul class="flex flex-col gap-2">
+        <li>
+          <NuxtLink to="/" class="block text-white hover:text-yellow-400 font-medium py-2 border-b border-white/5" @click="isMobileMenuOpen = false">Beranda</NuxtLink>
+        </li>
+        <li>
+          <NuxtLink :to="{ path: '/visi-misi' }" class="block text-white hover:text-yellow-400 font-medium py-2 border-b border-white/5" @click="isMobileMenuOpen = false">Visi & Misi</NuxtLink>
+        </li>
+        <li>
+          <NuxtLink :to="{ path: '/produk-hukum' }" class="block text-white hover:text-yellow-400 font-medium py-2 border-b border-white/5" @click="isMobileMenuOpen = false">Produk Hukum</NuxtLink>
+        </li>
+        <li>
+          <a href="https://ppid.lan.go.id/" target="_blank" rel="noopener" class="block text-white hover:text-yellow-400 font-medium py-2 border-b border-white/5" @click="isMobileMenuOpen = false">PPID</a>
+        </li>
+        <li class="pt-2">
+          <button
+            class="beforelogin-btn w-full py-2.5 rounded font-semibold transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2"
+            style="background-color: #F7D628; color: #1F1F1F; border: 1px solid #F7D628;"
+            type="button"
+            @click="showLogin = true; isMobileMenuOpen = false"
+          >
+            MASUK
+          </button>
+        </li>
       </ul>
     </div>
     
@@ -56,6 +101,7 @@
 import { ref } from 'vue'
 
 const showLogin = ref(false)
+const isMobileMenuOpen = ref(false)
 </script>
 
 <style scoped>

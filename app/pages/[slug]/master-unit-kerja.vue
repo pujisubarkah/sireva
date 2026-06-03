@@ -6,14 +6,16 @@
       </div>
 
       <div class="px-5 py-3 border-b border-slate-200 bg-white">
-        <div class="flex w-full justify-end">
+        <div class="flex w-full justify-end gap-2">
           <button
             type="button"
-            @click="showOrgChart = true"
-            class="bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-lg px-4 py-2 inline-flex items-center gap-2 text-sm shadow"
+            @click="printOrgChart"
+            :disabled="printLoading"
+            class="bg-[#2663A3] hover:bg-blue-800 text-white font-bold rounded-lg px-4 py-2 inline-flex items-center gap-2 text-sm shadow disabled:opacity-50 transition-colors"
           >
-            <IconSitemap :size="16" :stroke="'2'" />
-            Organization Chart
+            <span v-if="printLoading" class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            <IconDownload v-else :size="16" :stroke="'2'" />
+            Cetak / PDF
           </button>
         </div>
       </div>
@@ -59,20 +61,7 @@
       </div>
     </div>
 
-    <!-- Org Chart Modal -->
-    <div v-if="showOrgChart" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl overflow-hidden" style="height: 90vh; display: flex; flex-direction: column;">
-        <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-          <h2 class="text-lg font-semibold text-slate-800">Organization Chart Unit Kerja</h2>
-          <button @click="showOrgChart = false" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
-        </div>
-        <div class="flex-1 overflow-hidden">
-          <ClientOnly>
-            <UIUnitKerjaOrgChart />
-          </ClientOnly>
-        </div>
-      </div>
-    </div>
+
 
     <!-- Modal Form -->
     <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -113,7 +102,7 @@
 definePageMeta({ layout: 'dashboard' })
 
 import { computed, ref, reactive } from 'vue'
-import { IconPencil, IconTrash, IconPlus, IconSitemap } from '@tabler/icons-vue'
+import { IconPencil, IconTrash, IconPlus, IconDownload } from '@tabler/icons-vue'
 import Table from '@/components/UI/Table.vue'
 
 interface UnitKerjaApi {
@@ -140,7 +129,439 @@ const columns = [
   { key: 'aksi', label: 'Aksi', className: 'text-center w-24' },
 ]
 
-const showOrgChart = ref(false)
+const printLoading = ref(false)
+
+function printOrgChart() {
+  if (printLoading.value) return
+  printLoading.value = true
+  try {
+    const flatList = units.value
+    
+    // Find Kepala LAN (level === 0)
+    const kepalaLanNode = flatList.find(u => u.level === 0) || flatList.find(u => (u.nama || '').toLowerCase().includes('kepala lan'))
+    
+    const nodeMap = new Map<number, any>()
+    for (const item of flatList) {
+      nodeMap.set(item.id, {
+        id: item.id,
+        nama: item.nama || '',
+        level: item.level ?? 0,
+        parentId: item.parentId,
+        children: []
+      })
+    }
+
+    const eselon1Nodes: any[] = []
+    const directEselon2Nodes: any[] = []
+
+    for (const node of nodeMap.values()) {
+      if (node.id === kepalaLanNode?.id) continue
+      if (node.level === 1) {
+        eselon1Nodes.push(node)
+      } else if (node.level === 2) {
+        if (node.parentId && nodeMap.has(node.parentId) && nodeMap.get(node.parentId).level === 1) {
+          nodeMap.get(node.parentId).children.push(node)
+        } else {
+          directEselon2Nodes.push(node)
+        }
+      }
+    }
+
+    // Sort Eselon 1 and Eselon 2 by name
+    eselon1Nodes.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' }))
+    directEselon2Nodes.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' }))
+    for (const node of nodeMap.values()) {
+      if (node.children && node.children.length > 0) {
+        node.children.sort((a: any, b: any) => a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' }))
+      }
+    }
+
+    // Build the Eselon 1 level HTML
+    const spItems = [...eselon1Nodes, ...directEselon2Nodes].map((sp: any) => {
+      const isEselon2 = sp.level === 2
+      const badgeText = isEselon2 ? 'ESELON II' : 'ESELON I'
+      const badgeClass = isEselon2 ? 'sk-badge' : 'sp-badge'
+      const cardStyle = isEselon2 ? 'style="border-color: #059669;"' : ''
+      
+      let skItems = ''
+      if (sp.children && sp.children.length > 0) {
+        skItems = sp.children.map((sk: any) => `
+          <li class="sk-item">
+            <div class="sk-card">
+              <div class="badge sk-badge">ESELON II</div>
+              <div class="card-text">${sk.nama}</div>
+            </div>
+          </li>
+        `).join('')
+      }
+
+      return `
+        <li class="sp-item">
+          <div class="sp-card" ${cardStyle}>
+            <div class="badge ${badgeClass}">${badgeText}</div>
+            <div class="card-text">${sp.nama}</div>
+          </div>
+          ${skItems ? `<ul class="sk-level">${skItems}</ul>` : ''}
+        </li>
+      `
+    }).join('')
+
+    // Build Kepala LAN HTML
+    const kepalaLanName = kepalaLanNode ? kepalaLanNode.nama : 'Kepala LAN'
+    const ssItems = `
+      <li class="ss-item">
+        <div class="ss-card">
+          <div class="badge ss-badge">KEPALA LAN</div>
+          <div class="ss-title">${kepalaLanName}</div>
+          <div class="ss-sub">&#128100; Lembaga Administrasi Negara</div>
+        </div>
+        ${spItems ? `<ul class="sp-level">${spItems}</ul>` : ''}
+      </li>
+    `
+
+    const printDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+
+    const html = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Peta Struktur Organisasi Unit Kerja</title>
+<style>
+  @page { size: A3 landscape; margin: 8mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #fff; color: #1e293b; font-size: 6.5pt;
+  }
+
+  /* ── HEADER ── */
+  .hdr {
+    background: linear-gradient(135deg,#1f4f85,#2663a3);
+    color:#fff; text-align:center; padding:8px 16px; border-radius:8px; margin-bottom:10px;
+  }
+  .hdr h1 { font-size:12pt; font-weight:900; letter-spacing:1px; text-transform:uppercase; margin: 0; }
+  .hdr p { font-size:7pt; color:#bfdbfe; margin-top:2px; }
+  
+  /* ── LEGEND ── */
+  .legend { display:flex; gap:14px; justify-content:center; margin-bottom:10px; }
+  .legend-item { display:flex; align-items:center; gap:4px; font-size:6pt; font-weight:700; }
+  .dot { width:9px; height:9px; border-radius:2px; }
+  .dot.ss { background:#1e3a8a; }
+  .dot.sp { background:#7c3aed; }
+  .dot.sk { background:#059669; }
+
+  /* ── BADGES ── */
+  .badge {
+    display:inline-block; font-size:5pt; font-weight:900; padding:1px 4px;
+    border-radius:3px; margin-bottom:3px; letter-spacing:.3px; text-transform:uppercase;
+  }
+  .ss-badge { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; }
+  .sp-badge { background:#ede9fe; color:#4c1d95; border:1px solid #a78bfa; }
+  .sk-badge { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+
+  /* ── LAN CARD ── */
+  .lan-card {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    color: #fff; border-radius: 8px; padding: 10px 18px;
+    min-width: 220px; text-align: center;
+    border-bottom: 4px solid #3b82f6;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
+    position: relative;
+    z-index: 10;
+  }
+  .lan-title { font-size: 9pt; font-weight: 900; letter-spacing: 0.5px; }
+
+  /* ── SS level (children of LAN) ── */
+  .ss-level {
+    display: flex;
+    list-style: none;
+    padding-top: 24px;   /* room for the vertical drop line from LAN */
+    position: relative;
+    gap: 0;
+  }
+
+  /* Vertical line dropping from LAN card bottom to the horizontal bar */
+  .ss-level::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 1.5px; height: 24px;
+    background: #1e3a8a;
+  }
+
+  /* Each SS item */
+  .ss-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 0 12px;
+  }
+
+  /* Left horizontal arm (toward left sibling) */
+  .ss-item::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 50%;
+    width: 50%; height: 1.5px;
+    background: #1e3a8a;
+  }
+  /* Right horizontal arm (toward right sibling) */
+  .ss-item::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    width: 50%; height: 1.5px;
+    background: #1e3a8a;
+  }
+  /* Single child — no horizontal arms */
+  .ss-item:only-child::before,
+  .ss-item:only-child::after  { display: none; }
+  /* First child — no left arm */
+  .ss-item:first-child::before { display: none; }
+  /* Last child  — no right arm */
+  .ss-item:last-child::after   { display: none; }
+
+  /* SS card — vertical stub from horizontal bar down to card top */
+  .ss-card {
+    margin-top: 24px;   /* space for stub */
+    position: relative;
+  }
+  .ss-card::before {
+    content: '';
+    position: absolute;
+    top: -24px; left: 50%;
+    transform: translateX(-50%);
+    width: 1.5px; height: 24px;
+    background: #1e3a8a;
+  }
+
+  /* ── SS CARD ── */
+  .ss-card {
+    background:linear-gradient(135deg,#1e3a8a,#1d4ed8);
+    color:#fff; border-radius:8px; padding:9px 14px;
+    min-width:240px; max-width:320px;
+    border-left:4px solid #fbbf24;
+    box-shadow:0 3px 10px rgba(30,58,138,.25);
+  }
+  .ss-title { font-size:8.5pt; font-weight:800; line-height:1.35; margin-bottom:4px; text-align: center; }
+  .ss-sub   { font-size:6pt; color:#bfdbfe; text-align: center; }
+
+  /* ── SP CARD ── */
+  .sp-card {
+    background:#fff; border:1.5px solid #7c3aed; border-radius:7px;
+    padding:7px 9px; min-width:150px; max-width:200px;
+    box-shadow:0 2px 6px rgba(124,58,237,.1);
+  }
+  .card-text     { font-size:6.5pt; font-weight:700; line-height:1.4; color:#1e293b; margin-bottom:4px; text-align: center; }
+
+  /* ── SK CARD ── */
+  .sk-card {
+    background:#fff; border:1.5px solid #059669; border-radius:6px;
+    padding:6px 8px; min-width:130px; max-width:175px;
+    box-shadow:0 1px 4px rgba(5,150,105,.09);
+  }
+
+  /* ── SP level (children of SS) ── */
+  .sp-level {
+    display: flex;
+    list-style: none;
+    padding-top: 24px;   /* room for the vertical drop line from SS */
+    position: relative;
+    gap: 0;
+  }
+
+  /* Vertical line dropping from SS card bottom to the horizontal bar */
+  .sp-level::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 1.5px; height: 24px;
+    background: #7c3aed;
+  }
+
+  /* Each SP item */
+  .sp-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 0 8px;
+  }
+
+  /* Left horizontal arm (toward left sibling) */
+  .sp-item::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 50%;
+    width: 50%; height: 1.5px;
+    background: #7c3aed;
+  }
+  /* Right horizontal arm (toward right sibling) */
+  .sp-item::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    width: 50%; height: 1.5px;
+    background: #7c3aed;
+  }
+  /* Single child — no horizontal arms */
+  .sp-item:only-child::before,
+  .sp-item:only-child::after  { display: none; }
+  /* First child — no left arm */
+  .sp-item:first-child::before { display: none; }
+  /* Last child  — no right arm */
+  .sp-item:last-child::after   { display: none; }
+
+  /* SP card — vertical stub from horizontal bar down to card top */
+  .sp-card {
+    margin-top: 24px;   /* space for stub */
+    position: relative;
+  }
+  .sp-card::before {
+    content: '';
+    position: absolute;
+    top: -24px; left: 50%;
+    transform: translateX(-50%);
+    width: 1.5px; height: 24px;
+    background: #7c3aed;
+  }
+
+  /* ── SK level (children of SP) ── */
+  .sk-level {
+    display: flex;
+    list-style: none;
+    padding-top: 18px;
+    position: relative;
+    gap: 0;
+    margin-top: 0;
+  }
+
+  /* Vertical drop from SP card bottom */
+  .sk-level::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 1.5px; height: 18px;
+    background: #059669;
+  }
+
+  .sk-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 0 6px;
+  }
+
+  .sk-item::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 50%;
+    width: 50%; height: 1.5px;
+    background: #059669;
+  }
+  .sk-item::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    width: 50%; height: 1.5px;
+    background: #059669;
+  }
+  .sk-item:only-child::before,
+  .sk-item:only-child::after  { display: none; }
+  .sk-item:first-child::before { display: none; }
+  .sk-item:last-child::after   { display: none; }
+
+  .sk-card {
+    margin-top: 18px;
+    position: relative;
+  }
+  .sk-card::before {
+    content: '';
+    position: absolute;
+    top: -18px; left: 50%;
+    transform: translateX(-50%);
+    width: 1.5px; height: 18px;
+    background: #059669;
+  }
+
+  .btn-wrap { text-align:center; margin-top:20px; padding-bottom:12px; }
+  .btn-print {
+    padding:8px 24px; background:#1f4f85; color:#fff; border:none;
+    border-radius:7px; font-weight:700; font-size:9pt; cursor:pointer;
+  }
+  .tree-wrapper {
+    overflow-x: auto;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  #cascade-tree {
+    min-width: max-content;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  @media print {
+    .btn-wrap { display:none; }
+    body { background:white; }
+    .tree-wrapper {
+      overflow-x: visible;
+      padding: 0;
+    }
+    #cascade-tree {
+      min-width: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="hdr">
+  <h1>Peta Struktur Organisasi</h1>
+  <p>Lembaga Administrasi Negara &bull; Dicetak: ${printDate}</p>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="dot ss"></div> Kepala LAN</div>
+  <div class="legend-item"><div class="dot sp"></div> Eselon I</div>
+  <div class="legend-item"><div class="dot sk"></div> Eselon II</div>
+</div>
+
+<div class="tree-wrapper">
+  <div id="cascade-tree">
+    <div class="lan-card">
+      <div class="badge" style="background:#475569; color:#fff; border:1px solid #64748b; margin-bottom:2px;">INSTANSI</div>
+      <div class="lan-title">Lembaga Administrasi Negara (LAN)</div>
+    </div>
+    ${ssItems ? `<ul class="ss-level">${ssItems}</ul>` : '<p style="text-align:center;color:#94a3b8;padding:40px;">Tidak ada data untuk ditampilkan.</p>'}
+  </div>
+</div>
+
+<div class="btn-wrap">
+  <button class="btn-print" onclick="window.print()">Cetak / Simpan PDF</button>
+</div>
+
+</body>
+</html>`
+
+    const win = window.open('', '_blank', 'width=1400,height=900')
+    if (!win) {
+      alert('Popup diblokir browser. Mohon izinkan popup untuk halaman ini.')
+      return
+    }
+    win.document.write(html)
+    win.document.close()
+  } finally {
+    printLoading.value = false
+  }
+}
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 const { data, error, pending, refresh } = useFetch('/api/unit-kerja', { lazy: true, default: () => [] })

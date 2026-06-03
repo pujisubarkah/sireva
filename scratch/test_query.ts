@@ -1,7 +1,7 @@
-import { db } from './server/db';
-import { sasaranKegiatan } from './server/db/schema/sasaran-kegiatan';
-import { indikatorKinerja } from './server/db/schema/indikator-kinerja';
-import { sasaranProgram } from './server/db/schema/sasaran-program';
+import { db } from '../server/db';
+import { sasaranKegiatan } from '../server/db/schema/sasaran-kegiatan';
+import { indikatorKinerja } from '../server/db/schema/indikator-kinerja';
+import { sasaranProgram } from '../server/db/schema/sasaran-program';
 import { eq, and, isNull, sql } from 'drizzle-orm';
 
 async function main() {

@@ -79,6 +79,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
           '/master-sasaran-kegiatan',
           '/sasaran-strategis',
           '/pemantauan-kinerja/sasaran-program',
+          '/pemantauan-kinerja/sasaran-kegiatan',
           '/pemantauan-kinerja/rencana-aksi',
           '/cascading',
           '/laporan/kinerja-triwulan'

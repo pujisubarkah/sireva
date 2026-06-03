@@ -26,13 +26,19 @@ export default defineEventHandler(async (event) => {
     // Calculate achievement (capaian) average based on inputted realizations
     const programReports = await db.select({
       realisasi: laporanSasaranProgram.realisasi,
-      target: sql<number>`(select target from sireva.target_indikator_program tip where tip.indikator_id = ${laporanSasaranProgram.indikatorId} limit 1)`
-    }).from(laporanSasaranProgram);
+      target: sql<number>`MAX(tip.target)`
+    })
+    .from(laporanSasaranProgram)
+    .leftJoin(sql`sireva.target_indikator_program tip`, sql`tip.indikator_id = ${laporanSasaranProgram.indikatorId}`)
+    .groupBy(laporanSasaranProgram.id, laporanSasaranProgram.realisasi);
 
     const kegiatanReports = await db.select({
       realisasi: laporanSasaranKegiatan.realisasi,
-      target: sql<number>`(select target_nilai from sireva.target_indikator_kegiatan tik where tik.id_iku = ${laporanSasaranKegiatan.indikatorId} limit 1)`
-    }).from(laporanSasaranKegiatan);
+      target: sql<number>`MAX(tik.target_nilai)`
+    })
+    .from(laporanSasaranKegiatan)
+    .leftJoin(sql`sireva.target_indikator_kegiatan tik`, sql`tik.id_iku = ${laporanSasaranKegiatan.indikatorId}`)
+    .groupBy(laporanSasaranKegiatan.id, laporanSasaranKegiatan.realisasi);
 
     const strategisReports = await db.select({
       capaian: laporanSasaranStrategis.capaian

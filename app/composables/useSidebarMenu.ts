@@ -50,6 +50,15 @@ const superAdminMenuItems: SidebarMenuItem[] = [
     ],
   },
   {
+    label: 'Pemantauan',
+    icon: 'IconChartBar',
+    children: [
+      { label: 'Sasaran Program', href: SIDEBAR_MENU_ROUTES.pemantauanSasaranProgram, icon: 'IconFocus2' },
+      { label: 'Sasaran Kegiatan', href: SIDEBAR_MENU_ROUTES.pemantauanSasaranKegiatan, icon: 'IconListDetails' },
+      { label: 'Rencana Aksi', href: SIDEBAR_MENU_ROUTES.pemantauanRencanaAksi, icon: 'IconClipboardList' },
+    ],
+  },
+  {
     label: 'Cascading Kinerja',
     href: SIDEBAR_MENU_ROUTES.cascading,
     icon: 'IconSitemap',
