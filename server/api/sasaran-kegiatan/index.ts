@@ -1,6 +1,7 @@
 import { db } from '../../db';
 import { sasaranKegiatan } from '../../db/schema/sasaran-kegiatan';
 import { indikatorKinerja } from '../../db/schema/indikator-kinerja';
+import { sasaranProgram } from '../../db/schema/sasaran-program';
 import { eq, and, isNull, sql } from 'drizzle-orm';
 import { defineEventHandler, readBody, getMethod, getQuery, createError } from 'h3';
 import { generateKodeSK } from '../../utils/kode-helper';
@@ -23,6 +24,7 @@ export default defineEventHandler(async (event) => {
         sasaran_kegiatan_text: sasaranKegiatan.namaSk,
         unit_kerja: sasaranKegiatan.pengampu,
         unitKerjaNama: sasaranKegiatan.pengampu,
+        programUnitKerja: sasaranProgram.pengampu,
         instansiTerkait: sasaranKegiatan.instansiTerkait,
         indikatorId: indikatorKinerja.id,
         indikatorNama: indikatorKinerja.namaIku,
@@ -52,6 +54,7 @@ export default defineEventHandler(async (event) => {
         const result = await db.select(selectFields)
           .from(sasaranKegiatan)
           .leftJoin(indikatorKinerja, and(eq(sasaranKegiatan.id, indikatorKinerja.skId), isNull(indikatorKinerja.deletedAt)))
+          .leftJoin(sasaranProgram, and(eq(sasaranKegiatan.spId, sasaranProgram.id), isNull(sasaranProgram.deletedAt)))
           .leftJoin(sql`sireva.target_indikator_kegiatan tik`, sql`tik.id_iku = ${indikatorKinerja.id}`)
           .where(and(...whereConditions))
           .groupBy(
@@ -61,6 +64,7 @@ export default defineEventHandler(async (event) => {
             sasaranKegiatan.kodeSk,
             sasaranKegiatan.namaSk,
             sasaranKegiatan.pengampu,
+            sasaranProgram.pengampu,
             sasaranKegiatan.instansiTerkait,
             indikatorKinerja.id,
             indikatorKinerja.namaIku,
@@ -77,6 +81,7 @@ export default defineEventHandler(async (event) => {
       return await db.select(selectFields)
         .from(sasaranKegiatan)
         .leftJoin(indikatorKinerja, and(eq(sasaranKegiatan.id, indikatorKinerja.skId), isNull(indikatorKinerja.deletedAt)))
+        .leftJoin(sasaranProgram, and(eq(sasaranKegiatan.spId, sasaranProgram.id), isNull(sasaranProgram.deletedAt)))
         .leftJoin(sql`sireva.target_indikator_kegiatan tik`, sql`tik.id_iku = ${indikatorKinerja.id}`)
         .where(and(...conditions))
         .groupBy(
@@ -86,6 +91,7 @@ export default defineEventHandler(async (event) => {
           sasaranKegiatan.kodeSk,
           sasaranKegiatan.namaSk,
           sasaranKegiatan.pengampu,
+          sasaranProgram.pengampu,
           sasaranKegiatan.instansiTerkait,
           indikatorKinerja.id,
           indikatorKinerja.namaIku,

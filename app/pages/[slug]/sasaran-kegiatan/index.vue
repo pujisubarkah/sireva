@@ -229,12 +229,22 @@ const displayRows = computed(() => {
   let rows = (skRaw.value || []) as any[]
   if ((skRaw.value as any)?.data) rows = (skRaw.value as any).data
 
-  // If not super admin, filter to own unit kerja only
+  // If not super admin, filter to own unit/cascade
   if (!isSuperAdmin.value && loggedUnitKerjaName.value) {
-    rows = rows.filter((r: any) => {
-      const uk = r.unit_kerja || r.unitKerjaNama || r.pengampu || ''
-      return uk.toLowerCase().includes(loggedUnitKerjaName.value.toLowerCase())
-    })
+    if (isAdmin.value) {
+      rows = rows.filter((r: any) => {
+        const progUk = (r.programUnitKerja || '').trim().toLowerCase()
+        const ownUk = (r.unit_kerja || r.unitKerjaNama || r.pengampu || '').trim().toLowerCase()
+        const loggedUk = loggedUnitKerjaName.value.toLowerCase()
+        return progUk === loggedUk || ownUk === loggedUk
+      })
+    } else {
+      rows = rows.filter((r: any) => {
+        const ownUk = (r.unit_kerja || r.unitKerjaNama || r.pengampu || '').trim().toLowerCase()
+        const loggedUk = loggedUnitKerjaName.value.toLowerCase()
+        return ownUk === loggedUk
+      })
+    }
   }
 
   // Super admin: filter by selected unit kerja

@@ -12,7 +12,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div v-if="canInput" class="flex items-center gap-3">
         <NuxtLink
           :to="`/${route.params.slug}/pemantauan-kinerja/rencana-aksi/add`"
           class="px-6 py-3 rounded-2xl bg-[#2663A3] text-white text-sm font-black hover:bg-blue-800 transition-all shadow-xl shadow-blue-700/20 flex items-center gap-2 active:scale-95"
@@ -81,12 +81,14 @@
               <IconEye :size="18" />
             </NuxtLink>
             <NuxtLink
+              v-if="canInput"
               :to="`/${route.params.slug}/pemantauan-kinerja/rencana-aksi/edit?id=${row.id}`"
               class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
             >
               <IconPencil :size="18" />
             </NuxtLink>
             <button
+              v-if="canInput"
               @click="handleDelete(row)"
               class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
             >
@@ -108,8 +110,17 @@ import {
   IconChartBar, IconPlus, IconSearch, IconEye, IconPencil, IconTrash 
 } from '@tabler/icons-vue'
 import UiTable from '@/components/UI/Table.vue'
+import { useAuthUser } from '~/composables/useAuthUser'
 
 const route = useRoute()
+const { authUser, role } = useAuthUser()
+
+const normalizedRole = computed(() => String(role.value || '').toLowerCase().replace(/\s+/g, '_'))
+const isSuperAdmin = computed(() => normalizedRole.value === 'super_admin')
+const isAdmin = computed(() => normalizedRole.value === 'admin')
+const isUser = computed(() => normalizedRole.value === 'user')
+const canInput = computed(() => isSuperAdmin.value || isUser.value)
+const userUnit = computed(() => authUser.value?.unit_kerja?.trim() || null)
 
 const searchQuery = ref('')
 
@@ -127,12 +138,23 @@ const displayRows = computed(() => {
   let rows = (rawData.value || []) as any[]
   if (rawData.value?.data) rows = rawData.value.data
 
+  // Filter based on user role and unit kerja
+  if (!isSuperAdmin.value && userUnit.value) {
+    if (isAdmin.value) {
+      // Eselon 1 admin sees plans linked to their cascaded programs
+      rows = rows.filter(r => (r.programUnitKerja || '').trim() === userUnit.value)
+    } else {
+      // Eselon 2 user sees plans belonging to their activities
+      rows = rows.filter(r => (r.unitKerja || '').trim() === userUnit.value)
+    }
+  }
+
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
     rows = rows.filter(r => 
       r.rencanaAksiNama?.toLowerCase().includes(q) || 
       r.keterangan?.toLowerCase().includes(q) ||
-      r.unitKerjaNama?.toLowerCase().includes(q)
+      r.unitKerja?.toLowerCase().includes(q)
     )
   }
 
@@ -142,8 +164,8 @@ const displayRows = computed(() => {
 async function handleDelete(row: any) {
   if (!confirm('Hapus laporan pemantauan ini?')) return
   try {
-    await $fetch(`/api/pemantauan-rencana-aksi/${row.id}`, { method: 'DELETE' })
-    mutate()
+    await $fetch(`/api/pemantauan-rencana-aksi?id=${row.id}`, { method: 'DELETE' })
+    refresh()
   } catch (error) {
     console.error('Error:', error)
   }

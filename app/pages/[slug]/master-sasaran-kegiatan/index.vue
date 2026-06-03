@@ -30,6 +30,8 @@
         <!-- Filters -->
         <div class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-2xl shadow-sm">
           <FilterDropdown
+            v-slot="{}"
+            v-if="isSuperAdmin"
             v-model="selectedUnit"
             :options="unitOptions"
             :icon="IconBuilding"
@@ -37,7 +39,7 @@
             class="border-0! shadow-none hover:bg-slate-50"
             :label-mode="true"
           />
-          <div class="w-px h-6 bg-slate-200"></div>
+          <div v-if="isSuperAdmin" class="w-px h-6 bg-slate-200"></div>
           <FilterDropdown
             v-model="selectedYear"
             :options="yearOptions"
@@ -172,11 +174,15 @@ import {
 } from '@tabler/icons-vue';
 import FilterDropdown from '@/components/FilterDropdown.vue';
 import Table from '@/components/UI/Table.vue';
-import { useToast } from '#imports';
+import { useToast, useAuthUser } from '#imports';
 
 const toast = useToast();
 const router = useRouter();
 const route = useRoute();
+const { authUser, role } = useAuthUser();
+
+const isSuperAdmin = computed(() => role.value === 'super_admin');
+const userUnit = computed(() => authUser.value?.unit_kerja?.trim() || null);
 
 interface SasaranRow {
   id: any;
@@ -230,9 +236,11 @@ const filteredRows = computed<SasaranRow[]>(() => {
   
   let rows = source;
 
-  // Apply unit kerja filter (pengampu)
-  if (selectedUnit.value) {
-    rows = rows.filter((item: any) => item.unit_kerja === selectedUnit.value);
+  // Filter based on user role and unit kerja
+  if (!isSuperAdmin.value && userUnit.value) {
+    rows = rows.filter((item: any) => (item.unit_kerja || '').trim() === userUnit.value);
+  } else if (selectedUnit.value) {
+    rows = rows.filter((item: any) => (item.unit_kerja || '').trim() === selectedUnit.value.trim());
   }
 
   // Apply search query filter

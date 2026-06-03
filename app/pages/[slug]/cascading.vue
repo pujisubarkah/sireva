@@ -425,6 +425,14 @@ import {
   IconBuildingBank
 } from '@tabler/icons-vue'
 import FilterDropdown from '@/components/FilterDropdown.vue'
+import { useAuthUser } from '~/composables/useAuthUser'
+
+const { role, authUser } = useAuthUser()
+const normalizedRole = computed(() => String(role.value || '').toLowerCase().replace(/\s+/g, '_'))
+const isSuperAdmin = computed(() => normalizedRole.value === 'super_admin')
+const isAdmin = computed(() => normalizedRole.value === 'admin')
+const isUser = computed(() => normalizedRole.value === 'user')
+const loggedUnitKerjaName = computed(() => String(authUser.value?.unit_kerja || '').trim())
 
 // ──────────────────── State ────────────────────
 const selectedYear = ref('2025')
@@ -465,7 +473,7 @@ function drillTo(level: 'ss' | 'is' | 'sp' | 'sk', item: any) {
 }
 
 // ──────────────────── Computed Lists ────────────────────
-const uniqueStrategis = computed(() => {
+const allUniqueStrategis = computed(() => {
   if (!strategisList.value) return []
   // Handle error response object
   const val = strategisList.value as any
@@ -499,7 +507,7 @@ const isDrilled = computed(() => {
   }))
 })
 
-const uniqueProgram = computed(() => {
+const allUniqueProgram = computed(() => {
   if (!programList.value) return []
   const val = programList.value as any
   if (val?.success === false) return []
@@ -521,7 +529,7 @@ const uniqueProgram = computed(() => {
   }, [])
 })
 
-const uniqueKegiatan = computed(() => {
+const allUniqueKegiatan = computed(() => {
   if (!kegiatanList.value) return []
   const val = kegiatanList.value as any
   if (val?.success === false) return []
@@ -537,6 +545,7 @@ const uniqueKegiatan = computed(() => {
         spId: Number(item.spId),
         sasaranText: item.sasaran_kegiatan_text || item.sasaranText || item.namaSk,
         unitKerja: item.unit_kerja || item.unitKerjaNama || '-',
+        programUnitKerja: item.programUnitKerja || '',
         indicators: []
       })
     }
@@ -554,6 +563,50 @@ const uniqueKegiatan = computed(() => {
     }
   })
   return Array.from(map.values())
+})
+
+// ──────────────────── Filtered for Cascading ────────────────────
+const uniqueKegiatan = computed(() => {
+  const list = allUniqueKegiatan.value
+  if (isSuperAdmin.value || !loggedUnitKerjaName.value) return list
+
+  const loggedUk = loggedUnitKerjaName.value.toLowerCase()
+  if (isAdmin.value) {
+    return list.filter((k: any) => {
+      const progUk = (k.programUnitKerja || '').trim().toLowerCase()
+      const ownUk = (k.unitKerja || '').trim().toLowerCase()
+      return progUk === loggedUk || ownUk === loggedUk
+    })
+  } else {
+    return list.filter((k: any) => {
+      const ownUk = (k.unitKerja || '').trim().toLowerCase()
+      return ownUk === loggedUk
+    })
+  }
+})
+
+const uniqueProgram = computed(() => {
+  const list = allUniqueProgram.value
+  if (isSuperAdmin.value || !loggedUnitKerjaName.value) return list
+
+  const loggedUk = loggedUnitKerjaName.value.toLowerCase()
+  if (isAdmin.value) {
+    return list.filter((p: any) => {
+      const ownUk = (p.unitKerja || '').trim().toLowerCase()
+      return ownUk === loggedUk
+    })
+  } else {
+    const parentSpIds = new Set(uniqueKegiatan.value.map(k => k.spId))
+    return list.filter((p: any) => parentSpIds.has(p.id))
+  }
+})
+
+const uniqueStrategis = computed(() => {
+  const list = allUniqueStrategis.value
+  if (isSuperAdmin.value || !loggedUnitKerjaName.value) return list
+
+  const parentSsIds = new Set(uniqueProgram.value.map(p => p.ssId))
+  return list.filter((ss: any) => parentSsIds.has(ss.id))
 })
 
 // ──────────────────── Filtered for drill-down ────────────────────

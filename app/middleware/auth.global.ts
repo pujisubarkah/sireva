@@ -18,19 +18,26 @@ export default defineNuxtRouteMiddleware((to, from) => {
   const getRoleSlug = (user: any) => {
     if (!user) return 'user'
     
-    // Check role_id first
+    // Check role string first (more reliable in this DB setup)
+    if (user.role) {
+      const roleStr = String(user.role)
+        .trim()
+        .toLowerCase()
+        .replace(/[-\s]+/g, '_')
+      if (roleStr === 'super_admin') return 'super_admin'
+      if (roleStr === 'admin') return 'admin'
+      if (roleStr === 'user') return 'user'
+      if (roleStr === 'verifikator') return 'verifikator'
+      if (roleStr === 'kepala') return 'kepala'
+    }
+    
+    // Fallback to role_id
     const roleId = Number(user.role_id)
     if (roleId === 1) return 'super_admin'
     if (roleId === 2) return 'admin'
     if (roleId === 3) return 'user'
     
-    // Fallback to role name string normalization
-    const roleStr = String(user.role || '')
-      .trim()
-      .toLowerCase()
-      .replace(/[-\s]+/g, '_')
-      
-    return roleStr || 'user'
+    return 'user'
   }
 
   const userRole = getRoleSlug(authUser.value)

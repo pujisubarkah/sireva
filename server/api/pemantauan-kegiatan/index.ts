@@ -4,10 +4,10 @@ import { sasaranKegiatan } from '../../db/schema/sasaran-kegiatan';
 import { indikatorKinerja } from '../../db/schema/indikator-kinerja';
 import { unitKerja } from '../../db/schema/unit-kerja';
 import { eq, sql } from 'drizzle-orm';
-import { defineEventHandler, readBody, getQuery, createError } from 'h3';
+import { defineEventHandler, readBody, getMethod, getQuery, createError } from 'h3';
 
 export default defineEventHandler(async (event) => {
-  const method = event.method;
+  const method = getMethod(event);
   const query = getQuery(event);
 
   try {

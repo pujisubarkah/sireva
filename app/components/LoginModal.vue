@@ -121,7 +121,7 @@ const serverError = ref('')
 
 const errors = ref({ usernameOrEmail: '', password: '' })
 
-const usernameRegex = /^[a-zA-Z0-9_.-]{3,}$/
+const usernameRegex = /^[a-zA-Z0-9_.-]{2,}$/
 
 const resolveSlugFromUser = (user: any) => {
   const role = typeof user?.role === 'string' ? user.role.trim().toLowerCase() : ''
@@ -161,7 +161,7 @@ const isValid = computed(() => {
   if (!usernameOrEmail.value) {
     errors.value.usernameOrEmail = 'Username wajib diisi'
   } else if (!usernameRegex.test(usernameOrEmail.value)) {
-    errors.value.usernameOrEmail = 'Username minimal 3 karakter, hanya huruf, angka, titik, underscore, atau strip'
+    errors.value.usernameOrEmail = 'Username minimal 2 karakter, hanya huruf, angka, titik, underscore, atau strip'
   } else {
     errors.value.usernameOrEmail = ''
   }

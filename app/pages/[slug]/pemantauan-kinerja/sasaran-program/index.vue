@@ -201,10 +201,15 @@ function getProgressColor(percent: number) {
 async function handleDelete(row: any) {
   if (!confirm('Hapus laporan capaian program ini?')) return
   try {
-    await $fetch(`/api/pemantauan-program?id=${row.id}`, { method: 'DELETE' })
-    mutate()
-  } catch (error) {
-    console.error('Error:', error)
+    const res = await $fetch<any>(`/api/pemantauan-program?id=${row.id}`, { method: 'DELETE' })
+    if (res?.success === false) {
+      alert(res.message || 'Gagal menghapus data.')
+      return
+    }
+    refresh()
+  } catch (error: any) {
+    const msg = error?.data?.message || error?.message || 'Gagal menghapus data.'
+    alert(msg)
   }
 }
 </script>

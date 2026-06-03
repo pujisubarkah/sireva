@@ -196,7 +196,7 @@ async function handleDelete(row: any) {
   if (!confirm('Hapus laporan capaian ini?')) return
   try {
     await $fetch(`/api/pemantauan-kegiatan?id=${row.id}`, { method: 'DELETE' })
-    mutate()
+    refresh()
   } catch (error) {
     console.error('Error:', error)
   }

@@ -3,11 +3,12 @@ import { laporanRencanaAksi } from '../../db/schema/laporan-rencana-aksi';
 import { rencanaAksi } from '../../db/schema/rencana-aksi';
 import { sasaranKegiatan } from '../../db/schema/sasaran-kegiatan';
 import { indikatorKinerja } from '../../db/schema/indikator-kinerja';
+import { sasaranProgram } from '../../db/schema/sasaran-program';
 import { eq, sql } from 'drizzle-orm';
-import { defineEventHandler, readBody, getQuery, createError } from 'h3';
+import { defineEventHandler, readBody, getMethod, getQuery, createError } from 'h3';
 
 export default defineEventHandler(async (event) => {
-  const method = event.method;
+  const method = getMethod(event);
   const query = getQuery(event);
 
   try {
@@ -25,11 +26,13 @@ export default defineEventHandler(async (event) => {
           targetValue: rencanaAksi.target,
           unitKerjaNama: sasaranKegiatan.pengampu,
           sasaranText: sasaranKegiatan.namaSk,
+          programUnitKerja: sasaranProgram.pengampu,
         })
         .from(laporanRencanaAksi)
         .leftJoin(rencanaAksi, eq(laporanRencanaAksi.rencanaAksiId, rencanaAksi.id))
         .leftJoin(sasaranKegiatan, eq(rencanaAksi.indikatorId, sasaranKegiatan.id))
         .leftJoin(indikatorKinerja, eq(sasaranKegiatan.id, indikatorKinerja.skId))
+        .leftJoin(sasaranProgram, eq(sasaranKegiatan.spId, sasaranProgram.id))
         .where(eq(laporanRencanaAksi.id, Number(query.id)));
         
         return res;
@@ -42,11 +45,13 @@ export default defineEventHandler(async (event) => {
         realisasi: laporanRencanaAksi.capaian, // In schema RA it's named 'capaian' but used as realisasi
         targetValue: rencanaAksi.target,
         unitKerja: sasaranKegiatan.pengampu,
+        programUnitKerja: sasaranProgram.pengampu,
       })
       .from(laporanRencanaAksi)
       .leftJoin(rencanaAksi, eq(laporanRencanaAksi.rencanaAksiId, rencanaAksi.id))
       .leftJoin(sasaranKegiatan, eq(rencanaAksi.indikatorId, sasaranKegiatan.id))
-      .leftJoin(indikatorKinerja, eq(sasaranKegiatan.id, indikatorKinerja.skId));
+      .leftJoin(indikatorKinerja, eq(sasaranKegiatan.id, indikatorKinerja.skId))
+      .leftJoin(sasaranProgram, eq(sasaranKegiatan.spId, sasaranProgram.id));
     }
 
     if (method === 'POST') {

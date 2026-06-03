@@ -1,10 +1,10 @@
 import { db } from '../../db';
 import { laporanKinerjaTriwulan } from '../../db/schema/laporan-kinerja-triwulan';
 import { eq, and, sql } from 'drizzle-orm';
-import { defineEventHandler, readBody, getQuery, createError } from 'h3';
+import { defineEventHandler, readBody, getMethod, getQuery, createError } from 'h3';
 
 export default defineEventHandler(async (event) => {
-  const method = event.method;
+  const method = getMethod(event);
   const query = getQuery(event);
 
   try {

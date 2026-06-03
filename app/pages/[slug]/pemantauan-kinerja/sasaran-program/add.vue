@@ -251,6 +251,8 @@ const route = useRoute()
 const submitting = ref(false)
 const { authUser, role } = useAuthUser()
 
+const { data: unitList } = useFetch<any[]>('/api/unit-kerja', { lazy: true, default: () => [] })
+
 const normalizedRole = computed(() => String(role.value || '').toLowerCase().replace(/\s+/g, '_'))
 const isSuperAdmin = computed(() => normalizedRole.value === 'super_admin')
 
@@ -289,6 +291,8 @@ const spApiUrl = computed(() => {
   const unitId = userUnitKerjaId.value
   return unitId ? `/api/sasaran-program/unit-kerja/${unitId}` : null
 })
+
+const { data: spMaster } = useFetch<any>(() => spApiUrl.value, { lazy: true, default: () => [] })
 
 
 const sasaranProgramList = computed(() => {

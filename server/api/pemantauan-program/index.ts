@@ -5,10 +5,10 @@ import { indikatorProgram } from '../../db/schema/indikator-program';
 import { sasaranProgramUnitKerja } from '../../db/schema/sasaran-program-unit-kerja';
 import { unitKerja } from '../../db/schema/unit-kerja';
 import { eq, and, sql } from 'drizzle-orm';
-import { defineEventHandler, readBody, getQuery, createError } from 'h3';
+import { defineEventHandler, readBody, getMethod, getQuery, createError } from 'h3';
  
 export default defineEventHandler(async (event) => {
-  const method = event.method;
+  const method = getMethod(event);
   const query = getQuery(event);
  
   try {

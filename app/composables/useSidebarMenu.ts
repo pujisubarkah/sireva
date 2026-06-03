@@ -157,14 +157,20 @@ export function useSidebarMenu(options: UseSidebarMenuOptions = {}) {
   const resolvedVariant = computed<SidebarVariant>(() => {
     if (options.variant) return options.variant;
     
-    // Resolve by role_id first
+    // Resolve by role string first (more reliable in this DB setup)
+    const roleStr = authUser.value?.role?.trim().toLowerCase();
+    if (roleStr === 'super_admin') return 'super_admin';
+    if (roleStr === 'admin') return 'admin';
+    if (roleStr === 'user') return 'user';
+    if (roleStr === 'verifikator') return 'verifikator';
+    if (roleStr === 'kepala') return 'kepala';
+
+    // Fallback to role_id
     const roleId = authUser.value?.role_id;
     if (roleId === 1) return 'super_admin';
     if (roleId === 2) return 'admin';
     if (roleId === 3) return 'user';
     
-    const roleName = role.value?.replace(/\s+/g, '_') as SidebarVariant;
-    if (roleName) return roleName;
     return (slug.value?.replace(/\s+/g, '_') as SidebarVariant) || 'user';
   });
 

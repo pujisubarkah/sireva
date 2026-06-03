@@ -201,10 +201,15 @@ const apiUrl = computed(() => {
   }
   const unitId = userUnitKerjaId.value
   if (!unitId) return null
-  return `/api/sasaran-program/unit-kerja/${unitId}`
+  if (isAdmin.value) {
+    return `/api/sasaran-program/unit-kerja/${unitId}`
+  }
+  // For user, fetch all programs, then filter client-side based on their pulled activities (SK)
+  return '/api/sasaran-program'
 })
 
 const { data: spRaw, pending: loading, refresh } = useFetch(() => apiUrl.value, { lazy: true, default: () => [] })
+const { data: skRaw } = useFetch<any[]>('/api/sasaran-kegiatan', { lazy: true, default: () => [] })
 
 const unitOptions = computed(() => {
   const units = (unitData.value || []).map((u: any) => ({ value: u.id, label: u.nama }))
@@ -214,6 +219,16 @@ const unitOptions = computed(() => {
 const displayRows = computed(() => {
   let rows = Array.isArray(spRaw.value) ? spRaw.value : (spRaw.value?.data || [])
   
+  if (normalizedRole.value === 'user' && loggedUnitKerjaName.value) {
+    let sks = Array.isArray(skRaw.value) ? skRaw.value : ((skRaw.value as any)?.data || [])
+    sks = sks.filter((sk: any) => {
+      const uk = sk.unit_kerja || sk.unitKerjaNama || sk.pengampu || ''
+      return uk.toLowerCase().trim() === loggedUnitKerjaName.value.toLowerCase().trim()
+    })
+    const spIds = new Set(sks.map((sk: any) => Number(sk.spId)).filter(id => !isNaN(id)))
+    rows = rows.filter((r: any) => spIds.has(Number(r.id)))
+  }
+
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
     rows = rows.filter((r: any) => 

@@ -1,9 +1,10 @@
 import { db } from '../../db';
 import { perjanjianKinerja } from '../../db/schema/perjanjian-kinerja';
 import { eq, and } from 'drizzle-orm';
+import { getMethod, getQuery, createError } from 'h3';
 
 export default defineEventHandler(async (event) => {
-  const method = event.method;
+  const method = getMethod(event);
 
   if (method === 'GET') {
     const query = getQuery(event);
